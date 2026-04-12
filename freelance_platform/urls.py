@@ -5,8 +5,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
-from whatsapp_webhook import whatsapp_webhook
 from gigs.sitemaps import GigSitemap, CategorySitemap, StaticSitemap, ProviderSitemap
+
+# Try to import whatsapp webhook, but make it optional
+try:
+    from whatsapp_webhook import whatsapp_webhook
+    WHATSAPP_WEBHOOK_AVAILABLE = True
+except ImportError:
+    WHATSAPP_WEBHOOK_AVAILABLE = False
+    print("Warning: WhatsApp webhook not available. WhatsApp webhooks will be disabled.")
 
 def redirect_to_receipts(request):
     """Redirect old admin/receipts URL to new system/receipts URL"""
@@ -24,9 +31,14 @@ urlpatterns = [
     path('reviews/', include('reviews.urls')),
     path('notifications/', include('notifications.urls')),
     path('webhook/whatsapp/', include('gigs.webhook_urls')),  # WhatsApp webhooks
-    path('api/whatsapp/webhook/', whatsapp_webhook),  # Direct WhatsApp webhook
-    
-    # SEO URLs
+]
+
+# Add WhatsApp webhook URL only if available
+if WHATSAPP_WEBHOOK_AVAILABLE:
+    urlpatterns.append(path('api/whatsapp/webhook/', whatsapp_webhook))  # Direct WhatsApp webhook
+
+# Add SEO URLs
+urlpatterns.extend([
     path('sitemap.xml', sitemap, {
         'sitemaps': {
             'gigs': GigSitemap,
@@ -36,7 +48,7 @@ urlpatterns = [
         }
     }, name='django.contrib.sitemaps.views.sitemap'),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
-]
+])
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
