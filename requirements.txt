@@ -1,6 +1,6 @@
-# Fixed Railway requirements - removed django-stripe (non-existent) 2026-04-12
-Django==4.2.7
-django-allauth==0.57.0
+# Clean requirements for Django freelance platform - compatible versions
+Django==4.2.16
+django-allauth==65.15.1
 django-crispy-forms==2.1
 crispy-bootstrap5==0.7
 django-extensions==3.2.3
