@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payout Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-hand-holding-usd me-2"></i>Payout Dashboard</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Payout Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ available_balance|floatformat:2 }}</h4>
+                            <p class="card-text">Available Balance</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-wallet fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ total_earnings|floatformat:2 }}</h4>
+                            <p class="card-text">Total Earnings</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ pending_payouts|floatformat:2 }}</h4>
+                            <p class="card-text">Pending Payouts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ completed_payouts|floatformat:2 }}</h4>
+                            <p class="card-text">Completed Payouts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:payout_request' %}" class="btn btn-success w-100">
+                                <i class="fas fa-plus me-2"></i>Request Payout
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:payout_list' %}" class="btn btn-info w-100">
+                                <i class="fas fa-list me-2"></i>My Payouts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:provider_earnings' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-coins me-2"></i>My Earnings
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:transaction_history' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-history me-2"></i>Transaction History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in recent_transactions %}
+                                        <tr>
+                                            <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                                            <td>{{ transaction.description|truncatechars:30 }}</td>
+                                            <td>
+                                                <span class="badge {% if transaction.transaction_type == 'earning' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ transaction.get_transaction_type_display }}
+                                                </span>
+                                            </td>
+                                            <td class="{% if transaction.transaction_type == 'earning' %}text-success{% else %}text-danger{% endif %}">
+                                                {% if transaction.transaction_type == 'earning' %}+{% endif %}R{{ transaction.amount }}
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if transaction.status == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                                    {{ transaction.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h5>No transactions found</h5>
+                            <p class="text-muted">You haven't had any transactions yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payout Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Payout Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Payment Schedule:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-clock me-2"></i>Standard payouts released every 2 days</li>
+                        <li><i class="fas fa-bolt me-2"></i>Urgent payouts available (extra R15)</li>
+                        <li><i class="fas fa-rocket me-2"></i>Express payouts available (extra R25)</li>
+                    </ul>
+                    
+                    <h6>Payment Methods:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-mobile-alt me-2"></i>E-Wallet</li>
+                        <li><i class="fas fa-paper-plane me-2"></i>Cash Send</li>
+                        <li><i class="fas fa-exchange-alt me-2"></i>PayShap</li>
+                        <li><i class="fas fa-university me-2"></i>Bank Transfer</li>
+                        <li><i class="fas fa-bolt me-2"></i>Instant Payments</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Monthly service fees will be charged automatically to all active providers.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

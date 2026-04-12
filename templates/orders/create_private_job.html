@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hire {{ provider.get_full_name|default:provider.email }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-tie me-2"></i>
+                        Hire {{ provider.get_full_name|default:provider.email }}
+                    </h4>
+                    <p class="mb-0 text-muted">Create a private job that only this provider can see and respond to</p>
+                </div>
+                <div class="card-body">
+                    <!-- Provider Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" class="rounded-circle" width="80" height="80" alt="{{ provider.email }}">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ provider.get_full_name|default:provider.email }}</h5>
+                            <p class="text-muted mb-1">{{ provider.bio|default:"Professional service provider" }}</p>
+                            <div class="mb-2">
+                                {% if provider.hourly_rate %}
+                                    <span class="badge bg-primary">R{{ provider.hourly_rate }}/hour</span>
+                                {% endif %}
+                                {% if provider.square_meter_rate %}
+                                    <span class="badge bg-info">R{{ provider.square_meter_rate }}/m²</span>
+                                {% endif %}
+                                {% if provider.years_experience %}
+                                    <span class="badge bg-success">{{ provider.years_experience }} years exp</span>
+                                {% endif %}
+                            </div>
+                            {% if provider.location %}
+                                <p class="mb-1"><i class="fas fa-map-marker-alt"></i> {{ provider.location }}</p>
+                            {% endif %}
+                            {% if provider.service_categories.all %}
+                                <div>
+                                    {% for category in provider.service_categories.all %}
+                                        <span class="badge bg-secondary me-1">{{ category.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Job Creation Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                {{ form.job_title.label_tag }}
+                                {{ form.job_title }}
+                                {% if form.job_title.help_text %}
+                                    <div class="form-text">{{ form.job_title.help_text }}</div>
+                                {% endif %}
+                                {% if form.job_title.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.job_title.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.budget_min.label_tag }}
+                                {{ form.budget_min }}
+                                {% if form.budget_min.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.budget_min.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.budget_max.label_tag }}
+                                {{ form.budget_max }}
+                                {% if form.budget_max.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.budget_max.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.start_date.label_tag }}
+                                {{ form.start_date }}
+                                {% if form.start_date.help_text %}
+                                    <div class="form-text">{{ form.start_date.help_text }}</div>
+                                {% endif %}
+                                {% if form.start_date.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.start_date.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.completion_date.label_tag }}
+                                {{ form.completion_date }}
+                                {% if form.completion_date.help_text %}
+                                    <div class="form-text">{{ form.completion_date.help_text }}</div>
+                                {% endif %}
+                                {% if form.completion_date.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.completion_date.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                {{ form.requirements.label_tag }}
+                                {{ form.requirements }}
+                                {% if form.requirements.help_text %}
+                                    <div class="form-text">{{ form.requirements.help_text }}</div>
+                                {% endif %}
+                                {% if form.requirements.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.requirements.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                {{ form.category.label_tag }}
+                                {{ form.category }}
+                                {% if form.category.help_text %}
+                                    <div class="form-text">{{ form.category.help_text }}</div>
+                                {% endif %}
+                                {% if form.category.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.category.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Private Job:</strong> This job will only be visible to {{ provider.get_full_name|default:provider.email }}. They will have the option to accept or reject your job offer.
+                        </div>
+
+                        <div class="d-grid gap-2 d-flex justify-content-end">
+                            <a href="{% url 'gigs:service_providers' %}" class="btn btn-outline-secondary">Back to Providers</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Send Job Offer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

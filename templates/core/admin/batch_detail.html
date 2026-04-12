@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Batch Detail - {{ batch.id|truncatechars:8 }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-file-csv me-2"></i>Payment Batch Detail</h2>
+                <div>
+                    <a href="{% url 'core:bulk_payment_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{% url 'core:download_batch_csv' batch.id %}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Download CSV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Information -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Batch Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th><strong>Batch ID:</strong></th>
+                                    <td><code>{{ batch.id }}</code></td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Type:</strong></th>
+                                    <td>
+                                        <span class="badge {% if batch.batch_type == 'ewallet' %}bg-success{% elif batch.batch_type == 'eft' %}bg-info{% else %}bg-warning{% endif %}">
+                                            {{ batch.get_batch_type_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Status:</strong></th>
+                                    <td>
+                                        <span class="badge {% if batch.status == 'completed' %}bg-success{% elif batch.status == 'uploaded' %}bg-info{% elif batch.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ batch.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Payouts:</strong></th>
+                                    <td>{{ batch.payout_count }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th><strong>Total Amount:</strong></th>
+                                    <td class="fw-bold text-success">R{{ total_amount|floatformat:2 }}</td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Created:</strong></th>
+                                    <td>{{ batch.created_at|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Uploaded:</strong></th>
+                                    <td>
+                                        {% if batch.uploaded_at %}
+                                            {{ batch.uploaded_at|date:"Y-m-d H:i:s" }}
+                                        {% else %}
+                                            <span class="text-muted">Not uploaded</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><strong>Bank Reference:</strong></th>
+                                    <td>
+                                        {% if batch.bank_reference %}
+                                            <code>{{ batch.bank_reference }}</code>
+                                        {% else %}
+                                            <span class="text-muted">Not provided</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if batch.error_message %}
+                    <div class="alert alert-danger mt-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Error Details</h6>
+                        <pre class="mb-0">{{ batch.error_message }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if batch.status == 'generated' %}
+                    <form method="post" action="{% url 'core:update_batch_status' batch.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="bank_reference" class="form-label">Bank Reference (Optional)</label>
+                            <input type="text" name="bank_reference" id="bank_reference" class="form-control" 
+                                   placeholder="Enter bank transaction reference">
+                        </div>
+                        <button type="submit" name="action" value="upload" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-upload me-2"></i>Mark as Uploaded
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if batch.status == 'uploaded' %}
+                    <form method="post" action="{% url 'core:update_batch_status' batch.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="action" value="complete" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-check me-2"></i>Mark as Completed
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if batch.status in ['generated', 'uploaded'] %}
+                    <form method="post" action="{% url 'core:update_batch_status' batch.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="error_message" class="form-label">Error Message</label>
+                            <textarea name="error_message" id="error_message" class="form-control" rows="3" 
+                                      placeholder="Describe the error..."></textarea>
+                        </div>
+                        <button type="submit" name="action" value="fail" class="btn btn-danger w-100">
+                            <i class="fas fa-times me-2"></i>Mark as Failed
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'core:download_batch_csv' batch.id %}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-download me-2"></i>Download CSV
+                        </a>
+                        <a href="{% url 'core:payout_selection' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-plus me-2"></i>Create New Batch
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payouts List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list me-2"></i>Payouts in this Batch ({{ payouts.count }})</h5>
+                    <span class="badge bg-primary">Total: R{{ total_amount|floatformat:2 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if payouts %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Priority</th>
+                                        <th>Payment Details</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payout in payouts %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ payout.provider.email }}</strong><br>
+                                            <small class="text-muted">{{ payout.recipient_name }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">R{{ payout.net_amount }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if payout.payout_method == 'bank_transfer' %}bg-info{% elif payout.payout_method == 'ewallet' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ payout.get_payout_method_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if payout.priority == 'standard' %}bg-secondary{% elif payout.priority == 'urgent' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ payout.get_priority_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if payout.payout_method == 'bank_transfer' %}
+                                                <small class="text-muted">
+                                                    Acc: {{ payout.bank_account }}<br>
+                                                    Bank: {{ payout.bank_name }}<br>
+                                                    Branch: {{ payout.branch_code }}
+                                                </small>
+                                            {% elif payout.payout_method == 'ewallet' %}
+                                                <small class="text-muted">{{ payout.recipient_email }}</small>
+                                            {% else %}
+                                                <small class="text-muted">{{ payout.recipient_phone }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if payout.status == 'completed' %}bg-success{% elif payout.status == 'processing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                {{ payout.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ payout.created_at|date:"Y-m-d H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No payouts found in this batch.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

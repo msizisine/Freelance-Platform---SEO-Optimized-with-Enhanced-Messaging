@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payout Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-hand-holding-usd me-2"></i>Payout Management</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Payout Management</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ payout_requests_count }}</h4>
+                            <p class="card-text">Payout Requests</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-hand-paper fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ payouts_awaiting_processing_count }}</h4>
+                            <p class="card-text">Due for Processing</p>
+                            <small>R{{ total_awaiting_amount|floatformat:2 }}</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ pending_earnings_count }}</h4>
+                            <p class="card-text">Pending Payouts (2-day wait)</p>
+                            <small>R{{ total_pending_amount|floatformat:2 }}</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ payout_history_count }}</h4>
+                            <p class="card-text">Completed History</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-history fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:generate_monthly_fees' %}" class="btn btn-warning w-100">
+                                <i class="fas fa-calendar-alt me-2"></i>Generate Monthly Fees
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:manage_earnings' %}" class="btn btn-success w-100">
+                                <i class="fas fa-coins me-2"></i>Manage Earnings
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:all_transactions' %}" class="btn btn-info w-100">
+                                <i class="fas fa-history me-2"></i>All Transactions
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:system_dashboard' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-cog me-2"></i>System Config
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payout Categories -->
+    <div class="row">
+        <!-- Payout Requests -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-hand-paper me-2"></i>Payout Requests ({{ payout_requests_count }})</h5>
+                    <div>
+                        <span class="badge bg-primary me-2">New Requests</span>
+                        {% if payout_requests %}
+                            <a href="{% url 'core:download_payout_requests_csv' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-2"></i>Download Requests CSV
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if payout_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Net Amount</th>
+                                        <th>Gross Amount</th>
+                                        <th>Platform Fee</th>
+                                        <th>Method</th>
+                                        <th>Priority</th>
+                                        <th>Requested</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payout in payout_requests %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ payout.provider.email }}</strong><br>
+                                                <small class="text-muted">{{ payout.recipient_name }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-success">R{{ payout.net_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">R{{ payout.gross_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-warning">R{{ payout.platform_fee|add:payout.processing_fee }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ payout.get_payout_method_display }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if payout.priority == 'standard' %}bg-secondary{% elif payout.priority == 'urgent' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ payout.get_priority_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ payout.requested_at|date:"Y-m-d H:i" }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{% url 'core:approve_payout' payout.id %}" class="btn btn-success" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                    <a href="{% url 'core:reject_payout' payout.id %}" class="btn btn-danger" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-hand-paper fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No payout requests at the moment.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Due for Processing (Selectable for EFT) -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-check-circle me-2"></i>Due for Processing ({{ payouts_awaiting_processing_count }})</h5>
+                    <div>
+                        <span class="badge bg-success me-2">Ready for EFT</span>
+                        {% if payouts_awaiting_processing %}
+                            <button type="submit" form="eft-form" name="generate_eft_csv" class="btn btn-success btn-sm">
+                                <i class="fas fa-file-csv me-2"></i>Generate EFT CSV
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if payouts_awaiting_processing %}
+                        <form method="post" id="eft-form">
+                            {% csrf_token %}
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" id="selectAll" class="form-check-input">
+                                            </th>
+                                            <th>Provider</th>
+                                            <th>Earning Type</th>
+                                            <th>Net Amount</th>
+                                            <th>Gross Amount</th>
+                                            <th>Platform Fee</th>
+                                            <th>Available Date</th>
+                                            <th>Bank Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for earning in payouts_awaiting_processing %}
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" name="selected_earnings" value="{{ earning.id }}" 
+                                                           class="form-check-input earning-checkbox" 
+                                                           {% if not earning.has_verified_bank %}disabled{% endif %}>
+                                                </td>
+                                                <td>
+                                                    <strong>{{ earning.provider.email }}</strong><br>
+                                                    <small class="text-muted">{{ earning.provider.get_full_name }}</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">{{ earning.get_earning_type_display }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-success">R{{ earning.net_amount }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">R{{ earning.gross_amount }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-warning">R{{ earning.commission_amount }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-success">{{ earning.available_at|date:"Y-m-d H:i" }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if earning.has_verified_bank and earning.bank_account %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-university me-1"></i>{{ earning.bank_account.get_bank_display_name }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>No Bank
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <a href="/admin/core/providerearnings/{{ earning.id }}/change/" class="btn btn-outline-primary" title="View Details">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No earnings are currently due for processing.</p>
+                            <small class="text-muted">Earnings become due for processing after a 2-day waiting period.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Payouts (Not Yet Due) -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-clock me-2"></i>Pending Payouts ({{ pending_earnings_count }})</h5>
+                    <span class="badge bg-info">2-Day Waiting Period</span>
+                </div>
+                <div class="card-body">
+                    {% if pending_earnings %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-info">
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Earning Type</th>
+                                        <th>Net Amount</th>
+                                        <th>Gross Amount</th>
+                                        <th>Platform Fee</th>
+                                        <th>Created Date</th>
+                                        <th>Available Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for earning in pending_earnings %}
+                                        <tr class="table-secondary">
+                                            <td>
+                                                <strong>{{ earning.provider.email }}</strong><br>
+                                                <small class="text-muted">{{ earning.provider.get_full_name }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ earning.get_earning_type_display }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-info">R{{ earning.net_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">R{{ earning.gross_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-warning">R{{ earning.commission_amount }}</span>
+                                            </td>
+                                            <td>{{ earning.created_at|date:"Y-m-d H:i" }}</td>
+                                            <td>
+                                                <span class="text-info">{{ earning.available_at|date:"Y-m-d H:i" }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No pending earnings at the moment.</p>
+                            <small class="text-muted">New earnings will appear here during the 2-day waiting period.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payout History -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-history me-2"></i>Payout History ({{ payout_history_count }})</h5>
+                    <div>
+                        <span class="badge bg-primary me-2">Approved & Completed</span>
+                        {% if payout_history %}
+                            <a href="{% url 'core:download_payout_history_csv' %}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-download me-2"></i>Download History CSV
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if payout_history %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>Provider</th>
+                                        <th>Net Amount</th>
+                                        <th>Gross Amount</th>
+                                        <th>Platform Fee</th>
+                                        <th>Method</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Requested</th>
+                                        <th>Processed/Completed</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payout in payout_history %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ payout.provider.email }}</strong><br>
+                                                <small class="text-muted">{{ payout.recipient_name }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-success">R{{ payout.net_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">R{{ payout.gross_amount }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">R{{ payout.platform_fee|add:payout.processing_fee }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ payout.get_payout_method_display }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if payout.priority == 'standard' %}bg-secondary{% elif payout.priority == 'urgent' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ payout.get_priority_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if payout.status == 'completed' %}bg-success{% elif payout.status == 'approved' %}bg-primary{% else %}bg-warning{% endif %}">
+                                                    {{ payout.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ payout.requested_at|date:"Y-m-d H:i" }}</td>
+                                            <td>
+                                                {% if payout.status == 'completed' %}
+                                                    <span class="text-success">{{ payout.completed_at|date:"Y-m-d H:i" }}</span>
+                                                {% elif payout.status == 'approved' %}
+                                                    <span class="text-primary">{{ payout.processed_at|date:"Y-m-d H:i" }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="/admin/core/providerpayout/{{ payout.id }}/change/" class="btn btn-outline-primary" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No completed payouts in history.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all checkbox functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const earningCheckboxes = document.querySelectorAll('.earning-checkbox');
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            earningCheckboxes.forEach(function(checkbox) {
+                if (!checkbox.disabled) {
+                    checkbox.checked = isChecked;
+                }
+            });
+        });
+    }
+    
+    // Update select all checkbox when individual checkboxes change
+    earningCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (!this.disabled) {
+                updateSelectAllCheckbox();
+            }
+        });
+    });
+    
+    function updateSelectAllCheckbox() {
+        const enabledCheckboxes = Array.from(earningCheckboxes).filter(cb => !cb.disabled);
+        const checkedCheckboxes = enabledCheckboxes.filter(cb => cb.checked);
+        
+        if (selectAllCheckbox) {
+            if (checkedCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (checkedCheckboxes.length === enabledCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+        }
+    }
+    
+    // Form validation before EFT CSV generation
+    const eftForm = document.getElementById('eft-form');
+    if (eftForm) {
+        eftForm.addEventListener('submit', function(e) {
+            if (e.submitter && e.submitter.name === 'generate_eft_csv') {
+                const selectedEarnings = document.querySelectorAll('input[name="selected_earnings"]:checked');
+                
+                if (selectedEarnings.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one earning to generate EFT CSV file.');
+                    return false;
+                }
+                
+                // Confirm before generating
+                const confirmMessage = `Generate EFT CSV for ${selectedEarnings.length} selected earnings?`;
+                if (!confirm(confirmMessage)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+    }
+    
+    // Initialize select all checkbox state
+    updateSelectAllCheckbox();
+});
+</script>
+{% endblock %}
+
+{% endblock %}

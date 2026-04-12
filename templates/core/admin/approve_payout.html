@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve Payout{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-check-circle me-2"></i>Approve Payout</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:admin_payout_management' %}">Payout Management</a></li>
+                        <li class="breadcrumb-item active">Approve Payout</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user me-2"></i>Payout Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Provider:</strong> {{ payout.provider.email }}</p>
+                            <p><strong>Provider Name:</strong> {{ payout.provider.get_full_name|default:payout.provider.email }}</p>
+                            <p><strong>Gross Amount:</strong> R{{ payout.gross_amount|floatformat:2 }}</p>
+                            <p><strong>Platform Fee:</strong> R{{ payout.platform_fee|floatformat:2 }}</p>
+                            <p><strong>Processing Fee:</strong> R{{ payout.processing_fee|floatformat:2 }}</p>
+                            <p><strong><u>Net Amount:</u></strong> <strong>R{{ payout.net_amount|floatformat:2 }}</strong></p>
+                            <p><strong>Method:</strong> {{ payout.get_payout_method_display }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-warning">{{ payout.get_status_display }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Requested:</strong> {{ payout.requested_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>Priority:</strong> {{ payout.get_priority_display }}</p>
+                            <p><strong>Reference:</strong> {{ payout.reference_number }}</p>
+                            <p><strong>Recipient Name:</strong> {{ payout.recipient_name }}</p>
+                            {% if payout.recipient_phone %}
+                                <p><strong>Phone:</strong> {{ payout.recipient_phone }}</p>
+                            {% endif %}
+                            {% if payout.recipient_email %}
+                                <p><strong>Email:</strong> {{ payout.recipient_email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method Specific Details -->
+                    <div class="mt-3">
+                        <h6><i class="fas fa-payment-method me-2"></i>Payment Details</h6>
+                        {% if payout.payout_method == 'bank_transfer' %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Bank Account:</strong> {{ payout.bank_account|default:"Not specified" }}</p>
+                                    <p><strong>Bank Name:</strong> {{ payout.bank_name|default:"Not specified" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Branch Code:</strong> {{ payout.branch_code|default:"Not specified" }}</p>
+                                </div>
+                            </div>
+                        {% elif payout.payout_method in 'ewallet,cash_send,payshap' %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Mobile Number:</strong> {{ payout.recipient_phone|default:"Not specified" }}</p>
+                                    {% if payout.recipient_email %}
+                                        <p><strong>Email:</strong> {{ payout.recipient_email }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Earnings Breakdown -->
+                    <div class="mt-3">
+                        <h6><i class="fas fa-list me-2"></i>Earnings Included</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Gross</th>
+                                        <th>Commission</th>
+                                        <th>Net</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for earning in payout.earnings.all %}
+                                        <tr>
+                                            <td>{{ earning.get_earning_type_display }}</td>
+                                            <td>R{{ earning.gross_amount|floatformat:2 }}</td>
+                                            <td>R{{ earning.commission_amount|floatformat:2 }}</td>
+                                            <td>R{{ earning.net_amount|floatformat:2 }}</td>
+                                            <td>{{ earning.created_at|date:"Y-m-d" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if payout.notes %}
+                        <div class="mt-3">
+                            <p><strong>Provider Notes:</strong></p>
+                            <p class="text-muted">{{ payout.notes }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs me-2"></i>Approval Action</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="admin_notes" class="form-label">Admin Notes</label>
+                            <textarea name="admin_notes" id="admin_notes" class="form-control" rows="3" 
+                                placeholder="Add any notes about this approval..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="transaction_id" class="form-label">Transaction ID</label>
+                            <input type="text" name="transaction_id" id="transaction_id" class="form-control" 
+                                placeholder="Enter transaction reference (optional)">
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Approve Payout
+                            </button>
+                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

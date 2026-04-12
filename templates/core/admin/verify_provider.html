@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify Service Provider - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Verify Service Provider</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You are about to verify this service provider. Once verified, they will be marked as a trusted provider on the platform.
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" class="rounded-circle" width="100" height="100" alt="Profile">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h5>{{ provider.first_name }} {{ provider.last_name }}</h5>
+                            <p class="text-muted">{{ provider.email }}</p>
+                            <p><strong>Member Since:</strong> {{ provider.created_at|date:"F d, Y" }}</p>
+                            {% if provider.years_experience %}
+                                <p><strong>Experience:</strong> {{ provider.years_experience }} years</p>
+                            {% endif %}
+                            {% if provider.skills %}
+                                <p><strong>Skills:</strong> {{ provider.skills|truncatewords:30 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'core:admin_provider_detail' provider.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle me-2"></i>Confirm Verification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

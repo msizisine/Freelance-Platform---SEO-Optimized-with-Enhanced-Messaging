@@ -1,0 +1,88 @@
+<div class="sidebar-section">
+    <a href="{% url 'messaging:list' %}" class="btn btn-primary w-100 mb-3 d-block text-center text-decoration-none">
+        <i class="ri-arrow-left-line me-2"></i>Back to Messages
+    </a>
+</div>
+
+<div class="sidebar-section">
+    <h6 class="sidebar-title">Participants</h6>
+    {% for participant in conversation.participants.all %}
+        <div class="participant-info">
+            <div class="participant-avatar">
+                {{ participant.email|slice:":2"|upper }}
+            </div>
+            <div class="participant-details">
+                <h6>{{ participant.get_full_name|default:participant.email }}</h6>
+                <p>{{ participant.email }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="sidebar-section">
+    <h6 class="sidebar-title">Actions</h6>
+    {% for participant in conversation.participants.all %}
+        {% if participant != request.user %}
+            <button class="btn btn-light-primary icon-btn-sm w-100 mb-2" onclick="blockUser('{{ participant.pk }}')">
+                <i class="ri-user-unfollow-line me-2"></i>Block User
+            </button>
+            <button class="btn btn-light-primary icon-btn-sm w-100" onclick="reportUser('{{ participant.pk }}')">
+                <i class="ri-flag-line me-2"></i>Report
+            </button>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<style>
+.sidebar-section {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.sidebar-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.participant-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1976d2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.participant-details h6 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.participant-details p {
+    margin: 0;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.icon-btn-sm {
+    padding: 6px 8px;
+    font-size: 13px;
+    border-radius: 20px;
+}
+</style>

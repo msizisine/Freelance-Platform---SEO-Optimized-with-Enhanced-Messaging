@@ -1,0 +1,976 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - Service Provider{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Service Provider Profile</h4>
+                            <p class="mb-0 text-white-50">Update your professional information and services</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-white text-primary">
+                                <i class="fas fa-star me-1"></i>{{ user.profile_completion_percentage|default:0 }}% Complete
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="border-bottom border-primary pb-2 mb-0">
+                                            <i class="fas fa-user me-2 text-primary"></i>Basic Information
+                                        </h5>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="badge bg-success-subtle text-success">Required</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }} <span class="text-danger">*</span></label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.first_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }} <span class="text-danger">*</span></label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.last_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }} <span class="text-danger">*</span></label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.email.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.phone.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                                    {{ form.location }}
+                                    {% if form.location.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.location.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.profile_picture }}
+                                        <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('{{ form.profile_picture.id_for_label }}').click()">
+                                            <i class="fas fa-upload me-2"></i>Choose File
+                                        </button>
+                                    </div>
+                                    {% if form.profile_picture.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.profile_picture.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="border-bottom border-info pb-2 mb-0">
+                                            <i class="fas fa-briefcase me-2 text-info"></i>Professional Information
+                                        </h5>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="badge bg-info-subtle text-info">Important</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.bio.id_for_label }}" class="form-label">{{ form.bio.label }}</label>
+                                    {{ form.bio }}
+                                    {% if form.bio.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.bio.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                                                    </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.service_categories.id_for_label }}" class="form-label">{{ form.service_categories.label }}</label>
+                                    {{ form.service_categories }}
+                                    <small class="form-text text-muted">Enter comma-separated categories (e.g., Plumbing, Electrical, Construction)</small>
+                                    {% if form.service_categories.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.service_categories.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.years_experience.id_for_label }}" class="form-label">{{ form.years_experience.label }}</label>
+                                    {{ form.years_experience }}
+                                    {% if form.years_experience.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.years_experience.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3 position-relative">
+                                    <label for="{{ form.id_passport_number.id_for_label }}" class="form-label">
+                                        <i class="fas fa-id-card me-2 text-warning"></i>{{ form.id_passport_number.label }}
+                                    </label>
+                                    {{ form.id_passport_number }}
+                                    {% if form.id_passport_number.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.id_passport_number.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <small class="text-muted"><i class="fas fa-shield-alt me-1"></i>Required for verification</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rates -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="border-bottom border-success pb-2 mb-0">
+                                            <i class="fas fa-dollar-sign me-2 text-success"></i>Service Rates
+                                        </h5>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="badge bg-success-subtle text-success">Optional</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">{{ form.hourly_rate.label }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R</span>
+                                        {{ form.hourly_rate }}
+                                    </div>
+                                    {% if form.hourly_rate.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.hourly_rate.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.daily_rate.id_for_label }}" class="form-label">{{ form.daily_rate.label }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R</span>
+                                        {{ form.daily_rate }}
+                                    </div>
+                                    {% if form.daily_rate.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.daily_rate.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.square_meter_rate.id_for_label }}" class="form-label">{{ form.square_meter_rate.label }}</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R</span>
+                                        {{ form.square_meter_rate }}
+                                    </div>
+                                    {% if form.square_meter_rate.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.square_meter_rate.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Portfolio & References Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="border-bottom border-info pb-2 mb-0">
+                                            <i class="fas fa-briefcase me-2 text-info"></i>Portfolio & References
+                                        </h5>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="badge bg-info-subtle text-info">Recommended</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.portfolio_description.id_for_label }}" class="form-label">{{ form.portfolio_description.label }}</label>
+                                    {{ form.portfolio_description }}
+                                    {% if form.portfolio_description.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.portfolio_description.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Describe your portfolio and past work experience</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.references.id_for_label }}" class="form-label">{{ form.references.label }}</label>
+                                    {{ form.references }}
+                                    {% if form.references.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.references.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Provide professional references and testimonials</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Skills Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="flex-grow-1">
+                                        <h5 class="border-bottom border-warning pb-2 mb-0">
+                                            <i class="fas fa-tools me-2 text-warning"></i>Skills & Expertise
+                                        </h5>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="badge bg-warning-subtle text-warning">Recommended</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="form-floating mb-3">
+                                    <label for="{{ form.skills.id_for_label }}" class="form-label">{{ form.skills.label }}</label>
+                                    {{ form.skills }}
+                                    {% if form.skills.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.skills.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">List your professional skills, certifications, and areas of expertise</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="row mt-5 pt-4 border-top">
+                            <div class="col-md-6">
+                                <a href="{% url 'users:my_profile' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-save me-2"></i>Save Profile Changes
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Messages Display -->
+                        {% if messages %}
+                            <div class="mt-3">
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Management -->
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Portfolio Management</h5>
+                    <p class="mb-0 text-white-50">Showcase your work with images and project details</p>
+                </div>
+                <div class="card-body">
+                    <!-- Current Portfolio Items -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="fas fa-folder-open me-2"></i>Current Portfolio Items</h6>
+                            <span class="badge bg-info">{{ user.portfolio_items.all.count }} items</span>
+                        </div>
+                        {% if user.portfolio_items.all %}
+                            <div class="row g-3">
+                                {% for portfolio_item in user.portfolio_items.all %}
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100 shadow-sm portfolio-card">
+                                            {% if portfolio_item.primary_image %}
+                                                <img src="{{ portfolio_item.primary_image.image.url }}" class="card-img-top" alt="{{ portfolio_item.title }}" style="height: 200px; object-fit: cover;">
+                                            {% endif %}
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ portfolio_item.title }}</h6>
+                                                <p class="card-text small text-muted">{{ portfolio_item.description|truncatewords:20 }}</p>
+                                                {% if portfolio_item.project_url %}
+                                                    <a href="{{ portfolio_item.project_url }}" target="_blank" class="btn btn-sm btn-outline-primary btn-block mt-2">
+                                                        <i class="fas fa-external-link-alt me-1"></i>View Project
+                                                    </a>
+                                                {% endif %}
+                                                {% if portfolio_item.all_images.count > 1 %}
+                                                    <small class="text-muted">{{ portfolio_item.all_images.count }} images</small>
+                                                {% endif %}
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmDeletePortfolio('{{ portfolio_item.id }}')">
+                                                        <i class="fas fa-trash me-1"></i>Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <h6 class="alert-heading">No Portfolio Items Yet</h6>
+                                    <p class="mb-0">Start building your professional portfolio by adding your first project below!</p>
+                                    <p class="text-muted small">Showcase your best work to attract more clients.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        </div>
+                        
+                        <!-- Add New Portfolio Item -->
+                        <div class="card border-2 border-dashed">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Portfolio Item</h6>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'users:portfolio_create' %}" enctype="multipart/form-data" class="portfolio-form">
+                                    {% csrf_token %}
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <div class="form-floating mb-3">
+                                                <label for="portfolio_title" class="form-label">Project Title <span class="text-danger">*</span></label>
+                                                <input type="text" name="title" class="form-control" id="portfolio_title" required placeholder="Amazing Kitchen Renovation">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <div class="form-floating mb-3">
+                                                <label for="portfolio_images" class="form-label">Project Images</label>
+                                                <div class="input-group">
+                                                    <input type="file" name="images" class="form-control" id="portfolio_images" accept="image/*" multiple>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('portfolio_images').click()">
+                                                        <i class="fas fa-upload me-2"></i>Choose Files
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <small class="form-text text-muted">Upload multiple high-quality images (hold Ctrl/Cmd to select multiple)</small>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <div class="form-floating mb-3">
+                                                <label for="portfolio_description" class="form-label">Project Description <span class="text-danger">*</span></label>
+                                                <textarea name="description" class="form-control" id="portfolio_description" rows="4" required placeholder="Describe the project scope, your role, and outcomes..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating mb-3">
+                                                <label for="portfolio_url" class="form-label">Project URL</label>
+                                                <input type="url" name="project_url" class="form-control" id="portfolio_url" placeholder="https://example.com/project">
+                                                <small class="form-text text-muted">Link to live project (optional)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="fas fa-plus me-2"></i>Add to Portfolio
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Professional References -->
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Professional References</h5>
+                    <p class="mb-0 text-white-50">Add references who can vouch for your work quality</p>
+                </div>
+                <div class="card-body">
+                    <!-- Current References -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="fas fa-star me-2"></i>Current References</h6>
+                            <span class="badge bg-warning">{{ user.professional_references.all.count }} references</span>
+                        </div>
+                        {% if user.professional_references.all %}
+                            <div class="row g-3">
+                                {% for reference in user.professional_references.all %}
+                                    <div class="col-md-6">
+                                        <div class="card h-100 shadow-sm reference-card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <div>
+                                                        <h6 class="card-title mb-1">{{ reference.name }}</h6>
+                                                        <p class="card-text small text-muted mb-2">
+                                                            <i class="fas fa-phone me-1"></i>{{ reference.contact }}
+                                                        </p>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteReference('{{ reference.id }}')">
+                                                        <i class="fas fa-trash me-1"></i>
+                                                    </button>
+                                                </div>
+                                                <p class="card-text small">
+                                                    <strong>Type of Work:</strong> {{ reference.type_of_work|truncatewords:15 }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <h6 class="alert-heading">No References Added Yet</h6>
+                                    <p class="mb-0">Build credibility by adding professional references who can vouch for your work quality.</p>
+                                    <p class="text-muted small">Include former clients, supervisors, or colleagues who can speak to your skills and professionalism.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        </div>
+                        
+                        <!-- Add New Reference -->
+                        <div class="card border-2 border-dashed">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add New Reference</h6>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'users:reference_create' %}" class="reference-form">
+                                    {% csrf_token %}
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <div class="form-floating mb-3">
+                                                <label for="reference_name" class="form-label">Reference Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="name" class="form-control" id="reference_name" required placeholder="John Smith">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating mb-3">
+                                                <label for="reference_contact" class="form-label">Contact <span class="text-danger">*</span></label>
+                                                <input type="text" name="contact" class="form-control" id="reference_contact" required placeholder="phone@example.com or +1234567890">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating mb-3">
+                                                <label for="reference_work_type" class="form-label">Type of Work</label>
+                                                <textarea name="type_of_work" class="form-control" id="reference_work_type" rows="2" placeholder="Brief description of work performed..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-warning btn-lg">
+                                            <i class="fas fa-plus me-2"></i>Add Reference
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+/* Enhanced Form Styling */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.bg-success-subtle {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.bg-info-subtle {
+    background-color: #e7f3ff;
+    color: #084298;
+}
+
+.bg-warning-subtle {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Bootstrap 5 Floating Labels Enhancement */
+.form-floating {
+    position: relative;
+}
+
+.form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    font-size: 0.875rem;
+    color: #6c757d;
+    transform-origin: 0 0;
+    transition: all 0.1s ease-in-out;
+}
+
+.form-floating > input {
+    padding-top: 1.625rem;
+    padding-bottom: 0.625rem;
+}
+
+.form-floating > input:focus ~ label {
+    transform: translateY(-1.5rem) scale(0.85);
+    color: #0d6efd;
+}
+
+/* Enhanced Input Groups */
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem 0 0.25rem 0 0.25rem;
+    font-weight: 500;
+}
+
+.input-group .form-control {
+    border-left: none;
+    border-radius: 0 0.25rem 0.25rem 0 0.25rem;
+}
+
+/* Enhanced Validation Feedback */
+.invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #dc3545;
+    font-weight: 500;
+}
+
+/* Card Enhancements */
+.portfolio-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.portfolio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.reference-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.reference-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Button Enhancements */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn:disabled:hover {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Loading Spinner */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .col-md-10 {
+        max-width: 100%;
+    }
+    
+    .row.g-3 > div {
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Required Field Indicators */
+.text-danger {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Visual Hierarchy */
+.border-primary {
+    border-color: #667eea !important;
+}
+
+.border-info {
+    border-color: #17a2b8 !important;
+}
+
+.border-success {
+    border-color: #198754 !important;
+}
+
+.border-warning {
+    border-color: #f5576c !important;
+}
+
+/* Section Headers Enhancement */
+h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Alert Styling */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.alert-heading {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* Empty State Styling */
+.text-center.py-4 .alert {
+    padding: 2rem;
+}
+
+.text-center.py-4 .alert h6 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhanced form validation and user experience
+    const profileForm = document.getElementById('profileForm');
+    
+    if (profileForm) {
+        // Add real-time validation feedback
+        const inputs = profileForm.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(input);
+            });
+            
+            input.addEventListener('input', function() {
+                // Clear error on input
+                const errorDiv = input.parentElement.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
+                // Remove invalid class
+                input.classList.remove('is-invalid');
+            });
+        });
+        
+        // Form submission with enhanced loading
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = profileForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="ms-2">Saving Profile...</span>';
+            
+            // Simulate API call for better UX
+            setTimeout(() => {
+                // Submit form for real
+                profileForm.submit();
+            }, 1500);
+        });
+    }
+    
+    // Portfolio form enhancement
+    const portfolioForm = document.querySelector('.portfolio-form');
+    if (portfolioForm) {
+        portfolioForm.addEventListener('submit', function(e) {
+            const submitBtn = portfolioForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="ms-2">Adding to Portfolio...</span>';
+            }
+        });
+    }
+    
+    // Reference form enhancement
+    const referenceForm = document.querySelector('.reference-form');
+    if (referenceForm) {
+        referenceForm.addEventListener('submit', function(e) {
+            const submitBtn = referenceForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i><span class="ms-2">Adding Reference...</span>';
+            }
+        });
+    }
+});
+
+function validateField(field) {
+    const value = field.value.trim();
+    const isRequired = field.hasAttribute('required');
+    
+    // Basic validation
+    if (isRequired && !value) {
+        field.classList.add('is-invalid');
+        showError(field, 'This field is required');
+    } else {
+        field.classList.remove('is-invalid');
+        clearError(field);
+    }
+}
+
+function showError(field, message) {
+    let errorDiv = field.parentElement.querySelector('.invalid-feedback');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        field.parentElement.appendChild(errorDiv);
+    }
+    errorDiv.textContent = message;
+    field.classList.add('is-invalid');
+}
+
+function clearError(field) {
+    const errorDiv = field.parentElement.querySelector('.invalid-feedback');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
+    field.classList.remove('is-invalid');
+}
+
+function confirmDeletePortfolio(portfolioId) {
+    if (confirm('Are you sure you want to delete this portfolio item? This action cannot be undone.')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/users/portfolio/RportfolioId}/delete/`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrfmiddlewaretoken';
+        csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function confirmDeleteReference(referenceId) {
+    if (confirm('Are you sure you want to delete this reference? This action cannot be undone.')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/users/reference/RreferenceId}/delete/`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrfmiddlewaretoken';
+        csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+<!-- Submit Buttons at Bottom -->
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3 justify-content-center">
+                        <button type="submit" form="profileForm" class="btn btn-primary btn-lg px-4 edit-profile-btn">
+                            <i class="fas fa-save me-2"></i>Save Profile
+                        </button>
+                        <a href="{% url 'users:my_profile' %}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

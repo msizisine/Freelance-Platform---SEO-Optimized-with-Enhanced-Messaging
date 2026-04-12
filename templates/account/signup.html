@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Sign Up - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">Join Home Services Hub</h4>
+                    <p class="text-muted mb-0">Connect homeowners with trusted service providers</p>
+                </div>
+                <div class="card-body">
+                    <!-- User Type Selection -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-center mb-3">I want to:</h5>
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label for="{{ form.user_type.id_for_label }}" class="form-label">Select Account Type *</label>
+                                        {% if form.user_type %}
+                                            {{ form.user_type }}
+                                        {% else %}
+                                            <select name="user_type" class="form-control" id="id_user_type" required>
+                                                <option value="">-- Select Account Type --</option>
+                                                <option value="homeowner">Homeowner - I want to hire services</option>
+                                                <option value="service_provider">Service Provider - I want to offer services</option>
+                                            </select>
+                                        {% endif %}
+                                        {% if form.user_type.errors %}
+                                            <div class="text-danger">
+                                                {{ form.user_type.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Choose whether you want to hire services or offer services</small>
+                                    </div>
+                                    
+                                    <!-- Visual Cards for Reference -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card text-center user-type-card" data-user-type="homeowner">
+                                                <div class="card-body">
+                                                    <i class="fas fa-home fa-3x text-primary mb-3"></i>
+                                                    <h6 class="card-title">Post Jobs & Hire</h6>
+                                                    <p class="card-text small">Find and hire trusted service providers for your home needs</p>
+                                                    <span class="badge bg-primary">Homeowner</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card text-center user-type-card" data-user-type="service_provider">
+                                                <div class="card-body">
+                                                    <i class="fas fa-tools fa-3x text-success mb-3"></i>
+                                                    <h6 class="card-title">Offer Services</h6>
+                                                    <p class="card-text small">Find work and showcase your skills to homeowners</p>
+                                                    <span class="badge bg-success">Service Provider</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sign Up Form -->
+                    <form method="post" action="{% url 'users:signup' %}" id="signupForm">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information for all users -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address *</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.user_type.id_for_label }}" class="form-label">Account Type</label>
+                                    {{ form.user_type }}
+                                    <div class="form-control bg-light mt-2" id="userTypeDisplay">Homeowner</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password *</label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password1.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password *</label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password2.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service Provider Specific Fields (shown conditionally) -->
+                        <div id="serviceProviderFields" style="display: none;">
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Service Provider Information</strong><br>
+                                Complete your professional profile to attract more clients and showcase your expertise.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number *</label>
+                                        {{ form.phone }}
+                                        {% if form.phone.errors %}
+                                            <div class="text-danger">
+                                                {{ form.phone.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Clients will use this to contact you</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.location.id_for_label }}" class="form-label">Service Area *</label>
+                                        {{ form.location }}
+                                        {% if form.location.errors %}
+                                            <div class="text-danger">
+                                                {{ form.location.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Where you provide your services</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.years_experience.id_for_label }}" class="form-label">Years of Experience *</label>
+                                        {{ form.years_experience }}
+                                        {% if form.years_experience.errors %}
+                                            <div class="text-danger">
+                                                {{ form.years_experience.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">How many years in your field?</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">Hourly Rate (R) *</label>
+                                        {{ form.hourly_rate }}
+                                        {% if form.hourly_rate.errors %}
+                                            <div class="text-danger">
+                                                {{ form.hourly_rate.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Your rate per hour</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.square_meter_rate.id_for_label }}" class="form-label">Rate per Square Meter (R)</label>
+                                        {{ form.square_meter_rate }}
+                                        {% if form.square_meter_rate.errors %}
+                                            <div class="text-danger">
+                                                {{ form.square_meter_rate.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">For construction/renovation services</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.service_categories.id_for_label }}" class="form-label">Service Categories *</label>
+                                        {{ form.service_categories }}
+                                        {% if form.service_categories.errors %}
+                                            <div class="text-danger">
+                                                {{ form.service_categories.errors }}
+                                            </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.skills.id_for_label }}" class="form-label">Skills & Qualifications *</label>
+                                {{ form.skills }}
+                                {% if form.skills.errors %}
+                                    <div class="text-danger">
+                                        {{ form.skills.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Example: Plumbing, Electrical, Carpentry, Licensed Contractor</small>
+                            </div>
+                                    
+                            <div class="mb-3">
+                                <label for="{{ form.bio.id_for_label }}" class="form-label">Professional Bio *</label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <div class="text-danger">
+                                        {{ form.bio.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Help clients understand your expertise and approach</small>
+                            </div>
+                                    
+                            <div class="mb-3">
+                                <label for="{{ form.portfolio_description.id_for_label }}" class="form-label">Portfolio & Experience</label>
+                                {{ form.portfolio_description }}
+                                {% if form.portfolio_description.errors %}
+                                    <div class="text-danger">
+                                        {{ form.portfolio_description.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Highlight your best work and accomplishments</small>
+                            </div>
+                        </div>
+
+                        <!-- Homeowner Specific Fields (shown conditionally) -->
+                        <div id="homeownerFields">
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Homeowner Information</strong><br>
+                                Help us understand your needs to connect you with the right service providers.
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_homeowner_location" class="form-label">Location</label>
+                                        <input type="text" name="homeowner_location" class="form-control" id="id_homeowner_location" placeholder="Your city/area">
+                                        <small class="form-text text-muted">Where you need services</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_homeowner_phone" class="form-label">Phone Number</label>
+                                        <input type="tel" name="homeowner_phone" class="form-control" id="id_homeowner_phone" placeholder="Your contact number">
+                                        <small class="form-text text-muted">For service provider communication</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="id_terms" required>
+                                <label class="form-check-label" for="id_terms">
+                                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {% trans "Sign Up" %}
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Already have an account? <a href="{% url 'account_login' %}">Sign in</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.querySelector('select[name="user_type"]');
+    const userTypeDisplay = document.getElementById('userTypeDisplay');
+    const serviceProviderFields = document.getElementById('serviceProviderFields');
+    const homeownerFields = document.getElementById('homeownerFields');
+    const form = document.getElementById('signupForm');
+    
+    function updateUserType() {
+        const selectedType = userTypeSelect.value;
+        userTypeDisplay.textContent = selectedType === 'homeowner' ? 'Homeowner' : 'Service Provider';
+        
+        // Toggle field visibility
+        if (selectedType === 'service_provider') {
+            serviceProviderFields.style.display = 'block';
+            homeownerFields.style.display = 'none';
+            
+            // Make service provider fields required
+            setRequiredFields(serviceProviderFields, true);
+            setRequiredFields(homeownerFields, false);
+            
+            // Highlight service provider card
+            highlightUserTypeCard('service_provider');
+        } else {
+            serviceProviderFields.style.display = 'none';
+            homeownerFields.style.display = 'block';
+            
+            // Make homeowner fields optional
+            setRequiredFields(serviceProviderFields, false);
+            setRequiredFields(homeownerFields, false);
+            
+            // Highlight homeowner card
+            highlightUserTypeCard('homeowner');
+        }
+    }
+    
+    function highlightUserTypeCard(userType) {
+        // Remove all highlights
+        document.querySelectorAll('.user-type-card').forEach(card => {
+            card.classList.remove('border-primary', 'bg-light');
+        });
+        
+        // Add highlight to selected type
+        const selectedCard = document.querySelector(`[data-user-type="${userType}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('border-primary', 'bg-light');
+        }
+    }
+    
+    function setRequiredFields(container, required) {
+        const inputs = container.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            // Skip non-service provider specific fields for homeowners
+            if (container.id === 'serviceProviderFields' && !required) {
+                input.removeAttribute('required');
+            } else if (container.id === 'serviceProviderFields' && required) {
+                // Only add required to fields that should be required for service providers
+                const requiredFields = ['phone', 'location', 'years_experience', 'hourly_rate', 'skills', 'bio', 'service_categories'];
+                if (requiredFields.includes(input.name) || input.name.includes('service_categories')) {
+                    input.setAttribute('required', 'required');
+                }
+            }
+        });
+    }
+    
+    // Event listener for dropdown change
+    userTypeSelect.addEventListener('change', updateUserType);
+    
+    // Update user type display on card clicks
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const userType = this.dataset.userType;
+            userTypeSelect.value = userType;
+            updateUserType();
+        });
+    });
+    
+    // Initialize
+    updateUserType();
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const userType = userTypeSelect.value;
+        
+        if (userType === 'service_provider') {
+            const requiredFields = ['phone', 'location', 'years_experience', 'hourly_rate', 'skills', 'bio'];
+            for (let fieldName of requiredFields) {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field && !field.value.trim()) {
+                    e.preventDefault();
+                    alert(`Please fill in the ${fieldName.replace('_', ' ')} field.`);
+                    field.focus();
+                    return false;
+                }
+            }
+            
+            // Check service categories
+            const serviceCategories = form.querySelector('[name="service_categories"]');
+            if (serviceCategories && serviceCategories.selectedOptions.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one service category.');
+                serviceCategories.focus();
+                return false;
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.user-type-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.user-type-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-type-card.selected {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+input[name="user_type"]:checked + label {
+    font-weight: bold;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Details - {{ review.service_provider.get_full_name|default:review.service_provider.email }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Review Card -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Review for {{ review.service_provider.get_full_name|default:review.service_provider.email }}</h5>
+                    <span class="badge bg-success">Verified</span>
+                </div>
+                <div class="card-body">
+                    <!-- Rating -->
+                    <div class="mb-3">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ms-2 text-muted">({{ review.rating }}/5)</span>
+                    </div>
+                    
+                    <!-- Review Comment -->
+                    <div class="mb-3">
+                        <h6>Review</h6>
+                        <p class="card-text">{{ review.comment }}</p>
+                    </div>
+                    
+                    <!-- Detailed Criteria (if available) -->
+                    {% if review.communication or review.quality or review.delivery %}
+                    <div class="mb-3">
+                        <h6>Detailed Ratings</h6>
+                        <div class="row">
+                            {% if review.communication %}
+                            <div class="col-md-4">
+                                <small class="text-muted">Communication:</small>
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.communication %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if review.quality %}
+                            <div class="col-md-4">
+                                <small class="text-muted">Quality:</small>
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.quality %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if review.delivery %}
+                            <div class="col-md-4">
+                                <small class="text-muted">Delivery:</small>
+                                <div>
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.delivery %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Job Information -->
+                    <div class="mb-3">
+                        <h6>Job Details</h6>
+                        <p class="mb-1"><strong>Job:</strong> <a href="{% url 'gigs:detail' review.gig.pk %}">{{ review.gig.title }}</a></p>
+                        <p class="mb-1"><strong>Order:</strong> #{{ review.order.order_number|default:review.order.pk }}</p>
+                        <p class="mb-1"><strong>Reviewed by:</strong> {{ review.client.get_full_name|default:review.client.email }}</p>
+                        <p class="mb-0"><strong>Date:</strong> {{ review.created_at|date:"F d, Y" }}</p>
+                    </div>
+                    
+                    <!-- Helpful Votes -->
+                    <div class="d-flex align-items-center">
+                        <small class="text-muted me-3">Was this review helpful?</small>
+                        <form method="post" action="{% url 'reviews:helpful' review.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" name="helpful" value="true" class="btn btn-sm btn-outline-success me-2">
+                                <i class="fas fa-thumbs-up"></i> Yes ({{ helpful_count }})
+                            </button>
+                            <button type="submit" name="helpful" value="false" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-thumbs-down"></i> No ({{ not_helpful_count }})
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response from Service Provider (if exists) -->
+            {% if review.response %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Response from {{ review.response.service_provider.get_full_name|default:review.response.service_provider.email }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ review.response.response }}</p>
+                    <small class="text-muted">Responded on {{ review.response.updated_at|date:"F d, Y" }}</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Service Provider Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Service Provider</h6>
+                </div>
+                <div class="card-body text-center">
+                    {% if review.service_provider.profile.profile_picture %}
+                        <img src="{{ review.service_provider.profile.profile_picture.url }}" alt="Profile" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user text-white fa-2x"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h6>{{ review.service_provider.get_full_name|default:review.service_provider.email }}</h6>
+                    <p class="text-muted small">{{ review.service_provider.profile.title|default:"Service Provider" }}</p>
+                    
+                    <a href="{% url 'reviews:freelancer_reviews' review.service_provider.pk %}" class="btn btn-sm btn-outline-primary">
+                        View All Reviews
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            {% if user == review.client %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Your Actions</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">You wrote this review on {{ review.created_at|date:"F d, Y" }}</p>
+                    <a href="{% url 'gigs:detail' review.gig.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-briefcase me-2"></i>View Job
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

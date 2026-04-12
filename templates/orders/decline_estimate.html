@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Decline Estimate - {{ job_offer.job_title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-times-circle me-2"></i>Decline Estimate
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Job Details -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Job Details</h6>
+                        <p class="mb-2"><strong>Title:</strong> {{ job_offer.job_title }}</p>
+                        <p class="mb-0"><strong>Description:</strong> {{ job_offer.job_description }}</p>
+                    </div>
+
+                    <!-- Estimate Details -->
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">Service Provider's Estimate</h6>
+                        <p class="mb-2">
+                            <strong>Provider:</strong> {{ job_offer.service_provider.get_full_name|default:job_offer.service_provider.email }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Estimated Price:</strong> 
+                            <span class="badge bg-warning fs-6">R{{ job_offer.estimated_price|floatformat:2 }}</span>
+                        </p>
+                        {% if job_offer.estimated_duration %}
+                            <p class="mb-2">
+                                <strong>Duration:</strong> {{ job_offer.estimated_duration }}
+                            </p>
+                        {% endif %}
+                        {% if job_offer.estimate_description %}
+                            <p class="mb-0">
+                                <strong>Approach:</strong> {{ job_offer.estimate_description }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Original Budget -->
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading">Original Budget</h6>
+                        <p class="mb-0">
+                            <strong>Your Budget Range:</strong> 
+                            R{{ job_offer.budget_min|floatformat:2 }} - R{{ job_offer.budget_max|floatformat:2 }}
+                        </p>
+                    </div>
+
+                    <!-- Decline Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Confirmation Required
+                            </h6>
+                            <p class="mb-0">
+                                By declining this estimate, you will:
+                            </p>
+                            <ul class="mb-0">
+                                <li>Reject the estimate from {{ job_offer.service_provider.get_full_name|default:job_offer.service_provider.email }}</li>
+                                <li>The estimate will be marked as "Declined"</li>
+                                <li>No job will be created</li>
+                                <li>You can still review other estimates for this job</li>
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:review_estimates' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Estimates
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i>Decline Estimate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

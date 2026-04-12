@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages Test</title>
+</head>
+<body>
+    <h1>Messages Test Page</h1>
+    <p>If you can see this page, the basic messaging system is working.</p>
+    
+    <h2>Debug Information:</h2>
+    <ul>
+        <li>User: {{ user.email if user else 'Not logged in' }}</li>
+        <li>Conversations: {{ conversations|length }}</li>
+        <li>Unread: {{ unread_count }}</li>
+    </ul>
+    
+    <h2>Navigation:</h2>
+    <ul>
+        <li><a href="/messages/">Go to Messages</a></li>
+        <li><a href="/messages/create/1/">Create Conversation</a></li>
+        <li><a href="/">Home</a></li>
+    </ul>
+    
+    {% if conversations %}
+        <h2>Your Conversations:</h2>
+        <ul>
+        {% for conv in conversations %}
+            <li>Conversation {{ conv.pk }} - {{ conv.get_other_participant|default:'Unknown' }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No conversations found. <a href="/messages/create/1/">Create one</a></p>
+    {% endif %}
+</body>
+</html>

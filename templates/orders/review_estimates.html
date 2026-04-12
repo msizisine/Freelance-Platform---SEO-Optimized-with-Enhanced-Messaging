@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Estimates{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Review Submitted Estimates
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if job_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Job Title</th>
+                                        <th>Service Provider</th>
+                                        <th>Original Budget</th>
+                                        <th>Estimated Price</th>
+                                        <th>Duration</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in job_offers %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ offer.job_title }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ offer.job_description|truncatewords:15 }}</small>
+                                            </td>
+                                            <td>
+                                                {{ offer.service_provider.get_full_name|default:offer.service_provider.email }}
+                                                <br>
+                                                <small class="text-muted">{{ offer.service_provider.email }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    R{{ offer.budget_min|floatformat:2 }} - R{{ offer.budget_max|floatformat:2 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success fw-bold">
+                                                    R{{ offer.estimated_price|floatformat:2 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    {{ offer.estimated_duration|default:"Not specified" }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small>{{ offer.submitted_at|date:"M d, Y H:i" }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'orders:approve_estimate' offer.id %}" 
+                                                       class="btn btn-sm btn-success"
+                                                       onclick="return confirm('Are you sure you want to approve this estimate? This will create a job.')">
+                                                        <i class="fas fa-check me-1"></i>Approve
+                                                    </a>
+                                                    <a href="{% url 'orders:decline_estimate' offer.id %}" 
+                                                       class="btn btn-sm btn-danger"
+                                                       onclick="return confirm('Are you sure you want to decline this estimate?')">
+                                                        <i class="fas fa-times me-1"></i>Decline
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Estimates to Review</h5>
+                            <p class="text-muted">Service providers haven't submitted any estimates for your job offers yet.</p>
+                            <a href="{% url 'gigs:service_providers' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Find Service Providers
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

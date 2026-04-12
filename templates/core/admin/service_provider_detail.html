@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Service Provider Details - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:admin_provider_list' %}">Service Providers</a></li>
+                    <li class="breadcrumb-item active">Provider Details</li>
+                </ol>
+            </nav>
+            
+            <!-- Provider Info Card -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-user me-2"></i>Service Provider Information</h4>
+                    <div>
+                        {% if provider.is_verified %}
+                            <span class="badge bg-success me-2">Verified</span>
+                            <a href="{% url 'core:admin_unverify_provider' provider.pk %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-times-circle"></i> Unverify Provider
+                            </a>
+                        {% else %}
+                            <span class="badge bg-warning me-2">Unverified</span>
+                            <a href="{% url 'core:admin_verify_provider' provider.pk %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-check-circle"></i> Verify Provider
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" class="rounded-circle mb-3" width="150" height="150" alt="Profile">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle mb-3 d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                                    <i class="fas fa-user fa-3x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h3>{{ provider.first_name }} {{ provider.last_name }}</h3>
+                            <p class="text-muted">{{ provider.email }}</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Phone:</strong> {{ provider.phone|default:"Not provided" }}</p>
+                                    <p><strong>Location:</strong> {{ provider.location|default:"Not provided" }}</p>
+                                    <p><strong>Website:</strong> 
+                                        {% if provider.website %}
+                                            <a href="{{ provider.website }}" target="_blank">{{ provider.website }}</a>
+                                        {% else %}
+                                            Not provided
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Member Since:</strong> {{ provider.created_at|date:"F d, Y" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Hourly Rate:</strong> 
+                                        {% if provider.hourly_rate %}R{{ provider.hourly_rate }}/hr{% else %}Not set{% endif %}
+                                    </p>
+                                    <p><strong>Daily Rate:</strong> 
+                                        {% if provider.daily_rate %}R{{ provider.daily_rate }}/day{% else %}Not set{% endif %}
+                                    </p>
+                                    <p><strong>Experience:</strong> 
+                                        {% if provider.years_experience %}{{ provider.years_experience }} years{% else %}Not specified{% endif %}
+                                    </p>
+                                    <p><strong>ID/Passport:</strong> {{ provider.id_passport_number|default:"Not provided" }}</p>
+                                </div>
+                            </div>
+                            
+                            {% if provider.bio %}
+                                <div class="mt-3">
+                                    <h5>Bio</h5>
+                                    <p>{{ provider.bio }}</p>
+                                </div>
+                            {% endif %}
+                            
+                            {% if provider.skills %}
+                                <div class="mt-3">
+                                    <h5>Skills</h5>
+                                    <p>{{ provider.skills }}</p>
+                                </div>
+                            {% endif %}
+                            
+                            {% if provider.service_categories.exists %}
+                                <div class="mt-3">
+                                    <h5>Service Categories</h5>
+                                    <div>
+                                        {% for category in provider.service_categories.all %}
+                                            <span class="badge bg-primary me-2">{{ category.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Portfolio Items -->
+            {% if portfolio_items %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Portfolio Items ({{ portfolio_items.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for item in portfolio_items %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>{{ item.title }}</h6>
+                                            <p class="small text-muted">{{ item.description|truncatewords:30 }}</p>
+                                            {% if item.project_url %}
+                                                <a href="{{ item.project_url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Project</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Work Experience -->
+            {% if work_experiences %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Work Experience ({{ work_experiences.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for exp in work_experiences %}
+                            <div class="mb-3">
+                                <h6>{{ exp.position }} at {{ exp.company }}</h6>
+                                <p class="small text-muted">{{ exp.start_date|date:"M Y" }} - {% if exp.end_date %}{{ exp.end_date|date:"M Y" }}{% else %}Present{% endif %}</p>
+                                <p class="small">{{ exp.description|truncatewords:25 }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Professional References -->
+            {% if professional_references %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Professional References ({{ professional_references.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for ref in professional_references %}
+                            <div class="mb-3">
+                                <h6>{{ ref.name }}</h6>
+                                <p class="small text-muted">{{ ref.contact }}</p>
+                                <p class="small"><strong>Type of Work:</strong> {{ ref.type_of_work }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Active Gigs -->
+            {% if gigs %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Active Gigs ({{ gigs.count }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for gig in gigs %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6><a href="{% url 'gigs:detail' gig.pk %}">{{ gig.title }}</a></h6>
+                                            <p class="small text-muted">{{ gig.description|truncatewords:20 }}</p>
+                                            <span class="badge {% if gig.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {% if gig.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Reviews -->
+            <div class="row">
+                <div class="col-md-6">
+                    {% if reviews_received %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-star me-2"></i>Reviews Received ({{ reviews_received.count }})</h6>
+                            </div>
+                            <div class="card-body">
+                                {% for review in reviews_received %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">From {{ review.client.email }}</small>
+                                        <div>
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <p class="small">{{ review.comment|truncatewords:15 }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    {% if reviews_given %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-comment me-2"></i>Reviews Given ({{ reviews_given.count }})</h6>
+                            </div>
+                            <div class="card-body">
+                                {% for review in reviews_given %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">About {{ review.service_provider.email }}</small>
+                                        <div>
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <p class="small">{{ review.comment|truncatewords:15 }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

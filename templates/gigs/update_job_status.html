@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Job Status - {{ gig.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Job Header -->
+            <div class="card mb-4">
+                {% if gig.image %}
+                    <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}">
+                {% else %}
+                    <img src="https://picsum.photos/seed/{{ gig.id }}/800/400" class="card-img-top" alt="{{ gig.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ gig.title }}</h1>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary">{{ gig.category.name }}</span>
+                                {% if gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ gig.subcategory.name }}</span>
+                                {% endif %}
+                                <span class="badge bg-{{ gig.job_status }}">Current Status: {{ gig.get_job_status_display }}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if accepted_application.proposed_rate %}
+                                <div class="h4 text-primary mb-1">R{{ accepted_application.proposed_rate }}</div>
+                                <small class="text-muted">Accepted Rate</small>
+                            {% elif gig.budget_min and gig.budget_max %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }} - R{{ gig.budget_max }}</div>
+                                <small class="text-muted">Budget Range</small>
+                            {% elif gig.budget_min %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }}</div>
+                                <small class="text-muted">Starting from</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ gig.description|truncatewords:50 }}</p>
+                    
+                    <!-- Service Provider Info -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-user-check me-2"></i>Hired Service Provider
+                        </h6>
+                        <div class="d-flex align-items-center mb-2">
+                            {% if service_provider.profile.profile_picture %}
+                                <img src="{{ service_provider.profile.profile_picture.url }}" 
+                                     class="rounded-circle me-3" width="50" height="50" alt="{{ service_provider.email }}">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle me-3 d-inline-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">{{ service_provider.email }}</h6>
+                                {% if service_provider.profile.average_rating %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i> {{ service_provider.profile.average_rating|floatformat:1 }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Accepted Application Details -->
+                    {% if accepted_application %}
+                    <div class="alert alert-success">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-handshake me-2"></i>Accepted Application Details
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>Proposed Rate:</strong> R{{ accepted_application.proposed_rate }}</p>
+                                <p class="mb-2"><strong>Estimated Duration:</strong> {{ accepted_application.estimated_duration }}</p>
+                                <p class="mb-0"><strong>Applied On:</strong> {{ accepted_application.applied_at|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-0"><strong>Cover Letter:</strong></p>
+                                <p class="small text-muted">{{ accepted_application.cover_letter|truncatewords:30 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Status Update Form -->
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Update Job Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Current Job Status
+                        </h6>
+                        <span class="badge bg-{{ gig.job_status }}">
+                            {{ gig.get_job_status_display }}
+                        </span>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label">Select new job status:</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <input type="radio" name="status" value="completed" id="status_complete" class="form-check-input">
+                                            <label class="form-check-label" for="status_complete">
+                                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                                <h6>Mark Complete</h6>
+                                                <p class="text-muted small">This will release payment and require you to rate the service provider</p>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <input type="radio" name="status" value="in_dispute" id="status_dispute" class="form-check-input">
+                                                <label class="form-check-label" for="status_dispute">
+                                                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                                                    <h6>Report Dispute</h6>
+                                                    <p class="text-muted small">This will notify administrators for resolution</p>
+                                                </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save me-2"></i>Update Job Status
+                            </button>
+                            <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

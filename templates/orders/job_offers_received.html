@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Offers Received{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-inbox me-2"></i>Job Offers Received
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if job_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Job Title</th>
+                                        <th>Homeowner</th>
+                                        <th>Budget Range</th>
+                                        <th>Status</th>
+                                        <th>Received</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in job_offers %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-start">
+                                                    <strong>{{ offer.job_title }}</strong>
+                                                    <small class="text-muted d-block mt-1">{{ offer.job_description|truncatewords:15 }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div>
+                                                        {{ offer.homeowner.get_full_name|default:offer.homeowner.email }}
+                                                    </div>
+                                                    <small class="text-muted">{{ offer.homeowner.email }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary fs-6">
+                                                    R{{ offer.budget_min|floatformat:2 }} - R{{ offer.budget_max|floatformat:2 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if offer.status == 'pending' %}
+                                                    <span class="badge bg-warning fs-6">Pending Review</span>
+                                                {% elif offer.status == 'submitted' %}
+                                                    <span class="badge bg-info fs-6">Estimate Submitted</span>
+                                                {% elif offer.status == 'approved' %}
+                                                    <span class="badge bg-success fs-6">Approved</span>
+                                                {% elif offer.status == 'declined' %}
+                                                    <span class="badge bg-danger fs-6">Declined</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary fs-6">{{ offer.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">{{ offer.created_at|date:"M d, Y" }}</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    {% if offer.status == 'pending' %}
+                                                        <a href="{% url 'orders:submit_estimate' offer.id %}" 
+                                                                   class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-calculator me-1"></i>Submit Estimate
+                                                                </a>
+                                                    {% elif offer.status == 'submitted' %}
+                                                        <span class="text-muted small">
+                                                            <i class="fas fa-clock me-1"></i>Waiting for decision
+                                                        </span>
+                                                    {% elif offer.status == 'approved' %}
+                                                        {% if offer.order %}
+                                                            <a href="{% url 'orders:detail' offer.order.pk %}" 
+                                                                       class="btn btn-sm btn-success">
+                                                                        <i class="fas fa-eye me-1"></i>View Order
+                                                                    </a>
+                                                        {% else %}
+                                                            <a href="{% url 'gigs:detail' offer.gig.pk %}" 
+                                                                       class="btn btn-sm btn-outline-primary">
+                                                                        <i class="fas fa-briefcase me-1"></i>View Job
+                                                                    </a>
+                                                        {% endif %}
+                                                    {% elif offer.status == 'declined' %}
+                                                        <span class="text-muted small">
+                                                            <i class="fas fa-times me-1"></i>Declined
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                            </div>
+                            <h4 class="text-muted mb-3">No Job Offers</h4>
+                            <p class="text-muted mb-4">You haven't received any job offers from homeowners yet.</p>
+                            <a href="{% url 'gigs:list' %}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Browse Available Jobs
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

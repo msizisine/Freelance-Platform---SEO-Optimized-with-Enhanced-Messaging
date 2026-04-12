@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - Service Provider{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Service Provider Profile</h4>
+                    <p class="text-muted mb-0">Update your professional information and services</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.first_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.last_name.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.email.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.phone.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                                    {{ form.location }}
+                                    {% if form.location.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.location.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.profile_picture.id_for_label }}" class="form-label">{{ form.profile_picture.label }}</label>
+                                    {{ form.profile_picture }}
+                                    {% if form.profile_picture.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.profile_picture.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Professional Information</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.service_categories.id_for_label }}" class="form-label">{{ form.service_categories.label }}</label>
+                                    {{ form.service_categories }}
+                                    <small class="form-text text-muted">Enter comma-separated categories (e.g., Plumbing, Electrical, Construction)</small>
+                                    {% if form.service_categories.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.service_categories.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.years_experience.id_for_label }}" class="form-label">{{ form.years_experience.label }}</label>
+                                    {{ form.years_experience }}
+                                    {% if form.years_experience.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.years_experience.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rates -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Service Rates</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.hourly_rate.id_for_label }}" class="form-label">{{ form.hourly_rate.label }}</label>
+                                    {{ form.hourly_rate }}
+                                    {% if form.hourly_rate.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.hourly_rate.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.square_meter_rate.id_for_label }}" class="form-label">{{ form.square_meter_rate.label }}</label>
+                                    {{ form.square_meter_rate }}
+                                    {% if form.square_meter_rate.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.square_meter_rate.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                                                
+                        <!-- Professional References -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Professional References</h5>
+                                <p class="text-muted mb-3">Add references who can vouch for your work quality</p>
+                                
+                                <!-- Current References -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Current References</h6>
+                                    {% if user.professional_references.all %}
+                                        <div class="row">
+                                            {% for reference in user.professional_references.all %}
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <h6 class="card-title">{{ reference.name }}</h6>
+                                                            <p class="card-text small">
+                                                                <strong>Contact:</strong> {{ reference.contact }}<br>
+                                                                <strong>Work Type:</strong> {{ reference.type_of_work|truncatewords:15 }}
+                                                            </p>
+                                                            <button type="button" class="btn btn-sm btn-danger float-end" onclick="confirmDeleteReference('{{ reference.id }}')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            No references added yet. Add your first reference below!
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Add New Reference -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-plus me-2"></i>Add New Reference</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <form method="post" action="{% url 'users:reference_create' %}" class="reference-form">
+                                            {% csrf_token %}
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="reference_name" class="form-label">Reference Name *</label>
+                                                        <input type="text" name="name" class="form-control" id="reference_name" required placeholder="John Smith">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="reference_contact" class="form-label">Contact Number/Email *</label>
+                                                        <input type="text" name="contact" class="form-control" id="reference_contact" required placeholder="phone@example.com or +1234567890">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="mb-3">
+                                                        <label for="reference_work_type" class="form-label">Type of Work</label>
+                                                        <textarea name="type_of_work" class="form-control" id="reference_work_type" rows="2" placeholder="Brief description of work performed..."></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="d-grid">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-plus me-2"></i>Add Reference
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Skills Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Skills & Expertise</h5>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="{{ form.skills.id_for_label }}" class="form-label">{{ form.skills.label }}</label>
+                                    {{ form.skills }}
+                                    {% if form.skills.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.skills.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">List your professional skills, certifications, and areas of expertise</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Profile
+                                    </button>
+                                    <a href="{% url 'users:my_profile' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Management -->
+<div class="container py-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Portfolio Management</h5>
+                    <p class="text-muted mb-0">Showcase your work with images and project details</p>
+                </div>
+                <div class="card-body">
+                    <!-- Current Portfolio Items -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Current Portfolio Items</h6>
+                        {% if user.portfolio_items.all %}
+                            <div class="row">
+                                {% for portfolio_item in user.portfolio_items.all %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            {% if portfolio_item.primary_image %}
+                                                <img src="{{ portfolio_item.primary_image.image.url }}" class="card-img-top" alt="{{ portfolio_item.title }}" style="height: 200px; object-fit: cover;">
+                                            {% endif %}
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ portfolio_item.title }}</h6>
+                                                <p class="card-text small">{{ portfolio_item.description|truncatewords:20 }}</p>
+                                                {% if portfolio_item.project_url %}
+                                                    <a href="{{ portfolio_item.project_url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Project</a>
+                                                {% endif %}
+                                                {% if portfolio_item.all_images.count > 1 %}
+                                                    <small class="text-muted">{{ portfolio_item.all_images.count }} images</small>
+                                                {% endif %}
+                                                <button type="button" class="btn btn-sm btn-danger float-end" onclick="confirmDeletePortfolio('{{ portfolio_item.id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No portfolio items yet. Add your first project below!
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Add New Portfolio Item -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-plus me-2"></i>Add New Portfolio Item</h6>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="{% url 'users:portfolio_create' %}" enctype="multipart/form-data" class="portfolio-form">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="portfolio_title" class="form-label">Project Title *</label>
+                                                <input type="text" name="title" class="form-control" id="portfolio_title" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="portfolio_images" class="form-label">Project Images</label>
+                                                <input type="file" name="images" class="form-control" id="portfolio_images" accept="image/*" multiple>
+                                                <small class="form-text text-muted">Upload multiple high-quality images of your work (hold Ctrl/Cmd to select multiple)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <label for="portfolio_description" class="form-label">Project Description *</label>
+                                                <textarea name="description" class="form-control" id="portfolio_description" rows="3" required placeholder="Describe the project, your role, and outcomes..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="portfolio_url" class="form-label">Project URL</label>
+                                                <input type="url" name="project_url" class="form-control" id="portfolio_url" placeholder="https://example.com/project">
+                                                <small class="form-text text-muted">Link to live project (optional)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-plus me-2"></i>Add to Portfolio
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDeletePortfolio(portfolioId) {
+    if (confirm('Are you sure you want to delete this portfolio item? This action cannot be undone.')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/users/portfolio/${portfolioId}/delete/`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrfmiddlewaretoken';
+        csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function confirmDeleteReference(referenceId) {
+    if (confirm('Are you sure you want to delete this reference? This action cannot be undone.')) {
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/users/reference/${referenceId}/delete/`;
+        
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrfmiddlewaretoken';
+        csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.appendChild(csrfToken);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Handle portfolio form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const portfolioForm = document.querySelector('.portfolio-form');
+    if (portfolioForm) {
+        portfolioForm.addEventListener('submit', function(e) {
+            // Show loading state
+            const submitBtn = portfolioForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            }
+        });
+    }
+    
+    // Handle reference form submission
+    const referenceForm = document.querySelector('.reference-form');
+    if (referenceForm) {
+        referenceForm.addEventListener('submit', function(e) {
+            // Show loading state
+            const submitBtn = referenceForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

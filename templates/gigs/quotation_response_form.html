@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+
+{% block title %}Respond to Quotation - {{ quotation.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-reply me-2"></i>Respond to Quotation Request
+                    </h4>
+                    <p class="mb-0 text-muted">Submit your quote for: {{ quotation.title }}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Quotation Request Summary -->
+                    <div class="card mb-4 bg-light">
+                        <div class="card-body">
+                            <h6 class="mb-3">Job Details</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Category:</strong> {{ quotation.category.name }}</p>
+                                    <p><strong>Location:</strong> {{ quotation.location }}</p>
+                                    <p><strong>Duration:</strong> {{ quotation.start_date|date:"M d, Y" }} - {{ quotation.end_date|date:"M d, Y" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Urgency:</strong> {{ quotation.get_urgency_display|title }}</p>
+                                    {% if quotation.budget_range %}
+                                        <p><strong>Budget Range:</strong> {{ quotation.budget_range }}</p>
+                                    {% endif %}
+                                    {% if quotation.response_deadline %}
+                                        <p><strong>Response Deadline:</strong> 
+                                            {% if quotation.is_response_deadline_passed %}
+                                                <span class="text-danger">{{ quotation.response_deadline|date:"M d, Y H:i" }} (Expired)</span>
+                                            {% else %}
+                                                <span class="text-success">{{ quotation.response_deadline|date:"M d, Y H:i" }}</span>
+                                            {% endif %}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <p><strong>Description:</strong></p>
+                                <p class="text-muted small">{{ quotation.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if quotation.is_response_deadline_passed %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Deadline Expired:</strong> The response deadline has passed. You can no longer submit a quote for this request.
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'gigs:quotation_detail' quotation.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Quotation Details
+                            </a>
+                        </div>
+                    {% else %}
+                        <form method="post" id="quotationResponseForm">
+                            {% csrf_token %}
+                            
+                            <!-- Pricing Information -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-dollar-sign me-2"></i>Pricing Calculator
+                                    </h5>
+                                </div>
+                                
+                                <!-- Provider Rates Display -->
+                                <div class="col-md-12 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="mb-2">Your Current Rates</h6>
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">Hourly Rate:</small>
+                                                    <p class="mb-0 fw-bold">R{{ request.user.hourly_rate|default:"Not Set" }}</p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">Rate per Square Meter:</small>
+                                                    <p class="mb-0 fw-bold">R{{ request.user.square_meter_rate|default:"Not Set" }}</p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted">Daily Rate:</small>
+                                                    <p class="mb-0 fw-bold">R{{ request.user.daily_rate|default:"Not Set" }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Calculation Method -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.calculation_method.id_for_label }}" class="form-label">
+                                        {{ form.calculation_method.label }} *
+                                    </label>
+                                    {{ form.calculation_method }}
+                                    {% if form.calculation_method.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.calculation_method.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Choose how you want to calculate your price
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity Fields (shown/hidden based on calculation method) -->
+                                <div class="col-md-6 mb-3" id="hours_field" style="display: none;">
+                                    <label for="{{ form.hours_required.id_for_label }}" class="form-label">
+                                        {{ form.hours_required.label }} *
+                                    </label>
+                                    {{ form.hours_required }}
+                                    {% if form.hours_required.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.hours_required.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Number of hours required for this job
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3" id="square_meters_field" style="display: none;">
+                                    <label for="{{ form.square_meters_required.id_for_label }}" class="form-label">
+                                        {{ form.square_meters_required.label }} *
+                                    </label>
+                                    {{ form.square_meters_required }}
+                                    {% if form.square_meters_required.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.square_meters_required.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Total square meters to be covered
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3" id="days_field" style="display: none;">
+                                    <label for="{{ form.days_required.id_for_label }}" class="form-label">
+                                        {{ form.days_required.label }} *
+                                    </label>
+                                    {{ form.days_required }}
+                                    {% if form.days_required.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.days_required.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Number of days required for this job
+                                    </div>
+                                </div>
+                                
+                                <!-- Calculated Price -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.estimated_price.id_for_label }}" class="form-label">
+                                        {{ form.estimated_price.label }} *
+                                    </label>
+                                    {{ form.estimated_price }}
+                                    {% if form.estimated_price.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.estimated_price.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Calculated total price (auto-calculated)
+                                    </div>
+                                </div>
+                                
+                                <!-- Estimated Duration -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">
+                                        {{ form.estimated_duration.label }} *
+                                    </label>
+                                    {{ form.estimated_duration }}
+                                    {% if form.estimated_duration.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.estimated_duration.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        How long you estimate the job will take
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Price Breakdown -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-list-alt me-2"></i>Price Breakdown
+                                    </h5>
+                                    <div class="mb-3">
+                                        <label for="{{ form.price_breakdown.id_for_label }}" class="form-label">
+                                            {{ form.price_breakdown.label }} *
+                                        </label>
+                                        {{ form.price_breakdown }}
+                                        {% if form.price_breakdown.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {{ form.price_breakdown.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            Provide a detailed breakdown of your costs (materials, labor, etc.)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Availability and Notes -->
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-calendar-check me-2"></i>Availability & Additional Information
+                                    </h5>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.availability.id_for_label }}" class="form-label">
+                                        {{ form.availability.label }} *
+                                    </label>
+                                    {{ form.availability }}
+                                    {% if form.availability.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.availability.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        When you're available to start and work on this project
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                        {{ form.notes.label }}
+                                    </label>
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {{ form.notes.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Any additional notes or comments about your quote
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alert -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Important:</strong> Once you submit this quote, you cannot modify it. Make sure all information is accurate before submitting.
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'gigs:quotation_detail' quotation.pk %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Quote
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Provider rates from template (using JSON to ensure proper JavaScript values)
+    const hourlyRate = parseFloat("{{ request.user.hourly_rate|default:0 }}");
+    const squareMeterRate = parseFloat("{{ request.user.square_meter_rate|default:0 }}");
+    const dailyRate = parseFloat("{{ request.user.daily_rate|default:0 }}");
+    
+    // Get form elements
+    const form = document.getElementById('quotationResponseForm');
+    const calculationMethod = document.getElementById('{{ form.calculation_method.id_for_label }}');
+    const hoursField = document.getElementById('{{ form.hours_required.id_for_label }}');
+    const squareMetersField = document.getElementById('{{ form.square_meters_required.id_for_label }}');
+    const daysField = document.getElementById('{{ form.days_required.id_for_label }}');
+    const estimatedPriceField = document.getElementById('{{ form.estimated_price.id_for_label }}');
+    
+    // Field visibility containers
+    const hoursFieldContainer = document.getElementById('hours_field');
+    const squareMetersFieldContainer = document.getElementById('square_meters_field');
+    const daysFieldContainer = document.getElementById('days_field');
+    
+    // Function to show/hide fields based on calculation method
+    function updateFieldVisibility() {
+        const method = calculationMethod.value;
+        
+        // Hide all fields first
+        hoursFieldContainer.style.display = 'none';
+        squareMetersFieldContainer.style.display = 'none';
+        daysFieldContainer.style.display = 'none';
+        
+        // Show relevant field
+        if (method === 'hourly') {
+            hoursFieldContainer.style.display = 'block';
+            hoursField.required = true;
+            squareMetersField.required = false;
+            daysField.required = false;
+        } else if (method === 'square_meter') {
+            squareMetersFieldContainer.style.display = 'block';
+            hoursField.required = false;
+            squareMetersField.required = true;
+            daysField.required = false;
+        } else if (method === 'daily') {
+            daysFieldContainer.style.display = 'block';
+            hoursField.required = false;
+            squareMetersField.required = false;
+            daysField.required = true;
+        } else {
+            // Fixed price - make estimated price editable
+            estimatedPriceField.readOnly = false;
+            hoursField.required = false;
+            squareMetersField.required = false;
+            daysField.required = false;
+        }
+        
+        // Calculate price
+        calculatePrice();
+    }
+    
+    // Function to calculate estimated price
+    function calculatePrice() {
+        const method = calculationMethod.value;
+        let calculatedPrice = 0;
+        
+        if (method === 'hourly' && hourlyRate > 0) {
+            const hours = parseFloat(hoursField.value) || 0;
+            calculatedPrice = hours * hourlyRate;
+        } else if (method === 'square_meter' && squareMeterRate > 0) {
+            const squareMeters = parseFloat(squareMetersField.value) || 0;
+            calculatedPrice = squareMeters * squareMeterRate;
+        } else if (method === 'daily' && dailyRate > 0) {
+            const days = parseFloat(daysField.value) || 0;
+            calculatedPrice = days * dailyRate;
+        }
+        
+        // Update the estimated price field
+        if (method !== 'fixed') {
+            estimatedPriceField.value = calculatedPrice.toFixed(2);
+            estimatedPriceField.readOnly = true;
+        } else {
+            estimatedPriceField.readOnly = false;
+        }
+    }
+    
+    // Event listeners
+    if (calculationMethod) {
+        calculationMethod.addEventListener('change', updateFieldVisibility);
+    }
+    
+    if (hoursField) {
+        hoursField.addEventListener('input', calculatePrice);
+    }
+    
+    if (squareMetersField) {
+        squareMetersField.addEventListener('input', calculatePrice);
+    }
+    
+    if (daysField) {
+        daysField.addEventListener('input', calculatePrice);
+    }
+    
+    // Initialize field visibility on page load
+    updateFieldVisibility();
+    
+    // Form validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            
+            // Validate required fields
+            const requiredFields = form.querySelectorAll('input[required], textarea[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Validate price is positive
+            const priceValue = parseFloat(estimatedPriceField.value);
+            if (!priceValue || priceValue <= 0) {
+                isValid = false;
+                estimatedPriceField.classList.add('is-invalid');
+                // Show error message
+                if (!estimatedPriceField.nextElementSibling || !estimatedPriceField.nextElementSibling.classList.contains('text-danger')) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'text-danger small mt-1';
+                    errorDiv.textContent = 'Price must be greater than 0';
+                    estimatedPriceField.parentNode.appendChild(errorDiv);
+                }
+            }
+            
+            // Validate that provider has set the required rate for the selected method
+            const method = calculationMethod.value;
+            if (method === 'hourly' && hourlyRate <= 0) {
+                isValid = false;
+                calculationMethod.classList.add('is-invalid');
+                showErrorMessage(calculationMethod, 'You must set your hourly rate in your profile first');
+            } else if (method === 'square_meter' && squareMeterRate <= 0) {
+                isValid = false;
+                calculationMethod.classList.add('is-invalid');
+                showErrorMessage(calculationMethod, 'You must set your square meter rate in your profile first');
+            } else if (method === 'daily' && dailyRate <= 0) {
+                isValid = false;
+                calculationMethod.classList.add('is-invalid');
+                showErrorMessage(calculationMethod, 'You must set your daily rate in your profile first');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first error
+                const firstError = form.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+        
+        // Clear error on input
+        form.querySelectorAll('input, textarea, select').forEach(field => {
+            field.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const errorMsg = this.parentNode.querySelector('.text-danger');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+        });
+    }
+    
+    // Helper function to show error message
+    function showErrorMessage(field, message) {
+        // Remove existing error message if any
+        const existingError = field.parentNode.querySelector('.text-danger');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger small mt-1';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+});
+</script>
+{% endblock %}

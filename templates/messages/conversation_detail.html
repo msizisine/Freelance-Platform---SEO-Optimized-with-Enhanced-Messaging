@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+
+{% block title %}Conversation - FreelanceHub{% endblock %}
+
+{% block content %}
+<style>
+.email-wrapper {
+    display: flex;
+    height: calc(100vh - 200px);
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.email-left {
+    width: 280px;
+    border-right: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+
+.email-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #ffffff;
+}
+
+.message-bubble {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.message-bubble.sent {
+    justify-content: flex-end;
+}
+
+.message-bubble.received {
+    justify-content: flex-start;
+}
+
+.message-content {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.message-bubble.sent .message-content {
+    background: #1976d2;
+    color: white;
+    margin-left: auto;
+}
+
+.message-bubble.received .message-content {
+    background: #f1f3f4;
+    color: #212529;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.message-bubble.sent .message-header {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.message-bubble.received .message-header {
+    color: #6c757d;
+}
+
+.message-text {
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.message-attachments {
+    margin-top: 12px;
+}
+
+.attachment-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    font-size: 12px;
+    color: inherit;
+}
+
+.message-bubble.received .attachment-item {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.attachment-item:hover {
+    opacity: 0.8;
+}
+
+.reply-section {
+    border-top: 1px solid #e9ecef;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.sidebar-section {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.sidebar-title {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.participant-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1976d2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.participant-details h6 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.participant-details p {
+    margin: 0;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.conversation-meta {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.icon-btn-sm {
+    padding: 6px 8px;
+    font-size: 13px;
+    border-radius: 20px;
+}
+
+.btn-light-primary {
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.btn-light-primary:hover {
+    background: #bbdefb;
+    color: #1565c0;
+    border-color: #90caf9;
+}
+
+.message-input-wrapper {
+    position: relative;
+}
+
+.message-input {
+    padding-right: 120px;
+    resize: none;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.message-input:focus {
+    border-color: #1976d2;
+    box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25);
+}
+
+.send-button {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+}
+
+.file-attachment {
+    margin-top: 12px;
+}
+
+@media (max-width: 768px) {
+    .email-wrapper {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .email-left {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .message-content {
+        max-width: 85%;
+    }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="email-wrapper">
+        <!-- Left Sidebar -->
+        <div class="email-left">
+            <div class="sidebar-section">
+                <a href="{% url 'messaging:list' %}" class="btn btn-primary w-100 mb-3 d-block text-center text-decoration-none">
+                    <i class="ri-arrow-left-line me-2"></i>Back to Messages
+                </a>
+                
+                <div class="search-box">
+                    <input type="text" class="form-control" placeholder="Search messages..." id="searchMessages">
+                    <i class="ri-search-2-line"></i>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">Participants</h6>
+                {% for participant in conversation.participants.all %}
+                    <div class="participant-info">
+                        <div class="participant-avatar">
+                            {{ participant.email|slice:":2"|upper }}
+                        </div>
+                        <div class="participant-details">
+                            <h6>{{ participant.get_full_name|default:participant.email }}</h6>
+                            <p>{{ participant.email }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">Conversation Info</h6>
+                <div class="conversation-meta">
+                    <strong>Started:</strong> {{ conversation.created_at|date:"M d, Y H:i" }}
+                </div>
+                <div class="conversation-meta">
+                    <strong>Last Activity:</strong> {{ conversation.updated_at|date:"M d, Y H:i" }}
+                </div>
+                <div class="conversation-meta">
+                    <strong>Messages:</strong> {{ messages.count }}
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h6 class="sidebar-title">Actions</h6>
+                <div class="action-buttons">
+                    {% for participant in conversation.participants.all %}
+                        {% if participant != request.user %}
+                            <button class="btn btn-light-primary icon-btn-sm w-100" onclick="blockUser('{{ participant.pk }}')">
+                                <i class="ri-user-unfollow-line me-2"></i>Block User
+                            </button>
+                            <button class="btn btn-light-primary icon-btn-sm w-100" onclick="reportUser('{{ participant.pk }}')">
+                                <i class="ri-flag-line me-2"></i>Report
+                            </button>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content -->
+        <div class="email-right">
+            <div class="hstack justify-content-between gap-2 p-4 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-light-primary icon-btn-sm p-1 fs-13 rounded-pill" data-bs-toggle="tooltip" data-bs-custom-class="tooltip-white" data-bs-placement="bottom" data-bs-title="Archive">
+                        <i class="ri-inbox-archive-line"></i>
+                    </button>
+                    <button type="button" class="btn btn-light-primary icon-btn-sm p-1 fs-13 rounded-pill" data-bs-toggle="tooltip" data-bs-custom-class="tooltip-white" data-bs-placement="bottom" data-bs-title="Mark as unread">
+                        <i class="ri-mail-unread-line"></i>
+                    </button>
+                    <button type="button" class="btn btn-light-primary icon-btn-sm p-1 fs-13 rounded-pill" data-bs-toggle="tooltip" data-bs-custom-class="tooltip-white" data-bs-placement="bottom" data-bs-title="Delete">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                    <button type="button" class="btn btn-light-primary icon-btn-sm p-1 fs-13 rounded-pill" data-bs-toggle="tooltip" data-bs-custom-class="tooltip-white" data-bs-placement="bottom" data-bs-title="Refresh">
+                        <i class="ri-refresh-line"></i>
+                    </button>
+                </div>
+                <div class="form-icon">
+                    <input type="text" class="form-control form-control-icon" placeholder="Search this conversation" id="conversationSearch">
+                    <i class="ri-search-2-line text-muted"></i>
+                </div>
+            </div>
+            
+            <div class="message-container" id="messageContainer">
+                {% for message in messages %}
+                    <div class="message-bubble {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span>{{ message.sender.get_full_name|default:message.sender.email }}</span>
+                                <span>{{ message.created_at|date:"H:i" }}</span>
+                            </div>
+                            <div class="message-text">
+                                {{ message.content|linebreaksbr }}
+                            </div>
+                            {% if message.attachments.exists %}
+                                <div class="message-attachments">
+                                    {% for attachment in message.attachments.all %}
+                                        <a href="{{ attachment.file.url }}" target="_blank" class="attachment-item">
+                                            <i class="ri-paperclip-line me-1"></i>
+                                            {{ attachment.filename }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5">
+                        <i class="ri-message-3-line" style="font-size: 48px; color: #dee2e6;"></i>
+                        <h5 class="mt-3">No messages yet</h5>
+                        <p class="text-muted">Start the conversation with a friendly message!</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="reply-section">
+                <form method="post" id="messageForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Reply to {% for participant in conversation.participants.all %}{% if participant != request.user %}{{ participant.get_full_name|default:participant.email }}{% endif %}{% endfor %}</label>
+                        <div class="message-input-wrapper">
+                            <textarea name="content" id="messageContent" class="form-control message-input" rows="3" 
+                                      placeholder="Type your message..." required></textarea>
+                            <button type="submit" class="btn btn-primary send-button">
+                                <i class="ri-send-plane-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-attachment">
+                        <input type="file" name="attachments" id="messageAttachments" class="form-control" multiple>
+                        <small class="form-text text-muted">You can attach multiple files</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('messageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+    submitBtn.disabled = true;
+    
+    fetch("{% url 'messaging:send' conversation.pk %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('messageContent').value = '';
+            document.getElementById('messageAttachments').value = '';
+            location.reload();
+        } else {
+            alert('Error sending message: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error sending message. Please try again.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+});
+
+function blockUser(userId) {
+    if (confirm('Are you sure you want to block this user?')) {
+        window.location.href = '/messages/block/' + userId + '/';
+    }
+}
+
+function reportUser(userId) {
+    if (confirm('Are you sure you want to report this user?')) {
+        window.location.href = '/messages/report/' + userId + '/';
+    }
+}
+
+// Search functionality
+document.getElementById('searchMessages').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const messageBubbles = document.querySelectorAll('.message-bubble');
+    
+    messageBubbles.forEach(bubble => {
+        const text = bubble.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            bubble.style.display = 'flex';
+        } else {
+            bubble.style.display = 'none';
+        }
+    });
+});
+
+document.getElementById('conversationSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const messageBubbles = document.querySelectorAll('.message-bubble');
+    
+    messageBubbles.forEach(bubble => {
+        const text = bubble.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            bubble.style.display = 'flex';
+        } else {
+            bubble.style.display = 'none';
+        }
+    });
+});
+
+// Auto scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const messageContainer = document.getElementById('messageContainer');
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+});
+
+// Auto scroll to bottom when new messages are added (for real-time updates)
+function scrollToBottom() {
+    const messageContainer = document.getElementById('messageContainer');
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+// Add animation classes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

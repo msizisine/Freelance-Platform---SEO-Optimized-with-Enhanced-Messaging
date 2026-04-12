@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Homeowner Dashboard - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Homeowner Dashboard</h1>
+            <p class="lead mb-4">Manage your posted jobs and track service progress</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-primary">{{ jobs_posted }}</h2>
+                    <p class="card-text">Jobs Posted</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-warning">{{ pending_jobs.count }}</h2>
+                    <p class="card-text">Pending Jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-info">{{ active_jobs.count }}</h2>
+                    <p class="card-text">Active Jobs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="text-success">{{ completed_jobs.count }}</h2>
+                    <p class="card-text">Completed Jobs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gigs:create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Post New Job
+                        </a>
+                        <a href="{% url 'gigs:list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i> Browse Service Providers
+                        </a>
+                        <a href="{% url 'users:my_profile' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user"></i> Update Profile
+                        </a>
+                        <a href="{% url 'messaging:list' %}" class="btn btn-outline-info">
+                            <i class="fas fa-envelope"></i> Messages
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% if my_jobs %}
+                            {% for job in my_jobs|slice:":5" %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ job.title }}</h6>
+                                            <small class="text-muted">{{ job.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <span class="badge bg-{{ job.status|default:'primary' }}">
+                                            {{ job.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item text-center text-muted">
+                                <i class="fas fa-info-circle"></i> No jobs posted yet
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Jobs Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">My Jobs</h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterJobs('all')">All</button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterJobs('pending')">Pending</button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="filterJobs('active')">Active</button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="filterJobs('completed')">Completed</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="jobsContainer">
+                        {% for job in my_jobs %}
+                            <div class="col-md-6 col-lg-4 mb-3 job-item" data-status="{{ job.job_status|default:'open' }}">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">{{ job.title }}</h6>
+                                        <span class="badge bg-{{ job.job_status|default:'primary' }}">
+                                            {{ job.get_job_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ job.description|truncatewords:15 }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-map-marker-alt"></i> {{ job.location }}
+                                            </small>
+                                            <small class="text-primary fw-bold">
+                                                <i class="fas fa-dollar-sign"></i> {{ job.get_budget_display }}
+                                            </small>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock"></i> {{ job.get_urgency_display }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="{% url 'gigs:detail' job.pk %}" class="btn btn-outline-primary btn-sm w-100">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="alert alert-info text-center">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                    <h5>No jobs posted yet</h5>
+                                    <p class="mb-3">Start by posting your first job to find service providers</p>
+                                    <a href="{% url 'gigs:create' %}" class="btn btn-primary">Post Your First Job</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterJobs(status) {
+    const jobs = document.querySelectorAll('.job-item');
+    jobs.forEach(job => {
+        if (status === 'all') {
+            job.style.display = 'block';
+        } else {
+            job.style.display = job.dataset.status === status ? 'block' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

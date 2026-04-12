@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Provider Dashboard - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Service Provider Dashboard</h1>
+            <p class="lead mb-4">Find jobs and manage your service work</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="{% url 'gigs:my_provider_jobs' %}" class="text-decoration-none">
+                <div class="card text-center hover-card">
+                    <div class="card-body">
+                        <h2 class="text-primary">R{{ total_earnings|floatformat:2 }}</h2>
+                        <p class="card-text">Total Earnings</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'gigs:my_provider_jobs' %}" class="text-decoration-none">
+                <div class="card text-center hover-card">
+                    <div class="card-body">
+                        <h2 class="text-warning">R{{ pending_payments|floatformat:2 }}</h2>
+                        <p class="card-text">Pending Payments</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'gigs:my_provider_jobs' %}" class="text-decoration-none">
+                <div class="card text-center hover-card">
+                    <div class="card-body">
+                        <h2 class="text-info">{{ active_jobs|length }}</h2>
+                        <p class="card-text">Active Jobs</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'gigs:my_provider_jobs' %}" class="text-decoration-none">
+                <div class="card text-center hover-card">
+                    <div class="card-body">
+                        <h2 class="text-success">{{ completed_jobs|length }}</h2>
+                        <p class="card-text">Completed Jobs</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <style>
+    .hover-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    </style>
+    
+    <!-- Profile Completion -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Profile Completion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ profile_completion }}%;" aria-valuenow="{{ profile_completion }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ profile_completion }}%
+                        </div>
+                    </div>
+                    <small class="text-muted">Complete your profile to get more job opportunities</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'gigs:list' %}" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Browse Available Jobs
+                        </a>
+                        <a href="{% url 'users:my_profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> Update Profile
+                        </a>
+                        <a href="{% url 'messaging:list' %}" class="btn btn-outline-info">
+                            <i class="fas fa-envelope"></i> Messages
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-calendar"></i> My Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Job Opportunities</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% if posted_jobs %}
+                            {% for job in posted_jobs|slice:":5" %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">{{ job.title }}</h6>
+                                            <small class="text-muted">{{ job.location }} • {{ job.get_urgency_display }}</small>
+                                        </div>
+                                        <div>
+                                            <small class="text-primary fw-bold">{{ job.get_budget_display }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="list-group-item text-center text-muted">
+                                <i class="fas fa-info-circle"></i> No jobs available at the moment
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+{% endblock %}

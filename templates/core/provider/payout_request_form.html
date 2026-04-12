@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Payout{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-hand-holding-usd me-2"></i>Request Payout</h1>
+                <a href="{% url 'core:payout_request_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Payouts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Earnings Summary -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ available_earnings|floatformat:2 }}</h4>
+                            <p class="card-text">Available for Payout</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-wallet fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ bank_accounts|length }}</h4>
+                            <p class="card-text">Verified Accounts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-university fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-plus-circle me-2"></i>New Payout Request</h5>
+                </div>
+                <div class="card-body">
+                    {% if available_earnings >= 50 %}
+                        {% if bank_accounts %}
+                            <form method="post" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.bank_account.id_for_label }}" class="form-label">
+                                                {{ form.bank_account.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ form.bank_account }}
+                                            {% if form.bank_account.errors %}
+                                                <div class="text-danger small">
+                                                    {{ form.bank_account.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">{{ form.bank_account.help_text }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="{{ form.amount.id_for_label }}" class="form-label">
+                                                {{ form.amount.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R</span>
+                                                {{ form.amount }}
+                                            </div>
+                                            {% if form.amount.errors %}
+                                                <div class="text-danger small">
+                                                    {{ form.amount.errors }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text">{{ form.amount.help_text }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.payout_method.id_for_label }}" class="form-label">
+                                        {{ form.payout_method.label }}
+                                    </label>
+                                    {{ form.payout_method }}
+                                    {% if form.payout_method.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.payout_method.errors }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.payout_method.help_text }}</div>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Important:</strong> Payout requests are typically processed within 1-2 business days. 
+                                    You'll receive a notification when your payout is approved and completed.
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'core:payout_request_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Payout Request
+                                    </button>
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>No Verified Bank Accounts</strong>
+                                <p class="mb-2">You need to add and verify at least one bank account before requesting payouts.</p>
+                                <a href="{% url 'core:bank_account_create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Add Bank Account
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Insufficient Available Earnings</strong>
+                            <p class="mb-2">You need at least R50.00 in available earnings to request a payout.</p>
+                            <p class="mb-0">Current available: <strong>R{{ available_earnings|floatformat:2 }}</strong></p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6><i class="fas fa-info-circle me-2"></i>Payout Information</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Processing Time</h6>
+                    <p class="small text-muted">
+                        Payout requests are typically processed within 1-2 business days after approval.
+                    </p>
+                    
+                    <h6 class="mt-3">Minimum Amount</h6>
+                    <p class="small text-muted">
+                        The minimum payout amount is R50.00.
+                    </p>
+                    
+                    <h6 class="mt-3">Payout Methods</h6>
+                    <ul class="small text-muted">
+                        <li><strong>Bank Transfer:</strong> Standard EFT to your bank account</li>
+                        <li><strong>Instant Payment:</strong> Faster transfer with additional fees</li>
+                        <li><strong>Cash Send:</strong> Mobile money transfer service</li>
+                        <li><strong>E-Wallet:</strong> Digital wallet transfer</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card border-warning mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-0">
+                        <strong>Double-check bank account details</strong> before submitting. 
+                        Incorrect bank details may result in failed payouts and additional processing fees.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card border-success mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6><i class="fas fa-question-circle me-2"></i>Need Help?</h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-0">
+                        If you have any questions about payouts or need help with your bank account, 
+                        please contact our support team.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const amount = document.getElementById('{{ form.amount.id_for_label }}');
+            const bankAccount = document.getElementById('{{ form.bank_account.id_for_label }}');
+            
+            // Validate minimum amount
+            if (parseFloat(amount.value) < 50) {
+                e.preventDefault();
+                alert('Minimum payout amount is R50.00');
+                amount.focus();
+                return;
+            }
+            
+            // Validate bank account selection
+            if (!bankAccount.value) {
+                e.preventDefault();
+                alert('Please select a bank account');
+                bankAccount.focus();
+                return;
+            }
+            
+            // Check available earnings
+            const availableEarnings = {{ available_earnings|floatformat:2 }};
+            if (parseFloat(amount.value) > availableEarnings) {
+                e.preventDefault();
+                alert('Insufficient available earnings. You have R' + availableEarnings + ' available.');
+                amount.focus();
+                return;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

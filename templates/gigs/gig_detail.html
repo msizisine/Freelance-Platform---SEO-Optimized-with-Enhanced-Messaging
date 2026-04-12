@@ -1,0 +1,515 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ gig.title }} - {{ gig.category.name|title }} Services | pro4me{% endblock %}
+{% block meta_description %}{{ gig.description|truncatewords:30 }}. Budget: R{{ gig.budget_min }}-{{ gig.budget_max }}. Location: {{ gig.location }}. Posted by {{ gig.homeowner.get_full_name|default:gig.homeowner.email }}. Find trusted service providers for your project.{% endblock %}
+{% block meta_keywords %}{{ gig.title }}, {{ gig.category.name }}, {{ gig.location }}, local services, home improvement, R{{ gig.budget_min }}, service providers{% endblock %}
+{% block og_title %}{{ gig.title }} - {{ gig.category.name|title }} Services | pro4me{% endblock %}
+{% block og_description %}{{ gig.description|truncatewords:30 }}. Budget: R{{ gig.budget_min }}-{{ gig.budget_max }}. Location: {{ gig.location }}.{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_image %}{% if gig.image %}https://{{ request.get_host }}{{ gig.image.url }}{% else %}https://{{ request.get_host }}{% static 'images/default-gig.jpg' %}{% endif %}{% endblock %}
+{% block twitter_title %}{{ gig.title }} - {{ gig.category.name|title }} Services | pro4me{% endblock %}
+{% block twitter_description %}{{ gig.description|truncatewords:30 }}. Budget: R{{ gig.budget_min }}-{{ gig.budget_max }}. Location: {{ gig.location }}.{% endblock %}
+{% block twitter_image %}{% if gig.image %}https://{{ request.get_host }}{{ gig.image.url }}{% else %}https://{{ request.get_host }}{% static 'images/default-gig.jpg' %}{% endif %}{% endblock %}
+
+{% block extra_css %}
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "{{ gig.title|escapejs }}",
+  "description": "{{ gig.description|escapejs }}",
+  "provider": {
+    "@type": "Person",
+    "name": "{{ gig.homeowner.get_full_name|default:gig.homeowner.email|escapejs }}"
+  },
+  "areaServed": "{{ gig.location|escapejs }}",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "ZAR",
+    "price": "{{ gig.budget_min }}",
+    "availability": "https://schema.org/InStock"
+  },
+  "category": "{{ gig.category.name|escapejs }}",
+  "url": "{{ request.build_absolute_uri }}",
+  "datePosted": "{{ gig.created_at|date:'c' }}",
+  "image": "{% if gig.image %}https://{{ request.get_host }}{{ gig.image.url }}{% else %}https://{{ request.get_host }}{% static 'images/default-gig.jpg' %}{% endif %}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'gigs:list' %}">Browse Jobs</a></li>
+            {% if gig.category %}
+                <li class="breadcrumb-item"><a href="{% url 'gigs:category' gig.category.name %}">{{ gig.category.name|title }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ gig.title|truncatechars:50 }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Job Header -->
+            <div class="card shadow-lg mb-4 border-0">
+                {% if gig.image %}
+                    <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}" style="height: 400px; object-fit: cover;">
+                {% else %}
+                    <img src="https://picsum.photos/seed/{{ gig.id }}/800/400" class="card-img-top" alt="{{ gig.title }}" style="height: 400px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ gig.title }}</h1>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary">{{ gig.category.name }}</span>
+                                {% if gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ gig.subcategory.name }}</span>
+                                {% endif %}
+                                <span class="badge bg-{% if gig.job_status == 'active' %}success{% elif gig.job_status == 'completed' %}primary{% elif gig.job_status == 'in_dispute' %}warning{% elif gig.job_status == 'accepted' %}info{% else %}secondary{% endif %}">
+                                    Status: {{ gig.get_job_status_display|title }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if gig.budget_min and gig.budget_max %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }} - R{{ gig.budget_max }}</div>
+                                <small class="text-muted">Budget Range</small>
+                            {% elif gig.budget_min %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }}</div>
+                                <small class="text-muted">Starting from</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ gig.description }}</p>
+                    
+                    <!-- Job Details -->
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> Location</small>
+                            <p class="mb-2"><strong>{{ gig.location }}</strong></p>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted"><i class="fas fa-clock me-1"></i> Urgency</small>
+                            <p class="mb-2"><strong>{{ gig.get_urgency_display }}</strong></p>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted"><i class="fas fa-calendar me-1"></i> Posted</small>
+                            <p class="mb-2"><strong>{{ gig.created_at|date:"M d, Y" }}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Invoice Information for Completed Jobs -->
+                    {% if gig.job_status == 'completed' %}
+                        <div class="alert alert-info mb-3">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-file-invoice me-2"></i>Invoice Information
+                            </h6>
+                            <div class="mt-2">
+                                {% with orders_for_gig as orders %}
+                                    {% if orders %}
+                                        {% for order in orders %}
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span>
+                                                    <strong>Order #{{ order.order_number|default:order.pk }}</strong>
+                                                    <span class="badge bg-{% if order.status == 'completed' %}primary{% elif order.status == 'disputed' %}warning{% else %}secondary{% endif %} ms-2">{{ order.get_status_display }}</span>
+                                                </span>
+                                                <span>
+                                                    <a href="{% url 'orders:detail' order.pk %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye me-1"></i>View Invoice
+                                                    </a>
+                                                </span>
+                                                <span>
+                                                    <a href="/media/invoices/{{ order.invoice_path|default:order.pk }}.pdf" class="btn btn-sm btn-success ms-2" download>
+                                                        <i class="fas fa-download me-1"></i>Download Invoice
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted mb-0">No invoices found for this completed job.</p>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Homeowner Actions -->
+                    {% if user.is_authenticated and user == gig.homeowner %}
+                    <div class="alert alert-info mt-3">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-tools me-2"></i>Job Management
+                        </h6>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'gigs:edit' gig.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>Update Job
+                            </a>
+                            {% if gig.job_status != 'accepted' %}
+                            <a href="{% url 'gigs:delete' gig.pk %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash me-1"></i>Delete Job
+                            </a>
+                            {% endif %}
+                            {% if gig.job_status == 'accepted' %}
+                                <a href="{% url 'gigs:update_job_status' gig.pk %}" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-tasks me-1"></i>Update Status
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'gigs:job_applications' gig.pk %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-users me-1"></i>Review Applications
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Tags -->
+                    {% if gig.tags %}
+                        <div class="mb-3 mt-3">
+                            {% for tag in gig.tags.split %}
+                                <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Job Requirements -->
+            {% if gig.requires_approval %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Job Requirements</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This job requires approval before hiring. Applications will be reviewed by the job owner.
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Applications Review Section -->
+            {% if user.is_authenticated and user == gig.homeowner %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-users me-2"></i>Job Applications
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {% if applications %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Applicant</th>
+                                            <th>Proposed Rate</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                            <th>Applied</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for app in applications %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if app.service_provider.profile.profile_picture %}
+                                                        <img src="{{ app.service_provider.profile.profile_picture.url }}" 
+                                                             class="rounded-circle me-2" width="30" height="30" alt="{{ app.service_provider.email }}">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle me-2 d-inline-flex align-items-center justify-content-center" 
+                                                             style="width: 30px; height: 30px;">
+                                                            <i class="fas fa-user text-white" style="font-size: 12px;"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-bold">{{ app.service_provider.email }}</div>
+                                                        {% if app.service_provider.profile.average_rating %}
+                                                            <small class="text-warning">
+                                                                <i class="fas fa-star"></i> {{ app.service_provider.profile.average_rating|floatformat:1 }}
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><strong>R{{ app.proposed_rate }}</strong></td>
+                                            <td>{{ app.estimated_duration }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if app.status == 'accepted' %}success{% elif app.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                                    {{ app.get_status_display|title }}
+                                                </span>
+                                            </td>
+                                            <td>{{ app.applied_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if app.status == 'pending' %}
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{% url 'gigs:accept_job' gig.pk %}?application_id={{ app.pk }}" 
+                                                           class="btn btn-success btn-sm" onclick="return confirm('Accept this application?')">
+                                                            <i class="fas fa-check"></i>
+                                                        </a>
+                                                        <a href="{% url 'gigs:reject_job' gig.pk %}?application_id={{ app.pk }}" 
+                                                           class="btn btn-danger btn-sm" onclick="return confirm('Reject this application?')">
+                                                            <i class="fas fa-times"></i>
+                                                        </a>
+                                                    </div>
+                                                {% endif %}
+                                                <button class="btn btn-outline-info btn-sm" onclick="viewApplication('{{ app.pk }}')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No applications received yet for this job.
+                            </div>
+                        {% endif %}
+                        <div class="mt-3">
+                            <a href="{% url 'gigs:job_applications' gig.pk %}" class="btn btn-primary">
+                                <i class="fas fa-users me-2"></i>View All Applications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Job Owner Info -->
+            {% if not user.is_authenticated or user != gig.homeowner %}
+            <div class="card shadow mb-4 border-0">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-primary">About Job Owner</h5>
+                </div>
+                <div class="card-body text-center p-4">
+                    {% if gig.homeowner.profile.profile_picture %}
+                        <img src="{{ gig.homeowner.profile.profile_picture.url }}" 
+                             class="rounded-circle mb-3" width="100" height="100" alt="{{ gig.homeowner.email }}">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" 
+                             style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-2x text-white"></i>
+                        </div>
+                    {% endif %}
+                    <h6>{{ gig.homeowner.email }}</h6>
+                    <p class="text-muted">{{ gig.homeowner.bio|truncatewords:20|default:"No bio available" }}</p>
+                    <div class="d-flex justify-content-between mb-3">
+                        <small><i class="fas fa-map-marker-alt"></i> {{ gig.location|default:"Location not set" }}</small>
+                        {% if gig.homeowner.profile.average_rating %}
+                            <small><i class="fas fa-star text-warning"></i> {{ gig.homeowner.profile.average_rating|floatformat:1 }}</small>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'users:profile' gig.homeowner.pk %}" class="btn btn-outline-primary w-100">View Profile</a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Job Status and Actions -->
+            {% if gig.hired_provider %}
+                <!-- Job has been hired -->
+                <div class="card mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-check-circle me-2"></i>Job Assigned
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if user.is_authenticated and user == gig.hired_provider %}
+                            <!-- Hired Provider View -->
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-trophy me-2"></i>You've been hired for this job!
+                                </h6>
+                                <p class="mb-2">This job has been assigned to you. You can now view the order details and start working.</p>
+                                {% if gig.order_set.exists %}
+                                    {% for order in gig.order_set.all %}
+                                        <a href="{% url 'orders:detail' order.pk %}" class="btn btn-primary">
+                                            <i class="fas fa-eye me-2"></i>View Order Details
+                                        </a>
+                                        {% if forloop.first %}{% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% elif user.is_authenticated and user == gig.homeowner %}
+                            <!-- Homeowner View -->
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-user-check me-2"></i>Job Assigned
+                                </h6>
+                                <p class="mb-2">This job has been assigned to <strong>{{ gig.hired_provider.email }}</strong></p>
+                                {% if gig.order_set.exists %}
+                                    {% for order in gig.order_set.all %}
+                                        <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-eye me-2"></i>View Order
+                                        </a>
+                                        {% if forloop.first %}{% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Other Users View -->
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle me-2"></i>
+                                This job has already been assigned to a service provider.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elif gig.is_active %}
+                <!-- Job is active and can be applied for -->
+                {% if user.is_authenticated and user != gig.homeowner and user.user_type == 'service_provider' %}
+                    {% if has_applied %}
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            You have already applied for this job.
+                        </div>
+                    {% else %}
+                        <a href="{% url 'gigs:apply_for_job' gig.pk %}" class="btn btn-success btn-lg w-100 mb-3">
+                            <i class="fas fa-hand-paper"></i> Apply for This Job
+                        </a>
+                    {% endif %}
+                {% elif not user.is_authenticated %}
+                    <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn btn-success btn-lg w-100 mb-3">
+                        <i class="fas fa-hand-paper"></i> Login to Apply
+                    </a>
+                {% elif user.user_type != 'service_provider' %}
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Only service providers can apply for jobs.
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- Job is not active -->
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-pause me-2"></i>
+                    This job is currently not accepting applications.
+                </div>
+            {% endif %}
+            
+            <!-- Review Section for Homeowners -->
+            {% if user.is_authenticated and can_leave_review %}
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-success text-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Leave a Review
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Job Completed!</strong> Please take a moment to review the service provider's work.
+                    </div>
+                    <p class="mb-3">
+                        Your feedback helps other homeowners make informed decisions and helps service providers improve their services.
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Provider:</strong> {{ gig.hired_provider.get_full_name|default:gig.hired_provider.email }}
+                        </div>
+                        <a href="{% url 'gigs:review_job' gig.pk %}" class="btn btn-success">
+                            <i class="fas fa-star me-2"></i>Leave Review
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Existing Review Section -->
+            {% if existing_review %}
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-primary text-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star me-2"></i>Your Review
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= existing_review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <strong>{{ existing_review.rating }}/5</strong>
+                            </div>
+                            {% if existing_review.comment %}
+                                <p class="mb-2">{{ existing_review.comment }}</p>
+                            {% endif %}
+                            <small class="text-muted">Reviewed on {{ existing_review.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'reviews:detail' existing_review.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Full Review
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Job Stats -->
+            <div class="card shadow border-0">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-primary">Job Stats</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Applications</span>
+                        <strong>{{ applications.count|default:"0" }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Status</span>
+                        <strong>{{ gig.get_job_status_display|title }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Posted</span>
+                        <strong>{{ gig.created_at|date:"M d, Y" }}</strong>
+                    </div>
+                    {% if gig.hired_provider %}
+                    <div class="d-flex justify-content-between">
+                        <span>Assigned To</span>
+                        <strong>{{ gig.hired_provider.email|truncatechars:15 }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if existing_review %}
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Review Status</span>
+                        <strong><span class="badge bg-success">Reviewed</span></strong>
+                    </div>
+                    {% elif gig.job_status == 'completed' and user == gig.homeowner %}
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Review Status</span>
+                        <strong><span class="badge bg-warning">Pending Review</span></strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<script>
+function viewApplication(appId) {
+    // This would typically open a modal or navigate to application details
+    window.location.href = "/gigs/applications/" + appId + "/";
+}
+</script>
+{% endif %}
+{% endblock %}

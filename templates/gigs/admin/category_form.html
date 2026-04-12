@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Category - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{{ action|lower }} me-2"></i>{{ action }} Category
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">
+                                        {{ form.name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Enter a unique category name (e.g., Electrical, Plumbing)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.icon.id_for_label }}" class="form-label">
+                                        {{ form.icon.label }}
+                                    </label>
+                                    {{ form.icon }}
+                                    {% if form.icon.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.icon.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">FontAwesome icon class</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Optional description of the category</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gigs:admin_category_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Categories
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{{ action }} Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-capitalize category name
+    const nameField = document.getElementById('{{ form.name.id_for_label }}');
+    if (nameField) {
+        nameField.addEventListener('blur', function() {
+            this.value = this.value.replace(/\b\w/g, l => l.toUpperCase());
+        });
+    }
+    
+    // Icon preview
+    const iconField = document.getElementById('{{ form.icon.id_for_label }}');
+    if (iconField) {
+        iconField.addEventListener('input', function() {
+            // You could add icon preview functionality here
+            console.log('Icon:', this.value);
+        });
+    }
+});
+</script>
+{% endblock %}

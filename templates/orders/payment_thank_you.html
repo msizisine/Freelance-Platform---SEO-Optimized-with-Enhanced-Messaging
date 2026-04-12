@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Thank You - Order {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle fa-5x text-success"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Success Message -->
+                    <h2 class="text-success mb-3">Payment Confirmed!</h2>
+                    <p class="lead mb-4">
+                        Thank you for completing the payment for Order #{{ order.order_number }}.
+                    </p>
+                    
+                    <!-- Order Details -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3">Order Summary</h5>
+                            <div class="row text-start">
+                                <div class="col-md-6">
+                                    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                                    <p><strong>Service:</strong> {{ order.gig.title }}</p>
+                                    <p><strong>Service Provider:</strong> {{ order.service_provider.get_full_name|default:order.service_provider.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Total Amount:</strong> R{{ order.total_amount|floatformat:2 }}</p>
+                                    <p><strong>Payment Method:</strong> In-Person</p>
+                                    <p><strong>Payment Status:</strong> <span class="badge bg-success">Paid</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Next Steps -->
+                    <div class="alert alert-info text-start">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Next Steps
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Please arrange payment with the service provider in person</li>
+                            <li>Keep this page as proof of payment confirmation</li>
+                            <li>Feel free to leave a review if you haven't already</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'orders:detail' order.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>
+                            View Order Details
+                        </a>
+                        <a href="{% url 'orders:list' %}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>
+                            My Orders
+                        </a>
+                        {% if not order.review_written %}
+                        <a href="{% url 'reviews:create' order_id=order.pk %}" class="btn btn-success">
+                            <i class="fas fa-star me-2"></i>
+                            Leave a Review
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-icon {
+    animation: scaleIn 0.5s ease-in-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.success-icon i {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add some celebration animation
+    const successIcon = document.querySelector('.success-icon');
+    successIcon.style.animation = 'scaleIn 0.5s ease-in-out, pulse 2s infinite 0.5s';
+});
+</script>
+{% endblock %}

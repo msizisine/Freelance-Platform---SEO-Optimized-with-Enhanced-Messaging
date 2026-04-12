@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reject Payout{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-times-circle me-2"></i>Reject Payout</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:admin_payout_management' %}">Payout Management</a></li>
+                        <li class="breadcrumb-item active">Reject Payout</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user me-2"></i>Payout Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Provider:</strong> {{ payout.provider.email }}</p>
+                            <p><strong>Amount:</strong> R{{ payout.amount|floatformat:2 }}</p>
+                            <p><strong>Method:</strong> {{ payout.get_payout_method_display }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-warning">{{ payout.get_status_display }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Requested:</strong> {{ payout.requested_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>Priority:</strong> {{ payout.get_priority_display }}</p>
+                            <p><strong>Bank Account:</strong> {{ payout.bank_account.account_number|default:"Not specified" }}</p>
+                            <p><strong>Bank:</strong> {{ payout.bank_account.bank_name|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if payout.description %}
+                        <div class="mt-3">
+                            <p><strong>Description:</strong></p>
+                            <p class="text-muted">{{ payout.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Rejection Action</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                            <textarea name="reason" id="reason" class="form-control" rows="4" 
+                                placeholder="Please provide a reason for rejecting this payout..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="admin_notes" class="form-label">Additional Notes</label>
+                            <textarea name="admin_notes" id="admin_notes" class="form-control" rows="3" 
+                                placeholder="Any additional notes for the provider..."></textarea>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> Rejecting this payout will:
+                            <ul class="mb-0 mt-2">
+                                <li>Cancel the payout request</li>
+                                <li>Return earnings to available status</li>
+                                <li>Notify the provider of the rejection</li>
+                                <li>Allow the provider to request payout again</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i>Reject Payout
+                            </button>
+                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Payouts
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

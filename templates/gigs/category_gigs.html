@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name|title }} - FreelanceHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ category.name }} Gigs</h1>
+                <a href="{% url 'gigs:list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to All Gigs
+                </a>
+            </div>
+            
+            <!-- Category Description -->
+            {% if category.description %}
+                <div class="alert alert-info mb-4">
+                    {{ category.description }}
+                </div>
+            {% endif %}
+            
+            <!-- Gigs Grid -->
+            <div class="row">
+                {% for gig in gigs %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            {% if gig.image %}
+                                <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}">
+                            {% else %}
+                                <img src="https://picsum.photos/seed/{{ gig.id }}/400/200" class="card-img-top" alt="{{ gig.title }}">
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ gig.title }}</h5>
+                                <p class="card-text">{{ gig.description|truncatewords:15 }}</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary">{{ category.name }}</span>
+                                        <span class="fw-bold">R{{ gig.basic_price }}</span>
+                                    </div>
+                                    <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-outline-primary w-100">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No gigs found in the {{ category.name }} category.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Gigs pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

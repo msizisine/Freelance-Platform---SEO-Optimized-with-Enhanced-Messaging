@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Process Payment - Order {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Payment Method Selection -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>
+                        Select Payment Method
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'orders:process_payment' pk=order.pk %}" id="paymentMethodForm">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Order #{{ order.order_number }} has been completed. Please select how you'd like to pay the service provider.
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card payment-option-card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="payment-icon mb-3">
+                                            <i class="fas fa-mobile-alt fa-3x text-success"></i>
+                                        </div>
+                                        <h5 class="card-title">Yoco</h5>
+                                        <p class="card-text small">
+                                            Mobile card payments. 
+                                            Fast and secure.
+                                        </p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="yoco" value="yoco" required>
+                                            <label class="form-check-label" for="yoco">
+                                                <strong>Card Payment</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card payment-option-card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="payment-icon mb-3">
+                                            <i class="fas fa-bolt fa-3x text-warning"></i>
+                                        </div>
+                                        <h5 class="card-title">Ozow</h5>
+                                        <p class="card-text small">
+                                            Instant EFT from all SA banks. 
+                                            No card needed.
+                                        </p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="ozow" value="ozow" required>
+                                            <label class="form-check-label" for="ozow">
+                                                <strong>Instant EFT</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card payment-option-card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="payment-icon mb-3">
+                                            <i class="fas fa-university fa-3x text-info"></i>
+                                        </div>
+                                        <h5 class="card-title">EFT Transfer</h5>
+                                        <p class="card-text small">
+                                            Direct bank transfer. 
+                                            Traditional banking.
+                                        </p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="eft" value="eft" required>
+                                            <label class="form-check-label" for="eft">
+                                                <strong>Bank Transfer</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card payment-option-card h-100">
+                                    <div class="card-body text-center">
+                                        <div class="payment-icon mb-3">
+                                            <i class="fas fa-handshake fa-3x text-warning"></i>
+                                        </div>
+                                        <h5 class="card-title">In-Person</h5>
+                                        <p class="card-text small">
+                                            Pay directly when work is completed. 
+                                            Arrange with provider.
+                                        </p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" 
+                                                   id="in_person" value="in_person" required>
+                                            <label class="form-check-label" for="in_person">
+                                                <strong>Pay in Person</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'orders:detail' pk=order.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Back to Order
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg" id="continueBtn" disabled>
+                                <i class="fas fa-arrow-right me-2"></i>
+                                Continue to Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Invoice Summary -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-invoice me-2"></i>
+                        Invoice Summary
+                    </h5>
+                    {% if invoice_data %}
+                    <a href="{% url 'gigs:download_invoice' order_id=order.pk %}" 
+                       class="btn btn-sm btn-light">
+                        <i class="fas fa-download me-1"></i>
+                        Download PDF
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if invoice_data %}
+                        <div class="invoice-header text-center mb-4">
+                            <h6 class="text-muted">INVOICE</h6>
+                            <h4 class="text-primary">#{{ invoice_data.invoice_number }}</h4>
+                            <small class="text-muted">{{ invoice_data.date_issued|date:"M d, Y" }}</small>
+                        </div>
+                        
+                        <div class="invoice-details">
+                            <div class="mb-3">
+                                <strong>Service Provider:</strong><br>
+                                {{ invoice_data.service_provider_name }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Client:</strong><br>
+                                {{ invoice_data.client_name }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Service:</strong><br>
+                                {{ invoice_data.service_title }}
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="invoice-items">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Base Price:</span>
+                                    <span>R{{ invoice_data.base_price }}</span>
+                                </div>
+                                
+                                {% if invoice_data.additional_fees > 0 %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Additional Fees:</span>
+                                    <span>R{{ invoice_data.additional_fees }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if invoice_data.discount_amount > 0 %}
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span>Discount:</span>
+                                    <span>-R{{ invoice_data.discount_amount }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                <hr>
+                                
+                                <div class="d-flex justify-content-between fw-bold fs-5">
+                                    <span>Total Amount:</span>
+                                    <span class="text-primary">R{{ invoice_data.total_amount }}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Payment due upon completion
+                                </small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Invoice data not available
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Order Status -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info me-2"></i>
+                        Order Status
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Status:</span>
+                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Payment:</span>
+                        <span class="badge bg-warning">{{ order.get_payment_status_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Completed:</span>
+                        <span>{{ order.completed_at|date:"M d, Y"|default:"Not completed" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-option-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.payment-option-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.payment-option-card.selected {
+    border: 2px solid #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.payment-icon {
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.payment-option-card:hover .payment-icon {
+    opacity: 1;
+}
+
+.invoice-header {
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 1rem;
+}
+
+.form-check-input:checked + .form-check-label {
+    color: #007bff;
+    font-weight: 600;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentCards = document.querySelectorAll('.payment-option-card');
+    const continueBtn = document.getElementById('continueBtn');
+    const paymentMethodForm = document.getElementById('paymentMethodForm');
+    
+    // Handle card selection
+    paymentCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const radioInput = this.querySelector('input[type="radio"]');
+            if (radioInput) {
+                radioInput.checked = true;
+                updateCardSelection();
+                continueBtn.disabled = false;
+            }
+        });
+    });
+    
+    // Handle radio button change
+    const radioInputs = document.querySelectorAll('input[name="payment_method"]');
+    radioInputs.forEach(radio => {
+        radio.addEventListener('change', updateCardSelection);
+    });
+    
+    function updateCardSelection() {
+        paymentCards.forEach(card => {
+            const radioInput = card.querySelector('input[type="radio"]');
+            if (radioInput && radioInput.checked) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+    }
+    
+    // Form submission
+    paymentMethodForm.addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        if (!selectedMethod) {
+            e.preventDefault();
+            alert('Please select a payment method');
+            return false;
+        }
+        
+        // Show loading state
+        continueBtn.disabled = true;
+        continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+    });
+});
+</script>
+{% endblock %}

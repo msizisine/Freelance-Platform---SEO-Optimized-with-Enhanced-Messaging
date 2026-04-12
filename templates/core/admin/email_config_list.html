@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Email Configurations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-envelope me-2"></i>Email Configurations</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Email Configurations</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Email Configurations ({{ configs|length }} total)</h5>
+                    <div class="card-actions">
+                        <a href="/admin/core/emailconfiguration/add/" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Email Configuration
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if configs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>From Email</th>
+                                        <th>From Name</th>
+                                        <th>Host/Provider</th>
+                                        <th>Daily Limit</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for config in configs %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-info">{{ config.get_config_type_display }}</span>
+                                            </td>
+                                            <td>{{ config.from_email }}</td>
+                                            <td>{{ config.from_name }}</td>
+                                            <td>
+                                                {% if config.host %}
+                                                    {{ config.host }}:{{ config.port }}
+                                                {% else %}
+                                                    API-based
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ config.daily_limit|default:"Unlimited" }}</td>
+                                            <td>
+                                                {% if config.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="/admin/core/emailconfiguration/{{ config.pk }}/change/" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                            <h5>No email configurations found</h5>
+                            <p class="text-muted">No email configurations have been set up for the platform.</p>
+                            <a href="/admin/core/emailconfiguration/add/" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add First Email Configuration
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Email Configuration Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Configuration Types:</h6>
+                            <ul>
+                                <li><strong>SMTP:</strong> Traditional email server configuration</li>
+                                <li><strong>SendGrid:</strong> Cloud-based email service</li>
+                                <li><strong>AWS SES:</strong> Amazon Simple Email Service</li>
+                                <li><strong>Mailgun:</strong> Email API service</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Configuration Notes:</h6>
+                            <ul>
+                                <li>Only one configuration can be active at a time</li>
+                                <li>Daily limits help prevent service abuse</li>
+                                <li>API-based providers use API keys instead of SMTP</li>
+                                <li>Test configurations before activating them</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+# Environment variables
+.env
+.env.local
+.env.production
+.env.twilio
+
+# Database
+*.sqlite3
+db.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Static files
+/static/
+/media/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug files with credentials
+check_twilio_numbers.py
+check_whatsapp_status.py
+debug_whatsapp_errors.py
+simple_whatsapp_debug.py
+*debug*.py
+*test*.py
+
+# All test and debug scripts
+test_*.py
+debug_*.py
+check_*.py
+*_debug.py
+*_test.py
+whatsapp_*.py
+twilio_*.py
+*_whatsapp.py
+*_twilio.py
+demo_*.py
+manual_*.py
+interactive_*.py
+enhanced_*.py
+final_*.py
+working_*.py
+simple_*.py
+basic_*.py
+advanced_*.py
+complete_*.py
+fixed_*.py
+real_*.py
+actual_*.py
+proper_*.py
+correctly_*.py
+solution_*.py
+*_flow.py
+*_setup.py
+*_service.py
+*_comparison.py
+*_guide.md
+*_FIX_*.md
+*_OPTIONS.md
+*_GUIDE.md
+*_TROUBLESHOOTING.md
+*_DEMO.md
+*_IMPLEMENTATION.md
+*_TEST_RESULTS.md
+
+# Documentation files with sensitive info
+*.md
+!README.md

@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for {{ gig.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Job Header -->
+            <div class="card mb-4">
+                {% if gig.image %}
+                    <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}">
+                {% else %}
+                    <img src="https://picsum.photos/seed/{{ gig.id }}/800/400" class="card-img-top" alt="{{ gig.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ gig.title }}</h1>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary">{{ gig.category.name }}</span>
+                                {% if gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ gig.subcategory.name }}</span>
+                                {% endif %}
+                                {% if gig.is_private %}
+                                    <span class="badge bg-warning">Private</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if gig.budget_min and gig.budget_max %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }} - R{{ gig.budget_max }}</div>
+                                <small class="text-muted">Budget Range</small>
+                            {% elif gig.budget_min %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }}</div>
+                                <small class="text-muted">Starting from</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ gig.description|truncatewords:50 }}</p>
+                    
+                    <!-- Job Details -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-map-marker-alt me-2"></i>Location:</strong> {{ gig.location }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-clock me-2"></i>Urgency:</strong> 
+                            <span class="badge bg-{% if gig.urgency == 'asap' %}danger{% elif gig.urgency == 'within_week' %}warning{% elif gig.urgency == 'within_month' %}info{% else %}secondary{% endif %}">
+                                {{ gig.get_urgency_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if gig.start_date or gig.end_date %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-calendar-alt me-2"></i>Start Date:</strong> 
+                            {% if gig.start_date %}{{ gig.start_date|date:"M d, Y" }}{% else %}Not specified{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-calendar-check me-2"></i>End Date:</strong> 
+                            {% if gig.end_date %}{{ gig.end_date|date:"M d, Y" }}{% else %}Not specified{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Application Form -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Apply for This Job</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <div class="form-floating">
+                                {{ form.cover_letter }}
+                                <label for="{{ form.cover_letter.id_for_label }}">Cover Letter *</label>
+                            </div>
+                            {% if form.cover_letter.errors %}
+                                <div class="text-danger mt-1">
+                                    {{ form.cover_letter.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Explain why you're the best fit for this job</small>
+                        </div>
+                        
+                        <!-- Rate Calculation Section -->
+                        <div class="card mb-4 bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3">
+                                    <i class="fas fa-calculator me-2"></i>Rate Calculation
+                                </h6>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="rateType" name="rate_type">
+                                                <option value="">Select rate type...</option>
+                                                {% if request.user.hourly_rate %}
+                                                    <option value="hourly">Hourly Rate (R{{ request.user.hourly_rate|floatformat:2 }}/hr)</option>
+                                                {% endif %}
+                                                {% if request.user.daily_rate %}
+                                                    <option value="daily">Daily Rate (R{{ request.user.daily_rate|floatformat:2 }}/day)</option>
+                                                {% endif %}
+                                                {% if request.user.square_meter_rate %}
+                                                    <option value="square_meter">Square Meter Rate (R{{ request.user.square_meter_rate|floatformat:2 }}/m²)</option>
+                                                {% endif %}
+                                                <option value="custom">Custom Rate</option>
+                                            </select>
+                                            <label for="rateType">Rate Type</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="rateQuantity" name="rate_quantity" placeholder="0" min="0" step="0.1">
+                                            <label for="rateQuantity">Quantity</label>
+                                        </div>
+                                        <small class="form-text text-muted" id="quantityHelp">Hours, days, or square meters</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="calculatedRate" name="calculated_rate" placeholder="0.00" readonly>
+                                            <label for="calculatedRate">Calculated Rate (R)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    {{ form.proposed_rate }}
+                                    <label for="{{ form.proposed_rate.id_for_label }}">Proposed Rate (R)</label>
+                                </div>
+                                {% if form.proposed_rate.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ form.proposed_rate.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">Your final proposed rate for this job</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    {{ form.estimated_duration }}
+                                    <label for="{{ form.estimated_duration.id_for_label }}">Estimated Duration *</label>
+                                </div>
+                                {% if form.estimated_duration.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ form.estimated_duration.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">How long you estimate the job will take</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    {{ form.availability_start }}
+                                    <label for="{{ form.availability_start.id_for_label }}">Available to Start *</label>
+                                </div>
+                                {% if form.availability_start.errors %}
+                                    <div class="text-danger mt-1">
+                                        {{ form.availability_start.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">When you're available to start this job</small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rateType = document.getElementById('rateType');
+    const rateQuantity = document.getElementById('rateQuantity');
+    const calculatedRate = document.getElementById('calculatedRate');
+    const proposedRate = document.getElementById('{{ form.proposed_rate.id_for_label }}');
+    const quantityHelp = document.getElementById('quantityHelp');
+    
+    // Provider rates from template
+    const providerRates = {
+        hourly: parseFloat('{{ request.user.hourly_rate|default:0|floatformat:2 }}'),
+        daily: parseFloat('{{ request.user.daily_rate|default:0|floatformat:2 }}'),
+        square_meter: parseFloat('{{ request.user.square_meter_rate|default:0|floatformat:2 }}')
+    };
+    
+    function calculateRate() {
+        const selectedType = rateType.value;
+        const quantity = parseFloat(rateQuantity.value) || 0;
+        
+        if (selectedType && quantity > 0) {
+            let rate = 0;
+            let unitRate = 0;
+            
+            if (selectedType === 'hourly' && providerRates.hourly > 0) {
+                unitRate = providerRates.hourly;
+                rate = unitRate * quantity;
+            } else if (selectedType === 'daily' && providerRates.daily > 0) {
+                unitRate = providerRates.daily;
+                rate = unitRate * quantity;
+            } else if (selectedType === 'square_meter' && providerRates.square_meter > 0) {
+                unitRate = providerRates.square_meter;
+                rate = unitRate * quantity;
+            } else if (selectedType === 'custom') {
+                // For custom rate, just use the quantity as the rate
+                rate = quantity;
+            }
+            
+            calculatedRate.value = rate.toFixed(2);
+            
+            // Auto-fill proposed rate if it's empty
+            if (!proposedRate.value || proposedRate.value === '0.00') {
+                proposedRate.value = rate.toFixed(2);
+            }
+        } else {
+            calculatedRate.value = '';
+        }
+    }
+    
+    function updateQuantityHelp() {
+        const selectedType = rateType.value;
+        let helpText = 'Hours, days, or square meters';
+        
+        if (selectedType === 'hourly') {
+            helpText = 'Number of hours';
+        } else if (selectedType === 'daily') {
+            helpText = 'Number of days';
+        } else if (selectedType === 'square_meter') {
+            helpText = 'Square meters';
+        } else if (selectedType === 'custom') {
+            helpText = 'Enter your custom rate';
+        }
+        
+        quantityHelp.textContent = helpText;
+    }
+    
+    // Event listeners
+    rateType.addEventListener('change', function() {
+        updateQuantityHelp();
+        calculateRate();
+    });
+    
+    rateQuantity.addEventListener('input', calculateRate);
+    
+    // Copy calculated rate to proposed rate when manually changed
+    calculatedRate.addEventListener('change', function() {
+        if (this.value) {
+            proposedRate.value = this.value;
+        }
+    });
+    
+    // Initialize
+    updateQuantityHelp();
+});
+</script>
+{% endblock %}

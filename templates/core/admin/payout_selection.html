@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Select Payouts for Bulk Processing{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-check-square me-2"></i>Select Payouts for Bulk Processing</h2>
+                <a href="{% url 'core:bulk_payment_dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-filter me-2"></i>Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select name="payment_method" id="payment_method" class="form-select">
+                                <option value="">All Methods</option>
+                                {% for value, label in payment_methods %}
+                                <option value="{{ value }}" {% if current_method == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="provider" class="form-label">Provider</label>
+                            <select name="provider" id="provider" class="form-select">
+                                <option value="">All Providers</option>
+                                {% for provider in providers %}
+                                <option value="{{ provider.id }}" {% if current_provider == provider.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ provider.email }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label><br>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Apply Filters
+                            </button>
+                            <a href="{% url 'core:payout_selection' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selection Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" action="{% url 'core:generate_bulk_payment' %}" id="bulkPaymentForm">
+                        {% csrf_token %}
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                    <label class="form-check-label" for="selectAll">
+                                        Select All ({{ payouts|length }})
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Payment Type:</label>
+                                <select name="payment_type" class="form-select">
+                                    <option value="mixed">Mixed (Auto-separate)</option>
+                                    <option value="ewallet">eWallet Only</option>
+                                    <option value="eft">EFT Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Selected:</label>
+                                <div class="badge bg-primary" id="selectedCount">0</div>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-success" id="generateBtn" disabled>
+                                    <i class="fas fa-download me-2"></i>Generate CSV
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="selected_payouts" id="selectedPayouts" value="">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payouts Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Approved Payouts</h5>
+                </div>
+                <div class="card-body">
+                    {% if payouts %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" id="selectAllTable" class="form-check-input">
+                                        </th>
+                                        <th>Provider</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Priority</th>
+                                        <th>Payment Details</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payout in payouts %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="payout_select" value="{{ payout.id }}" 
+                                                   class="form-check-input payout-checkbox"
+                                                   data-amount="{{ payout.net_amount }}"
+                                                   data-method="{{ payout.payout_method }}">
+                                        </td>
+                                        <td>
+                                            <strong>{{ payout.provider.email }}</strong><br>
+                                            <small class="text-muted">{{ payout.recipient_name }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">R{{ payout.net_amount }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if payout.payout_method == 'bank_transfer' %}bg-info{% elif payout.payout_method == 'ewallet' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ payout.get_payout_method_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if payout.priority == 'standard' %}bg-secondary{% elif payout.priority == 'urgent' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ payout.get_priority_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if payout.payout_method == 'bank_transfer' %}
+                                                <small class="text-muted">
+                                                    {{ payout.bank_account }}<br>
+                                                    {{ payout.bank_name }}
+                                                </small>
+                                            {% elif payout.payout_method in 'ewallet' %}
+                                                <small class="text-muted">{{ payout.recipient_email }}</small>
+                                            {% else %}
+                                                <small class="text-muted">{{ payout.recipient_phone }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ payout.created_at|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <nav aria-label="Payout pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No approved payouts found.</p>
+                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Payouts
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const selectAllTable = document.getElementById('selectAllTable');
+    const payoutCheckboxes = document.querySelectorAll('.payout-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const selectedPayouts = document.getElementById('selectedPayouts');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    function updateSelection() {
+        const selected = document.querySelectorAll('.payout-checkbox:checked');
+        selectedCount.textContent = selected.length;
+        
+        // Update hidden field
+        const selectedIds = Array.from(selected).map(cb => cb.value);
+        selectedPayouts.value = selectedIds.join(',');
+        
+        // Enable/disable button
+        generateBtn.disabled = selected.length === 0;
+        
+        // Update select all checkboxes
+        selectAll.checked = selected.length === payoutCheckboxes.length;
+        selectAllTable.checked = selected.length === payoutCheckboxes.length;
+    }
+    
+    // Select all functionality
+    selectAll.addEventListener('change', function() {
+        payoutCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateSelection();
+    });
+    
+    selectAllTable.addEventListener('change', function() {
+        payoutCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateSelection();
+    });
+    
+    // Individual checkbox changes
+    payoutCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateSelection);
+    });
+    
+    // Form validation
+    document.getElementById('bulkPaymentForm').addEventListener('submit', function(e) {
+        const selected = document.querySelectorAll('.payout-checkbox:checked');
+        if (selected.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one payout to process.');
+            return false;
+        }
+        
+        // Show confirmation
+        const totalAmount = Array.from(selected).reduce((sum, cb) => {
+            return sum + parseFloat(cb.dataset.amount);
+        }, 0);
+        
+        const confirmMsg = `Generate CSV for ${selected.length} payout(s) totaling R${totalAmount.toFixed(2)}?`;
+        if (!confirm(confirmMsg)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

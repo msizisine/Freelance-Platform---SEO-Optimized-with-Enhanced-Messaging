@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Block admin and sensitive areas
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /api/
+Disallow: /webhook/
+Disallow: /notifications/
+Disallow: /messages/
+Disallow: /orders/create/
+Disallow: /gigs/create/
+Disallow: /gigs/*/edit/
+Disallow: /gigs/*/delete/
+Disallow: /gigs/*/apply/
+Disallow: /gigs/*/complete/
+Disallow: /users/*/edit/
+Disallow: /core/admin/
+Disallow: /reviews/create/
+
+# Allow specific important pages
+Allow: /gigs/
+Allow: /gigs/category/
+Allow: /users/
+Allow: /reviews/
+
+# Sitemap reference (will be updated by Django)
+Sitemap: https://yourdomain.com/sitemap.xml

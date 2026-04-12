@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Job - {{ gig.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Job Header -->
+            <div class="card mb-4">
+                {% if gig.image %}
+                    <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}">
+                {% else %}
+                    <img src="https://picsum.photos/seed/{{ gig.id }}/800/400" class="card-img-top" alt="{{ gig.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ gig.title }}</h1>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary">{{ gig.category.name }}</span>
+                                {% if gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ gig.subcategory.name }}</span>
+                                {% endif %}
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if gig.budget_min and gig.budget_max %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }} - R{{ gig.budget_max }}</div>
+                                <small class="text-muted">Budget Range</small>
+                            {% elif gig.budget_min %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }}</div>
+                                <small class="text-muted">Starting from</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ gig.description|truncatewords:50 }}</p>
+                    
+                    <!-- Service Provider Info -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-user-check me-2"></i>Hired Service Provider
+                        </h6>
+                        <div class="d-flex align-items-center mb-2">
+                            {% if service_provider.profile.profile_picture %}
+                                <img src="{{ service_provider.profile.profile_picture.url }}" 
+                                     class="rounded-circle me-3" width="50" height="50" alt="{{ service_provider.email }}">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle me-3 d-inline-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-1">{{ service_provider.email }}</h6>
+                                {% if service_provider.profile.average_rating %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-star"></i> {{ service_provider.profile.average_rating|floatformat:1 }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Complete Job Form -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Complete Job & Review Service Provider
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Important Information
+                        </h6>
+                        <p class="mb-2">
+                            <strong>Marking this job as complete will:</strong>
+                        </p>
+                        <ul class="mb-0">
+                            <li>Release payment to the service provider</li>
+                            <li>Require you to review the service provider's performance</li>
+                            <li>Close this job permanently (cannot be reopened)</li>
+                            <li>Make the service provider available for new work</li>
+                        </ul>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Are you sure you want to mark this job as complete?</label>
+                            <div class="form-text text-muted">
+                                This action will release payment to {{ service_provider.email }} and you will be required to provide a review of their work.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Yes, Complete Job
+                            </button>
+                            <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

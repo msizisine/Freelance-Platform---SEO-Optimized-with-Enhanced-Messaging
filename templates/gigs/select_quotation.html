@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Quotation - {{ quotation.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Quotation Selection
+                    </h4>
+                    <p class="mb-0 text-muted">Review the selected quotation before creating the private job</p>
+                </div>
+                <div class="card-body">
+                    <!-- Alert -->
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Important:</strong> Selecting this quotation will create a private job with {{ response.service_provider.get_full_name|default:response.service_provider.email }}. All other quotations will be automatically rejected.
+                    </div>
+
+                    <!-- Quotation Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Job Details</h6>
+                            <p><strong>Title:</strong> {{ quotation.title }}</p>
+                            <p><strong>Category:</strong> {{ quotation.category.name }}</p>
+                            <p><strong>Location:</strong> {{ quotation.location }}</p>
+                            <p><strong>Duration:</strong> {{ quotation.start_date|date:"M d, Y" }} - {{ quotation.end_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Selected Provider</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                {% if response.service_provider.profile.profile_picture %}
+                                    <img src="{{ response.service_provider.profile.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ response.service_provider.email }}">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ response.service_provider.get_full_name|default:response.service_provider.email }}</strong>
+                                    {% if response.service_provider.profile.average_rating %}
+                                        <div class="text-warning small">
+                                            <i class="fas fa-star"></i> {{ response.service_provider.profile.average_rating|floatformat:1 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quotation Details -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">Quotation Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 text-center">
+                                    <h4 class="text-primary mb-1">R{{ response.estimated_price }}</h4>
+                                    <small class="text-muted">Total Price</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <h5 class="mb-1">{{ response.estimated_duration }}</h5>
+                                    <small class="text-muted">Estimated Duration</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <h5 class="mb-1">{{ response.submitted_at|date:"M d, Y" }}</h5>
+                                    <small class="text-muted">Submitted</small>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Price Breakdown:</h6>
+                                    <p class="text-muted small">{{ response.price_breakdown|linebreaks }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Availability:</h6>
+                                    <p class="text-muted small">{{ response.availability|linebreaks }}</p>
+                                </div>
+                            </div>
+                            
+                            {% if response.notes %}
+                                <div class="mt-3">
+                                    <h6>Additional Notes:</h6>
+                                    <p class="text-muted small">{{ response.notes|linebreaks }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Other Quotations to be Rejected -->
+                    {% if responses %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0">Other Quotations (Will be Rejected)</h6>
+                            </div>
+                            <div class="card-body">
+                                {% for other_response in responses %}
+                                    {% if other_response.pk != response.pk %}
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                            <div>
+                                                <strong>{{ other_response.service_provider.get_full_name|default:other_response.service_provider.email }}</strong>
+                                                <br><small class="text-muted">Submitted {{ other_response.submitted_at|date:"M d, Y" }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="text-danger">R{{ other_response.estimated_price }}</span>
+                                                <br><small class="text-muted">{{ other_response.estimated_duration }}</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Confirmation Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Confirmation:</strong> By clicking "Create Private Job" below, you agree to hire {{ response.service_provider.get_full_name|default:response.service_provider.email }} for R{{ response.estimated_price }}. A private job will be created and only this provider will be able to see and accept it.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gigs:quotation_detail' quotation.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Quotation Details
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i>Create Private Job
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

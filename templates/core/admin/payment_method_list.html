@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment Methods{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-credit-card me-2"></i>Payment Methods</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Payment Methods</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Payment Methods ({{ methods|length }} total)</h5>
+                    <div class="card-actions">
+                        <a href="/admin/core/paymentmethod/add/" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Payment Method
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if methods %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Fees</th>
+                                        <th>Processing Time</th>
+                                        <th>Min/Max Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for method in methods %}
+                                        <tr>
+                                            <td>
+                                                <strong>
+                                                    <i class="{{ method.icon_class }} me-2"></i>{{ method.name }}
+                                                </strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ method.method_type|upper }}</span>
+                                            </td>
+                                            <td>{{ method.description|truncatechars:40 }}</td>
+                                            <td>
+                                                {% if method.fee_percentage > 0 %}
+                                                    {{ method.fee_percentage }}%
+                                                {% endif %}
+                                                {% if method.fee_fixed > 0 %}
+                                                    {% if method.fee_percentage > 0 %} + {% endif %}
+                                                    R{{ method.fee_fixed }}
+                                                {% endif %}
+                                                {% if method.fee_percentage == 0 and method.fee_fixed == 0 %}
+                                                    <span class="text-muted">Free</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ method.processing_time }}</td>
+                                            <td>
+                                                R{{ method.minimum_amount }}
+                                                {% if method.maximum_amount %}
+                                                    - R{{ method.maximum_amount }}
+                                                {% else %}
+                                                    - No limit
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if method.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="/admin/core/paymentmethod/{{ method.pk }}/change/" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                            <h5>No payment methods configured</h5>
+                            <p class="text-muted">No payment methods have been set up for the platform.</p>
+                            <a href="/admin/core/paymentmethod/add/" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add First Payment Method
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Payment Method Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Available Payment Types:</h6>
+                            <ul>
+                                <li><strong>Yoco:</strong> Mobile card payment processing</li>
+                                <li><strong>Ozow:</strong> Instant EFT from South African banks</li>
+                                <li><strong>EFT:</strong> Direct bank transfer</li>
+                                <li><strong>In-Person:</strong> Cash/hand-to-hand payments</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Configuration Notes:</h6>
+                            <ul>
+                                <li>Payment methods can be activated/deactivated as needed</li>
+                                <li>Fee structures support both percentage and fixed amounts</li>
+                                <li>Minimum and maximum amounts can be set per method</li>
+                                <li>Processing time helps users understand payment delays</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Request Payout{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-hand-holding-usd me-2"></i>Request Payout</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:payout_dashboard' %}">Payout Dashboard</a></li>
+                        <li class="breadcrumb-item active">Request Payout</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-plus me-2"></i>Create Payout Request</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Available Earnings Selection -->
+                        <div class="mb-4">
+                            {% if immediate_payment %}
+                                <h6><i class="fas fa-bolt me-2"></i>Immediate Payment Request</h6>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    You're requesting immediate payment for the selected earning. This will be processed with priority.
+                                </div>
+                            {% else %}
+                                <h6><i class="fas fa-coins me-2"></i>Select Earnings to Payout</h6>
+                            {% endif %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            {% if not immediate_payment %}
+                                                <th><input type="checkbox" id="selectAll" onchange="toggleAll(this)"></th>
+                                            {% endif %}
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Gross Amount</th>
+                                            <th>Commission</th>
+                                            <th>Net Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for earning in available_earnings %}
+                                            <tr {% if immediate_payment and earning.id == selected_earning.id %}class="table-success"{% endif %}>
+                                                <td>
+                                                    {% if immediate_payment and earning.id == selected_earning.id %}
+                                                        <input type="checkbox" name="selected_earnings" value="{{ earning.id }}" 
+                                                               class="form-check-input earning-checkbox" checked
+                                                               onchange="updateSelectedTotal()">
+                                                    {% elif not immediate_payment %}
+                                                        <input type="checkbox" name="selected_earnings" value="{{ earning.id }}" 
+                                                               class="form-check-input earning-checkbox" 
+                                                               onchange="updateSelectedTotal()">
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ earning.created_at|date:"Y-m-d" }}</td>
+                                                <td>{{ earning.get_earning_type_display }}</td>
+                                                <td>
+                                                    <span title="{{ earning.description }}">
+                                                        {{ earning.description|truncatechars:30 }}
+                                                    </span>
+                                                    {% if earning.order %}
+                                                        <br><small class="text-muted">Order #{{ earning.order.id }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td>R{{ earning.gross_amount }}</td>
+                                                <td>R{{ earning.commission_amount }}</td>
+                                                <td class="text-success fw-bold">R{{ earning.net_amount }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6>Total Selected: <span id="selectedTotal" class="text-success fw-bold">R0.00</span></h6>
+                                <small class="text-muted">Available Balance: R{{ available_balance }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Payout Details -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="payout_method" class="form-label">Payment Method</label>
+                                    <select name="payout_method" id="payout_method" class="form-select" onchange="updatePaymentFields()">
+                                        <option value="">Select Payment Method</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="ewallet">E-Wallet</option>
+                                        <option value="cash_send">Cash Send</option>
+                                        <option value="payshap">PayShap</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="priority" class="form-label">Priority</label>
+                                    <select name="priority" id="priority" class="form-select">
+                                        <option value="standard">Standard (2 days)</option>
+                                        <option value="urgent">Urgent (Immediate)</option>
+                                        <option value="express">Express (Same day)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Specific Fields -->
+                        <div id="paymentMethodFields">
+                            <!-- Fields will be shown/hidden based on selected payment method -->
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'core:payout_dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Payout Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Fee Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Processing Fees:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Standard (2 days):</strong> No extra charge</li>
+                        <li><strong>Urgent (Immediate):</strong> R15 extra charge</li>
+                        <li><strong>Express (Same day):</strong> R25 extra charge</li>
+                    </ul>
+                    
+                    <h6>Payment Methods:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>E-Wallet:</strong> Email address required</li>
+                        <li><strong>Cash Send:</strong> Phone number required</li>
+                        <li><strong>PayShap:</strong> Phone number required</li>
+                        <li><strong>Bank Transfer:</strong> Account details required</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Monthly service fees will be deducted separately from your available balance.
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> All payouts are subject to review and approval before processing.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.earning-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = source.checked;
+    });
+    updateSelectedTotal();
+}
+
+function updateSelectedTotal() {
+    const checkboxes = document.querySelectorAll('.earning-checkbox:checked');
+    let total = 0;
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const netAmount = row.querySelector('td:nth-child(5)').textContent;
+        const amount = parseFloat(netAmount.replace('R', ''));
+        if (!isNaN(amount)) {
+            total += amount;
+        }
+    });
+    
+    document.getElementById('selectedTotal').textContent = `R${total.toFixed(2)}`;
+}
+
+// Show/hide payment method fields based on selection
+document.addEventListener('DOMContentLoaded', function() {
+    const payoutMethodSelect = document.querySelector('select[name="payout_method"]');
+    if (payoutMethodSelect) {
+        payoutMethodSelect.addEventListener('change', updatePaymentFields);
+        updatePaymentFields();
+    }
+});
+
+function updatePaymentFields() {
+    const method = document.querySelector('select[name="payout_method"]').value;
+    const fieldsContainer = document.getElementById('paymentMethodFields');
+    
+    let methodFieldsHTML = '';
+    
+    if (method === 'bank_transfer') {
+        methodFieldsHTML = `
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Account Number</label>
+                        <input type="text" name="bank_account" class="form-control" placeholder="Account number" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Bank Name</label>
+                        <input type="text" name="bank_name" class="form-control" placeholder="Bank name" required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Branch Code</label>
+                        <input type="text" name="branch_code" class="form-control" placeholder="Branch code" required>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    fieldsContainer.innerHTML = methodFieldsHTML;
+}
+
+// Handle immediate payment scenario
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-select the immediate payment earning if applicable
+    updateSelectedTotal();
+    
+    // Check if this is an immediate payment scenario
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('earning')) {
+        // Set to bank transfer by default for immediate payment
+        const methodSelect = document.getElementById('payout_method');
+        if (methodSelect) {
+            methodSelect.value = 'bank_transfer';
+            updatePaymentFields();
+        }
+    }
+});
+
+function updateSelectedTotal() {
+    const checkboxes = document.querySelectorAll('.earning-checkbox:checked');
+    let total = 0;
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const netAmountCell = row.querySelector('td:last-child');
+        const amount = parseFloat(netAmountCell.textContent.replace('R', ''));
+        total += amount;
+    });
+    
+    document.getElementById('selectedTotal').textContent = 'R' + total.toFixed(2);
+}
+
+function toggleAll(checkbox) {
+    const checkboxes = document.querySelectorAll('.earning-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    updateSelectedTotal();
+}
+</script>
+{% endblock %}

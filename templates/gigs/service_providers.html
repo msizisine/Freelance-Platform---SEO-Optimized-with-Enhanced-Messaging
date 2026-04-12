@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Service Providers - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Service Providers Page Styles */
+.providers-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.providers-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,90.7C960,96,1056,128,1152,133.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.filter-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    margin-top: -30px;
+    position: relative;
+    z-index: 10;
+}
+
+.provider-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    background: white;
+}
+
+.provider-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.provider-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.provider-info {
+    padding: 1.5rem;
+}
+
+.provider-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+    display: block;
+}
+
+.provider-name:hover {
+    color: #667eea;
+}
+
+.provider-title {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.provider-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.provider-rating {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.provider-rating .fas {
+    color: #ffc107;
+    margin-right: 2px;
+}
+
+.provider-rating .far {
+    color: #ffc107;
+    margin-right: 2px;
+    opacity: 0.7;
+}
+
+.provider-views {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.provider-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.skill-tag {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 15px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.provider-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-view-profile {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-view-profile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.btn-hire {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-hire:hover {
+    background: #218838;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.verified-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.location-badge {
+    background: #17a2b8;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.search-results-count {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.provider-key-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.rate-display, .experience-display {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.unverified-badge {
+    background: #ffc107;
+    color: #212529;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .provider-card {
+        margin-bottom: 1rem;
+    }
+    
+    .provider-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .provider-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="providers-header">
+    <div class="container">
+        <div class="text-center">
+            <h1 class="display-4 fw-bold mb-3">Explore Service Providers</h1>
+            <p class="lead mb-0">Find verified professionals for your home improvement needs</p>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="card-title">{{ total_providers }}</h4>
+                    <p class="card-text">Total Providers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4 class="card-title">{{ avg_rating_all|floatformat:1 }}</h4>
+                    <p class="card-text">Average Rating</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="card-title">{{ top_rated }}</h4>
+                    <p class="card-text">Top Rated (4.5+)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4 class="card-title">{{ providers|length }}</h4>
+                    <p class="card-text">Filtered Results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="get" class="row g-3">
+            <!-- Search Bar -->
+            <div class="col-md-4">
+                <label for="search" class="form-label fw-semibold">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="search" id="search" class="form-control" 
+                           placeholder="Search providers..." value="{{ search_query }}">
+                </div>
+            </div>
+            
+            <!-- Rating Filter -->
+            <div class="col-md-2">
+                <label for="rating" class="form-label fw-semibold">Min Rating</label>
+                <select name="rating" id="rating" class="form-select">
+                    <option value="">All Ratings</option>
+                    <option value="4.5" {% if rating_filter == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                    <option value="4.0" {% if rating_filter == '4.0' %}selected{% endif %}>4.0+ Stars</option>
+                    <option value="3.5" {% if rating_filter == '3.5' %}selected{% endif %}>3.5+ Stars</option>
+                    <option value="3.0" {% if rating_filter == '3.0' %}selected{% endif %}>3.0+ Stars</option>
+                </select>
+            </div>
+            
+            <!-- Sort Filter -->
+            <div class="col-md-2">
+                <label for="sort" class="form-label fw-semibold">Sort By</label>
+                <select name="sort" id="sort" class="form-select">
+                    <option value="rating_desc" {% if sort_by == 'rating_desc' %}selected{% endif %}>Highest Rating</option>
+                    <option value="rating_asc" {% if sort_by == 'rating_asc' %}selected{% endif %}>Lowest Rating</option>
+                    <option value="reviews_desc" {% if sort_by == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
+                    <option value="reviews_asc" {% if sort_by == 'reviews_asc' %}selected{% endif %}>Least Reviews</option>
+                    <option value="jobs_desc" {% if sort_by == 'jobs_desc' %}selected{% endif %}>Most Jobs</option>
+                    <option value="jobs_asc" {% if sort_by == 'jobs_asc' %}selected{% endif %}>Least Jobs</option>
+                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name A-Z</option>
+                    <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name Z-A</option>
+                </select>
+            </div>
+            
+            <!-- Category Filter -->
+            <div class="col-md-2">
+                <label for="category" class="form-label fw-semibold">Category</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Submit and Clear Buttons -->
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="btn-group w-100" role="group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <a href="{% url 'gigs:service_providers' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Search Results Count -->
+    <div class="search-results-count">
+        <strong>{{ providers|length }}</strong> search result(s)
+        {% if search_query or rating_filter or sort_by != 'rating_desc' or category_filter %}
+            <span class="text-muted">- <a href="{% url 'gigs:service_providers' %}" class="alert-link">clear all filters</a></span>
+        {% endif %}
+    </div>
+    
+    <!-- Providers Grid -->
+    <div class="row g-4">
+        {% for provider in providers %}
+            <div class="col-lg-4 col-md-6">
+                <div class="provider-card">
+                    <div class="provider-info">
+                        <div class="d-flex align-items-start mb-3">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" 
+                                     class="provider-avatar me-3" 
+                                     alt="{{ provider.get_full_name|default:provider.email }}"
+                                     style="object-fit: cover;">
+                            {% else %}
+                                <div class="provider-avatar me-3 d-flex align-items-center justify-content-center bg-light">
+                                    <i class="fas fa-user fa-2x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <a href="{% url 'users:profile' provider.pk %}" class="provider-name">
+                                    {{ provider.get_full_name|default:provider.email }}
+                                </a>
+                                <div class="provider-title">
+                                    {{ provider.bio|default:"Professional service provider"|truncatewords:15 }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="provider-stats">
+                            <div class="provider-rating">
+                                {% if provider.avg_rating %}
+                                    {% for i in "12345"|slice:":5" %}
+                                        {% if forloop.counter <= provider.avg_rating|floatformat:0 %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1">({{ provider.avg_rating|floatformat:1 }})</span>
+                                    <span class="ms-2 text-muted">({{ provider.reviews_count|default:0 }} reviews)</span>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                    <span class="ms-1">(0.0)</span>
+                                    <span class="ms-2 text-muted">(0 reviews)</span>
+                                {% endif %}
+                            </div>
+                            <div class="provider-views">
+                                <i class="fas fa-eye me-1"></i>{{ provider.profile_views|default:0 }} views
+                            </div>
+                        </div>
+                        
+                        <!-- Key Information -->
+                        <div class="provider-key-info mb-3">
+                            {% if provider.service_categories.exists %}
+                                <div class="mb-2">
+                                    <small class="text-muted fw-semibold">Category:</small><br>
+                                    {% for category in provider.service_categories.all %}
+                                        <span class="badge bg-primary me-1">{{ category.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if provider.hourly_rate %}
+                                <div class="mb-2">
+                                    <small class="text-muted fw-semibold">Rate:</small><br>
+                                    <span class="rate-display">
+                                        <span class="text-success fw-bold">R{{ provider.hourly_rate }}</span>
+                                        <span class="text-muted">/hour</span>
+                                    </span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if provider.square_meter_rate %}
+                                <div class="mb-2">
+                                    <small class="text-muted fw-semibold">Square Meter Rate:</small><br>
+                                    <span class="rate-display">
+                                        <span class="text-info fw-bold">R{{ provider.square_meter_rate }}</span>
+                                        <span class="text-muted">/m²</span>
+                                    </span>
+                                </div>
+                            {% endif %}
+                            
+                            {% if provider.years_experience %}
+                                <div class="mb-2">
+                                    <small class="text-muted fw-semibold">Experience:</small><br>
+                                    <span class="experience-display">
+                                        <span class="text-warning fw-bold">{{ provider.years_experience }}</span>
+                                        <span class="text-muted">years</span>
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Badges -->
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% if provider.is_verified %}
+                                <span class="verified-badge">
+                                    <i class="fas fa-check-circle"></i>Verified Professional
+                                </span>
+                            {% else %}
+                                <span class="unverified-badge">
+                                    <i class="fas fa-exclamation-triangle"></i>Not Verified
+                                </span>
+                            {% endif %}
+                            {% if provider.location %}
+                                <span class="location-badge">
+                                    <i class="fas fa-map-marker-alt"></i>{{ provider.location }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Skills -->
+                        {% if provider.service_categories.exists %}
+                            <div class="provider-skills">
+                                {% for category in provider.service_categories.all %}
+                                    <span class="skill-tag">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Actions -->
+                        <div class="provider-actions">
+                            <a href="{% url 'users:profile' provider.pk %}" class="btn-view-profile">
+                                <i class="fas fa-user me-1"></i>View profile
+                            </a>
+                            {% if request.user.user_type == 'homeowner' %}
+                                <a href="{% url 'orders:create_private_job' provider.pk %}" class="btn-hire">
+                                    <i class="fas fa-handshake me-1"></i>Hire
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                    </div>
+                    <h3 class="mb-3">No Service Providers Found</h3>
+                    <p class="text-muted mb-4">Try adjusting your filters or check back later for new providers.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Sign Up as Service Provider
+                        </a>
+                        <a href="{% url 'gigs:list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-briefcase me-2"></i>Browse Jobs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

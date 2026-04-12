@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Categories - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-folder me-2"></i>Manage Categories</h1>
+                <div class="btn-group">
+                    <a href="{% url 'gigs:admin_category_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Category
+                    </a>
+                    <a href="{% url 'gigs:admin_subcategory_list' %}" class="btn btn-info">
+                        <i class="fas fa-sitemap me-2"></i>Subcategories
+                    </a>
+                    <a href="{% url 'gigs:admin_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search categories..." id="searchInput">
+                <button class="btn btn-outline-secondary" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <span class="badge bg-secondary">{{ total_categories }} categories</span>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if categories %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="categoriesTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Subcategories</th>
+                                <th>Gigs</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>
+                                        {% if category.icon %}
+                                            <i class="{{ category.icon }} text-primary"></i>
+                                        {% else %}
+                                            <i class="fas fa-folder text-muted"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ category.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ category.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ category.subcategory_count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ category.gig_count }}</span>
+                                    </td>
+                                    <td>
+                                        <small>{{ category.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'gigs:admin_category_update' category.pk %}" class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'gigs:admin_category_delete' category.pk %}" class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h4>No Categories Found</h4>
+                    <p class="text-muted">Start by creating your first category.</p>
+                    <a href="{% url 'gigs:admin_category_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create Category
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Category pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.getElementById('categoriesTable');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const categoryName = row.cells[1].textContent.toLowerCase();
+                const description = row.cells[2].textContent.toLowerCase();
+                
+                if (categoryName.includes(searchTerm) || description.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

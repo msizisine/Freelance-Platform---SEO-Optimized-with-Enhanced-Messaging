@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.email }}'s Reviews & Ratings{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Profile Card -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    {% if profile_user.profile_picture %}
+                        <img src="{{ profile_user.profile_picture.url }}" 
+                             class="rounded-circle mb-3" width="150" height="150" alt="{{ profile_user.email }}">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" 
+                             style="width: 150px; height: 150px;">
+                            <i class="fas fa-user fa-3x text-white"></i>
+                        </div>
+                    {% endif %}
+                    <h5>{{ profile_user.email }}</h5>
+                    <p class="text-muted">{{ profile_user.bio|default:"No bio provided" }}</p>
+                    <span class="badge bg-primary">{{ profile_user.get_user_type_display }}</span>
+                </div>
+            </div>
+            
+            <!-- Rating Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Rating Summary</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Reviews Received -->
+                    {% if profile_user.user_type == 'service_provider' %}
+                        <div class="mb-3">
+                            <h6 class="text-success">Reviews Received</h6>
+                            <div class="text-center mb-2">
+                                <h3 class="text-warning">{{ average_rating_received|floatformat:1 }} ★</h3>
+                                <p class="text-muted">{{ total_reviews_received }} reviews received</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Reviews Left -->
+                    {% if profile_user.user_type == 'homeowner' %}
+                        <div class="mb-3">
+                            <h6 class="text-info">Reviews Left</h6>
+                            <div class="text-center mb-2">
+                                <h3 class="text-warning">{{ average_rating_left|floatformat:1 }} ★</h3>
+                                <p class="text-muted">{{ total_reviews_left }} reviews left to give</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Reviews Received List -->
+            {% if profile_user.user_type == 'service_provider' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Reviews Received ({{ total_reviews_received }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if reviews_received %}
+                            {% for review in reviews_received %}
+                                <div class="card mb-3">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">{{ review.order.gig.title }}</h6>
+                                            <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter0 <= review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <small class="text-muted">({{ review.rating }}/5)</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <p>{{ review.comment }}</p>
+                                                
+                                                {% if review.response %}
+                                                    <div class="alert alert-info mt-3">
+                                                        <strong>Response from {{ profile_user.email }}:</strong><br>
+                                                        {{ review.response }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="text-muted small">
+                                                    <div class="mb-2">
+                                                        <strong>By:</strong> {{ review.homeowner.email }}
+                                                    </div>
+                                                    {% if review.criteria_quality %}
+                                                        <div class="mb-1">
+                                                            <strong>Quality:</strong> {{ review.criteria_quality }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if review.criteria_communication %}
+                                                        <div class="mb-1">
+                                                            <strong>Communication:</strong> {{ review.criteria_communication }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if review.criteria_timeliness %}
+                                                        <div class="mb-1">
+                                                            <strong>Timeliness:</strong> {{ review.criteria_timeliness }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Reviews Received Yet</h5>
+                                <p class="text-muted">{{ profile_user.email }} hasn't received any reviews yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Reviews Left List -->
+            {% if profile_user.user_type == 'homeowner' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Reviews Left ({{ total_reviews_left }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if reviews_left %}
+                            {% for review in reviews_left %}
+                                <div class="card mb-3">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">{{ review.order.service_provider.email }}</h6>
+                                            <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter0 <= review.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <small class="text-muted">({{ review.rating }}/5)</small>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <p>{{ review.comment }}</p>
+                                                
+                                                {% if review.response %}
+                                                    <div class="alert alert-info mt-3">
+                                                        <strong>Response from {{ profile_user.email }}:</strong><br>
+                                                        {{ review.response }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="text-muted small">
+                                                    <div class="mb-2">
+                                                        <strong>For:</strong> {{ review.order.service_provider.email }}
+                                                    </div>
+                                                    {% if review.criteria_quality %}
+                                                        <div class="mb-1">
+                                                            <strong>Quality:</strong> {{ review.criteria_quality }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if review.criteria_communication %}
+                                                        <div class="mb-1">
+                                                            <strong>Communication:</strong> {{ review.criteria_communication }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if review.criteria_timeliness %}
+                                                        <div class="mb-1">
+                                                            <strong>Timeliness:</strong> {{ review.criteria_timeliness }}/5
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Reviews Left Yet</h5>
+                                <p class="text-muted">{{ profile_user.email }} hasn't left any reviews yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

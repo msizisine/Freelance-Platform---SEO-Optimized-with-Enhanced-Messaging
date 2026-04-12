@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Sign Up - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">Sign Up</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'account_signup' %}">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" id="id_email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_user_type" class="form-label">Account Type</label>
+                            <select name="user_type" class="form-control" id="id_user_type">
+                                <option value="homeowner">Homeowner</option>
+                                <option value="service_provider">Service Provider</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password1" class="form-label">Password</label>
+                            <input type="password" name="password1" class="form-control" id="id_password1" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password2" class="form-label">Confirm Password</label>
+                            <input type="password" name="password2" class="form-control" id="id_password2" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_phone" class="form-label">Phone (Optional)</label>
+                            <input type="tel" name="phone" class="form-control" id="id_phone">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">Location (Optional)</label>
+                            <input type="text" name="location" class="form-control" id="id_location">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{% url 'account_login' %}">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

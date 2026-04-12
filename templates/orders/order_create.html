@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Job - pro4me{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Create New Job</h4>
+                    <p class="text-muted mb-0">Post your job and get quotes from verified professionals</p>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if gig %}
+                            <div class="alert alert-info">
+                                <h5>{{ gig.title }}</h5>
+                                <p>{{ gig.description|truncatewords:30 }}</p>
+                                <strong>Starting from: R{{ gig.basic_price }}</strong>
+                            </div>
+                        {% else %}
+                            <!-- Job Creation Form -->
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="id_job_title" class="form-label">Job Title *</label>
+                                    {{ form.job_title }}
+                                    {% if form.job_title.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.job_title.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_category" class="form-label">Category *</label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.category.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_location" class="form-label">Location</label>
+                                    {{ form.location }}
+                                    {% if form.location.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.location.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_description" class="form-label">Job Description *</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <label for="id_budget_min" class="form-label">Min Budget (R)</label>
+                                    {{ form.budget_min }}
+                                    {% if form.budget_min.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.budget_min.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="id_budget_max" class="form-label">Max Budget (R) *</label>
+                                    {{ form.budget_max }}
+                                    {% if form.budget_max.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.budget_max.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="id_urgency" class="form-label">Urgency</label>
+                                    {{ form.urgency }}
+                                    {% if form.urgency.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.urgency.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="id_completion_date" class="form-label">Completion Date</label>
+                                    {{ form.completion_date }}
+                                    {% if form.completion_date.errors %}
+                                        <div class="text-danger small mt-1">
+                                            {% for error in form.completion_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_job_images" class="form-label">Job Images (Optional)</label>
+                                {{ form.job_images }}
+                                <small class="form-text text-muted">{{ form.job_images.help_text }}</small>
+                                {% if form.job_images.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.job_images.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Order</button>
+                            <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

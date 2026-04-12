@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Offers Sent{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-paper-plane me-2"></i>Job Offers Sent
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if job_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Job Title</th>
+                                        <th>Service Provider</th>
+                                        <th>Budget Range</th>
+                                        <th>Status</th>
+                                        <th>Sent</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in job_offers %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ offer.job_title }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ offer.job_description|truncatewords:15 }}</small>
+                                            </td>
+                                            <td>
+                                                {{ offer.service_provider.get_full_name|default:offer.service_provider.email }}
+                                                <br>
+                                                <small class="text-muted">{{ offer.service_provider.email }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    R{{ offer.budget_min|floatformat:2 }} - R{{ offer.budget_max|floatformat:2 }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if offer.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending Review</span>
+                                                {% elif offer.status == 'submitted' %}
+                                                    <span class="badge bg-info">Estimate Submitted</span>
+                                                {% elif offer.status == 'approved' %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% elif offer.status == 'declined' %}
+                                                    <span class="badge bg-danger">Declined</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ offer.get_status_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <small>{{ offer.created_at|date:"M d, Y H:i" }}</small>
+                                            </td>
+                                            <td>
+                                                {% if offer.status == 'approved' and offer.gig %}
+                                                    <a href="{% url 'gigs:detail' offer.gig.id %}" 
+                                                       class="btn btn-sm btn-success">
+                                                        <i class="fas fa-eye me-1"></i>View Job
+                                                    </a>
+                                                {% elif offer.status == 'pending' %}
+                                                    <span class="text-muted small">
+                                                        <i class="fas fa-clock me-1"></i>Waiting for provider
+                                                    </span>
+                                                {% elif offer.status == 'submitted' %}
+                                                    <a href="{% url 'orders:review_estimates' %}" 
+                                                       class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-clipboard-check me-1"></i>Review Estimate
+                                                    </a>
+                                                {% elif offer.status == 'declined' %}
+                                                    <span class="text-muted small">
+                                                        <i class="fas fa-times me-1"></i>Declined
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-paper-plane fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Job Offers Sent</h5>
+                            <p class="text-muted">You haven't sent any job offers to service providers yet.</p>
+                            <a href="{% url 'gigs:service_providers' %}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Find Service Providers
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

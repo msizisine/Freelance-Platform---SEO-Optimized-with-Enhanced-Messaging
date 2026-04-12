@@ -1,0 +1,1115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.email }} - pro4me Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Profile Page Styles */
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,90.7C960,96,1056,128,1152,133.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.profile-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.profile-actions {
+    margin-top: 1.5rem;
+}
+
+.profile-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+}
+
+.skill-tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 25px;
+    margin: 0.25rem;
+    font-size: 0.9rem;
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.contact-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.contact-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    font-size: 0.9rem;
+}
+
+.education-item {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+}
+
+.education-title {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.education-school {
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.education-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-hire {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.btn-hire:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-message {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.btn-message:hover {
+    background: #128C7E;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Portfolio Styles */
+.portfolio-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.portfolio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.portfolio-image {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.portfolio-card:hover .portfolio-image {
+    transform: scale(1.05);
+}
+
+.portfolio-placeholder {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.portfolio-card .card-title {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-card .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.portfolio-item-clickable {
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.portfolio-item-clickable:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.portfolio-item-clickable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 8px;
+}
+
+.portfolio-item-clickable:hover::before {
+    opacity: 1;
+}
+
+.portfolio-item-clickable .card-title i.fa-expand-alt {
+    transition: transform 0.3s ease;
+}
+
+.portfolio-item-clickable:hover .card-title i.fa-expand-alt {
+    transform: scale(1.2);
+}
+
+/* Reviews Styles */
+.review-item {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.review-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.star-rating {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.star-rating .fas {
+    color: #ffc107;
+    margin-right: 3px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 1.2em;
+}
+
+.star-rating .far {
+    color: #ffc107;
+    margin-right: 3px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-size: 1.2em;
+    opacity: 0.7;
+}
+
+.rating-number {
+    font-weight: 700;
+    color: #495057;
+    font-size: 1rem;
+    margin-left: 8px;
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.review-comment {
+    margin: 1rem 0;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.review-criteria {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.criteria-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.criteria-stars {
+    font-size: 0.9rem;
+}
+
+.criteria-stars .fas,
+.criteria-stars .far {
+    color: #ffc107;
+    margin-right: 1px;
+}
+
+/* Ensure Edit Profile button is clickable */
+.edit-profile-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1000 !important;
+    position: relative !important;
+    display: inline-block !important;
+}
+
+.edit-profile-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Remove any overlay that might block clicks */
+.profile-actions {
+    position: relative;
+    z-index: 100;
+}
+
+@media (max-width: 768px) {
+    .profile-info h1 {
+        font-size: 2rem;
+    }
+    
+    .profile-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .profile-actions {
+        text-align: center;
+    }
+    
+    .edit-profile-btn {
+        margin-top: 1rem;
+        display: inline-block !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<section class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                {% if profile_user.profile_picture %}
+                    <img src="{{ profile_user.profile_picture.url }}" 
+                         class="profile-avatar" alt="{{ profile_user.get_full_name|default:profile_user.email }}">
+                {% else %}
+                    <div class="profile-avatar d-flex align-items-center justify-content-center">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-9">
+                <div class="profile-info">
+                    <h1>{{ profile_user.get_full_name|default:profile_user.email }}</h1>
+                    <p class="lead mb-2">{{ profile_user.bio|default:"Professional service provider" }}</p>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-white text-primary px-3 py-2">{{ profile_user.get_user_type_display }}</span>
+                        {% if profile_user.is_verified %}
+                            <span class="badge bg-success px-3 py-2">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning px-3 py-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Not Verified
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if profile_user.location %}
+                        <div class="mt-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ profile_user.location }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ average_rating|floatformat:1 }} <span class="text-warning">&#9733;</span></span>
+                            <span class="stat-label">{{ reviews|length }} reviews</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ completed_orders|length }}</span>
+                            <span class="stat-label">Jobs Completed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ profile_user.created_at|timesince }}</span>
+                            <span class="stat-label">Member Since</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        {% if user.is_authenticated %}
+                            {% if user != profile_user %}
+                                {% if user.user_type == 'homeowner' and profile_user.user_type == 'service_provider' %}
+                                    <button class="btn-message me-2" onclick="openMessageModal()">
+                                        <i class="fas fa-comment me-2"></i>Send Message
+                                    </button>
+                                {% endif %}
+                                <a href="#" class="btn-hire me-3">
+                                    <i class="fas fa-handshake me-2"></i>Hire Professional
+                                </a>
+                            {% endif %}
+                            {% if user == profile_user %}
+                                <a href="{% url 'users:signup_profile_edit' %}" class="btn-hire edit-profile-btn">
+                                    <i class="fas fa-edit me-2"></i>Edit Profile
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn-hire">
+                                <i class="fas fa-sign-in-alt me-2"></i>Log in to hire
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Contact Information -->
+            <div class="profile-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="section-title mb-0">Contact Information</h3>
+                    <div>
+                        {% if profile_user.is_verified %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Verified Professional
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Not Verified
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if user.is_authenticated %}
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <strong>Email:</strong><br>
+                            {{ profile_user.email }}
+                        </div>
+                    </div>
+                    {% if profile_user.phone %}
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div>
+                                <strong>Phone:</strong><br>
+                                {{ profile_user.phone }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if profile_user.whatsapp_number %}
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <strong>WhatsApp:</strong><br>
+                                {{ profile_user.whatsapp_number }}
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if profile_user.website %}
+                        <div class="contact-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div>
+                                <strong>Website:</strong><br>
+                                <a href="{{ profile_user.website }}" target="_blank">{{ profile_user.website }}</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Contact Information Hidden</h5>
+                        <p class="text-muted mb-4">Please log in to view contact details and hire this professional.</p>
+                        <a href="{% url 'account_login' %}?next={{ request.path }}" class="btn-hire">
+                            <i class="fas fa-sign-in-alt me-2"></i>Log in to hire the pro
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Skills -->
+            {% if profile_user.skills or profile_user.service_type %}
+                <div class="profile-section">
+                    <h3 class="section-title">Skills & Services</h3>
+                    {% if profile_user.skills %}
+                        {% for skill in profile_user.skills.all %}
+                            <span class="skill-tag">{{ skill.name }}</span>
+                        {% endfor %}
+                    {% endif %}
+                    {% if profile_user.service_type %}
+                        <div class="mt-2">
+                            <span class="badge bg-info">{{ profile_user.get_service_type_display }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <!-- Service Provider Statistics -->
+            {% if profile_user.user_type == 'service_provider' %}
+                <div class="profile-section">
+                    <h3 class="section-title">Service Provider Statistics</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Jobs Completed</span>
+                                <strong class="text-success">{{ completed_orders|length }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Average Rating</span>
+                                <strong class="text-warning">{{ average_rating|floatformat:1 }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Total Reviews</span>
+                                <strong class="text-info">{{ reviews|length }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Active Applications</span>
+                                <strong class="text-primary">{{ active_jobs|length }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Service Provider Details -->
+            {% if profile_user.user_type == 'service_provider' %}
+                <div class="profile-section">
+                    <h3 class="section-title">Service Provider Details</h3>
+                    <div class="row">
+                        {% if profile_user.service_categories.exists %}
+                            <div class="col-md-6 mb-3">
+                                <strong>Service Categories:</strong><br>
+                                {% for category in profile_user.service_categories.all %}
+                                    <span class="badge bg-primary me-1">{{ category.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if profile_user.hourly_rate %}
+                            <div class="col-md-4 mb-3">
+                                <strong>Hourly Rate:</strong><br>
+                                <span class="badge bg-success">R{{ profile_user.hourly_rate }}/hour</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.daily_rate %}
+                            <div class="col-md-4 mb-3">
+                                <strong>Daily Rate:</strong><br>
+                                <span class="badge bg-primary">R{{ profile_user.daily_rate }}/day</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.square_meter_rate %}
+                            <div class="col-md-4 mb-3">
+                                <strong>Square Meter Rate:</strong><br>
+                                <span class="badge bg-info">R{{ profile_user.square_meter_rate }}/m²</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.years_experience %}
+                            <div class="col-md-6 mb-3">
+                                <strong>Years of Experience:</strong><br>
+                                <span class="badge bg-warning">{{ profile_user.years_experience }} years</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.skills %}
+                            <div class="col-12 mb-3">
+                                <strong>Skills & Qualifications:</strong><br>
+                                {{ profile_user.skills|linebreaks }}
+                            </div>
+                        {% endif %}
+                        {% if profile_user.id_passport_number %}
+                            <div class="col-md-6 mb-3">
+                                <strong>ID/Passport Number:</strong><br>
+                                <code>{{ profile_user.id_passport_number }}</code>
+                            </div>
+                        {% endif %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Verification Status:</strong><br>
+                            <span class="badge {% if profile_user.is_verified %}bg-success{% else %}bg-warning{% endif %}">
+                                {% if profile_user.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- About -->
+            {% if profile_user.bio %}
+                <div class="profile-section">
+                    <h3 class="section-title">About</h3>
+                    <p>{{ profile_user.bio }}</p>
+                </div>
+            {% endif %}
+            
+                    </div>
+        
+        <div class="col-md-8">
+            <!-- About Section -->
+            <div class="profile-section">
+                <h3 class="section-title">About</h3>
+                <p>{{ profile_user.bio|default:"Professional service provider with expertise in home maintenance and improvement services." }}</p>
+                
+                {% if profile_user.experience %}
+                    <h4 class="mt-4">Experience</h4>
+                    <p>{{ profile_user.experience }}</p>
+                {% endif %}
+                
+                {% if profile_user.education %}
+                    <h4 class="mt-4">Education</h4>
+                    <div class="education-item">
+                        <div class="education-title">{{ profile_user.education }}</div>
+                        <div class="education-date">Professional Development</div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Portfolio/Work Samples -->
+            <div class="profile-section">
+                <h3 class="section-title">Portfolio</h3>
+                {% if profile_user.portfolio_items.exists %}
+                    <div class="row">
+                        {% for item in profile_user.portfolio_items.all %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100 portfolio-card portfolio-item-clickable" onclick="viewPortfolioItem({{ item.id }})">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" class="card-img-top portfolio-image" alt="{{ item.title }}">
+                                    {% else %}
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center portfolio-placeholder" style="height: 200px;">
+                                            <i class="fas fa-image fa-3x text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            {{ item.title }}
+                                            <i class="fas fa-expand-alt float-end text-muted"></i>
+                                        </h5>
+                                        <p class="card-text">{{ item.description|truncatewords:30 }}</p>
+                                        
+                                        {% if item.project_url %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">Project URL:</small><br>
+                                                <a href="{{ item.project_url }}" target="_blank" class="text-primary" onclick="event.stopPropagation()">
+                                                    <i class="fas fa-external-link-alt me-1"></i>View Project
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if item.skills %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">Skills:</small><br>
+                                                {% for skill in item.skills.all %}
+                                                    <span class="badge bg-light text-dark me-1">{{ skill.name }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if item.completion_date %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">Completed:</small><br>
+                                                <span class="text-success">{{ item.completion_date|date:"M d, Y" }}</span>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if item.client_name %}
+                                            <div class="mb-2">
+                                                <small class="text-muted">Client:</small><br>
+                                                <span>{{ item.client_name }}</span>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="mt-auto">
+                                            {% if item.all_images.count > 1 %}
+                                                <small class="text-muted">
+                                                    <i class="fas fa-images me-1"></i>{{ item.all_images.count }} images
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="text-center mt-3">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewPortfolioItem({{ item.id }})">
+                                                <i class="fas fa-eye me-1"></i>View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if profile_user.portfolio_items.count > 4 %}
+                        <div class="text-center mt-4">
+                            <a href="#" class="btn btn-outline-primary" onclick="viewAllPortfolio()">
+                                <i class="fas fa-th me-2"></i>View All Portfolio Items
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Portfolio Items Yet</h5>
+                        <p class="text-muted">This professional hasn't added any portfolio items yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Professional References -->
+            {% if profile_user.professional_references.exists %}
+                <div class="profile-section">
+                    <h3 class="section-title">Professional References</h3>
+                    {% for reference in profile_user.professional_references.all %}
+                        <div class="education-item">
+                            <div class="education-title">{{ reference.name }}</div>
+                            <div class="education-school">{{ reference.type_of_work }}</div>
+                            <div class="education-date">{{ reference.contact }}</div>
+                            <p>{{ reference.description|default:"" }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Reviews -->
+            <div class="profile-section">
+                <h3 class="section-title">Reviews</h3>
+                {% if profile_user.reviews_received.exists %}
+                    {% for review in profile_user.reviews_received.all %}
+                        <div class="review-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h6 class="mb-0 me-3">{{ review.client.get_full_name|default:review.client.email }}</h6>
+                                        <div class="star-rating">
+                                            {% for i in "12345"|slice:":5" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span class="rating-number ms-2">{{ review.rating }}.0</span>
+                                        </div>
+                                    </div>
+                                    <p class="review-comment">{{ review.comment }}</p>
+                                    
+                                    {% if review.communication or review.quality or review.delivery %}
+                                        <div class="review-criteria mt-3">
+                                            <small class="text-muted">Detailed Ratings:</small>
+                                            <div class="row mt-1">
+                                                {% if review.communication %}
+                                                    <div class="col-md-4">
+                                                        <span class="criteria-label">Communication:</span>
+                                                        <div class="criteria-stars">
+                                                            {% for i in "12345"|slice:":5" %}
+                                                                {% if forloop.counter <= review.communication %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star text-warning"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                                {% if review.quality %}
+                                                    <div class="col-md-4">
+                                                        <span class="criteria-label">Quality:</span>
+                                                        <div class="criteria-stars">
+                                                            {% for i in "12345"|slice:":5" %}
+                                                                {% if forloop.counter <= review.quality %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star text-warning"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                                {% if review.delivery %}
+                                                    <div class="col-md-4">
+                                                        <span class="criteria-label">Delivery:</span>
+                                                        <div class="criteria-stars">
+                                                            {% for i in "12345"|slice:":5" %}
+                                                                {% if forloop.counter <= review.delivery %}
+                                                                    <i class="fas fa-star text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="far fa-star text-warning"></i>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-star fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No reviews yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Portfolio viewing functionality
+function viewPortfolioItem(itemId) {
+    // Navigate to the user's portfolio page
+    window.location.href = `/signup/portfolio/8/`;
+}
+
+function viewAllPortfolio() {
+    // Navigate to full portfolio page
+    window.location.href = `/signup/portfolio/8/`;
+}
+
+// Handle portfolio item clicks with proper event handling
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix Edit Profile button clickability
+    const editProfileBtn = document.querySelector('.edit-profile-btn');
+    if (editProfileBtn) {
+        // Remove any existing event listeners
+        editProfileBtn.replaceWith(editProfileBtn.cloneNode(true));
+        
+        // Add fresh event listener
+        const newEditBtn = document.querySelector('.edit-profile-btn');
+        newEditBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Navigate to edit profile page
+            const editUrl = this.getAttribute('href') || '/signup/profile/edit/';
+            window.location.href = editUrl;
+        });
+        
+        // Ensure button is clickable
+        newEditBtn.style.pointerEvents = 'auto';
+        newEditBtn.style.cursor = 'pointer';
+        newEditBtn.style.zIndex = '1000';
+        newEditBtn.style.position = 'relative';
+    }
+    
+    // Fix mobile navigation dropdown edit profile link
+    const mobileEditProfileLink = document.querySelector('a[href="/signup/signup/profile/"]');
+    if (mobileEditProfileLink) {
+        mobileEditProfileLink.setAttribute('href', '/signup/profile/edit/');
+    }
+    
+    // Add click handlers for portfolio items
+    const portfolioItems = document.querySelectorAll('.portfolio-item-clickable');
+    
+    portfolioItems.forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            // Don't trigger if clicking on links or buttons
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || 
+                e.target.closest('a') || e.target.closest('button')) {
+                return;
+            }
+            
+            // Get the item ID from data attribute or onclick
+            const itemId = this.getAttribute('data-item-id');
+            if (itemId) {
+                viewPortfolioItem(itemId);
+            } else {
+                // Fallback to onclick attribute
+                const onclickAttr = this.getAttribute('onclick');
+                if (onclickAttr) {
+                    const match = onclickAttr.match(/viewPortfolioItem\((\d+)\)/);
+                    if (match && match[1]) {
+                        viewPortfolioItem(match[1]);
+                    }
+                }
+            }
+        });
+    });
+    
+    // Add hover effect for better UX
+    portfolioItems.forEach(function(item) {
+        item.addEventListener('mouseenter', function() {
+            this.style.cursor = 'pointer';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.cursor = 'default';
+        });
+    });
+    
+    // Debug: Log when Edit Profile button is found
+    console.log('Edit Profile button found:', !!document.querySelector('.edit-profile-btn'));
+});
+
+// Additional fallback for Edit Profile button
+window.addEventListener('load', function() {
+    const editBtn = document.querySelector('.edit-profile-btn');
+    if (editBtn) {
+        console.log('Edit Profile button href:', editBtn.getAttribute('href'));
+        console.log('Edit Profile button clickable:', editBtn.style.pointerEvents !== 'none');
+    }
+});
+</script>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Send Message to {{ profile_user.get_full_name|default:profile_user.email }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="messageForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="messageMethod" class="form-label">Message Method</label>
+                        <select class="form-select" id="messageMethod" name="message_method">
+                            <option value="platform">Platform Message (Free)</option>
+                            {% if profile_user.phone %}
+                            <option value="sms">SMS Message</option>
+                            <option value="whatsapp">WhatsApp Message</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="messageContent" class="form-label">Message Content</label>
+                        <textarea class="form-control" id="messageContent" name="message_content" rows="4" 
+                                  placeholder="Type your message here..." required></textarea>
+                        <small class="form-text text-muted">
+                            {% if profile_user.phone %}
+                                Phone: {{ profile_user.phone }}
+                            {% else %}
+                                Provider hasn't added their phone number for SMS/WhatsApp messaging
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Platform messages are free and will appear in your messaging system. 
+                        SMS/WhatsApp messages may incur standard carrier charges.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Message Modal Functions
+function openMessageModal() {
+    const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    modal.show();
+}
+
+function sendMessage() {
+    const form = document.getElementById('messageForm');
+    const formData = new FormData(form);
+    const messageMethod = document.getElementById('messageMethod').value;
+    const messageContent = document.getElementById('messageContent').value;
+    
+    if (!messageContent.trim()) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    // Send message via AJAX
+    fetch(`/users/send-message/{{ profile_user.pk }}/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('messageModal'));
+            modal.hide();
+            
+            // Show success message
+            alert('Message sent successfully!');
+            
+            // Clear form
+            document.getElementById('messageContent').value = '';
+            
+            // If platform message, redirect to conversation
+            if (data.conversation_id && messageMethod === 'platform') {
+                window.location.href = `/messages/R{data.conversation_id}/`;
+            }
+        } else {
+            alert('Error sending message: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        console.error('Error details:', error.message);
+        alert('Error sending message. Please try again.');
+    });
+}
+
+// Initialize Bootstrap modal (if not already loaded)
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap === 'undefined') {
+        // Load Bootstrap CSS and JS if needed
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css';
+        document.head.appendChild(link);
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js';
+        document.head.appendChild(script);
+    }
+});
+</script>
+
+{% endblock %}

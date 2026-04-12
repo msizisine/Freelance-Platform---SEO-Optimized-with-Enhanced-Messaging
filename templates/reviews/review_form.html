@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Review{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Write a Review
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if order %}
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Reviewing: {{ order.gig.title }}
+                            </h6>
+                            <p class="mb-0">
+                                Service Provider: {{ order.service_provider.get_full_name|default:order.service_provider.email }}
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" id="reviewForm">
+                        {% csrf_token %}
+                        
+                        <!-- Overall Rating -->
+                        <div class="mb-4">
+                            {% for field in form %}
+                                {% if field.name == 'rating' %}
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                        {{ field.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="rating-input">
+                                        {{ field }}
+                                    </div>
+                                    <small class="text-muted form-text">Select a rating from 1 to 5 stars</small>
+                                    {% if field.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in field.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Detailed Ratings -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                {% for field in form %}
+                                    {% if field.name == 'communication' %}
+                                        <label for="{{ field.id_for_label }}" class="form-label">Communication</label>
+                                        <div class="rating-small">
+                                            {{ field }}
+                                            <small class="text-muted form-text">Rate communication (1-5)</small>
+                                            {% if field.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in field.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {% for field in form %}
+                                    {% if field.name == 'quality' %}
+                                        <label for="{{ field.id_for_label }}" class="form-label">Quality</label>
+                                        <div class="rating-small">
+                                            {{ field }}
+                                            <small class="text-muted form-text">Rate quality (1-5)</small>
+                                            {% if field.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in field.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-4">
+                                {% for field in form %}
+                                    {% if field.name == 'delivery' %}
+                                        <label for="{{ field.id_for_label }}" class="form-label">Delivery</label>
+                                        <div class="rating-small">
+                                            {{ field }}
+                                            <small class="text-muted form-text">Rate delivery time (1-5)</small>
+                                            {% if field.errors %}
+                                                <div class="text-danger mt-1">
+                                                    {% for error in field.errors %}
+                                                        <small>{{ error }}</small>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        
+                        <!-- Comment -->
+                        <div class="mb-4">
+                            {% for field in form %}
+                                {% if field.name == 'comment' %}
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                                        Your Review <span class="text-danger">*</span>
+                                    </label>
+                                    {{ field }}
+                                    <div class="form-text">
+                                        Share your experience with this service provider. Be specific and helpful.
+                                    </div>
+                                    {% if field.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in field.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Hidden Fields -->
+                        {% for field in form %}
+                            {% if field.name in 'order,client,service_provider,gig' %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:detail' pk=order.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Back to Order
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 1rem;
+}
+
+.rating-input li {
+    display: flex;
+    align-items: center;
+}
+
+.rating-input input[type="radio"] {
+    margin-right: 0.5rem;
+}
+
+.rating-small input {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+}
+
+.form-control {
+    border-radius: 0.375rem;
+}
+
+.form-select {
+    border-radius: 0.375rem;
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}My Jobs - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+.job-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.job-card:hover .btn-outline-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
+
+.job-card .card-title {
+    transition: color 0.2s ease-in-out;
+}
+
+.job-card:hover .card-title {
+    color: #0d6efd !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="fas fa-briefcase me-2"></i>My Jobs
+                </h1>
+                <div>
+                    <span class="badge bg-primary fs-6">{{ total_jobs }} Jobs</span>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ total_jobs }}</h4>
+                            <p class="card-text">Total Jobs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ active_count }}</h4>
+                            <p class="card-text">Active</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ completed_count }}</h4>
+                            <p class="card-text">Completed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ private_count }}</h4>
+                            <p class="card-text">Private</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" name="search" 
+                                       placeholder="Search jobs..." value="{{ search_query }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="status">
+                                <option value="">All Status</option>
+                                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="private" {% if status_filter == 'private' %}selected{% endif %}>Private</option>
+                                <option value="public" {% if status_filter == 'public' %}selected{% endif %}>Public</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Date Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="date">
+                                <option value="">All Time</option>
+                                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if date_filter == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if date_filter == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="year" {% if date_filter == 'year' %}selected{% endif %}>This Year</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Sort Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="sort">
+                                <option value="created_desc" {% if sort_by == 'created_desc' %}selected{% endif %}>Newest First</option>
+                                <option value="created_asc" {% if sort_by == 'created_asc' %}selected{% endif %}>Oldest First</option>
+                                <option value="title_asc" {% if sort_by == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                                <option value="title_desc" {% if sort_by == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                                <option value="budget_high" {% if sort_by == 'budget_high' %}selected{% endif %}>Budget High-Low</option>
+                                <option value="budget_low" {% if sort_by == 'budget_low' %}selected{% endif %}>Budget Low-High</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Submit and Clear Buttons -->
+                        <div class="col-md-2">
+                            <div class="btn-group w-100" role="group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i>Filter
+                                </button>
+                                <a href="{% url 'gigs:my_provider_jobs' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if jobs %}
+                <div class="row">
+                    {% for job in jobs %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm job-card" style="cursor: pointer;">
+                                <a href="{% url 'gigs:detail' job.pk %}" class="text-decoration-none">
+                                    {% if job.image %}
+                                        <img src="{{ job.image.url }}" class="card-img-top" alt="{{ job.title }}" style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                        <img src="https://picsum.photos/seed/{{ job.id }}/400/200" class="card-img-top" alt="{{ job.title }}" style="height: 200px; object-fit: cover;">
+                                    {% endif %}
+                                    
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="mb-3">
+                                            <span class="badge bg-{% if job.job_status == 'pending' %}warning{% elif job.job_status == 'accepted' %}success{% elif job.job_status == 'completed' %}info{% elif job.job_status == 'rejected' %}danger{% else %}secondary{% endif %} me-2">
+                                                {{ job.get_job_status_display }}
+                                            </span>
+                                            {% if job.is_private %}
+                                                <span class="badge bg-info">Private</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <h5 class="card-title text-dark">{{ job.title }}</h5>
+                                        <p class="card-text text-muted">{{ job.description|truncatewords:15 }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-dollar-sign"></i> 
+                                                    {% if job.budget_min and job.budget_max %}
+                                                        R{{ job.budget_min }} - R{{ job.budget_max }}
+                                                    {% elif job.budget_min %}
+                                                        R{{ job.budget_min }}+
+                                                    {% elif job.budget_max %}
+                                                        Up to R{{ job.budget_max }}
+                                                    {% else %}
+                                                        Budget not specified
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user"></i> 
+                                                    {{ job.homeowner.get_full_name|default:job.homeowner.email|truncatechars:20 }}
+                                                </small>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar"></i> 
+                                                    {{ job.created_at|date:"M d, Y" }}
+                                                </small>
+                                                {% if job.location %}
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-map-marker-alt"></i> 
+                                                        {{ job.location|truncatechars:15 }}
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-auto">
+                                            <div class="d-grid">
+                                                <span class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-external-link-alt me-1"></i>View Full Details
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-briefcase fa-3x mb-3"></i>
+                    <h4 class="alert-heading">No Jobs Found</h4>
+                    <p class="mb-3">
+                        {% if search_query or status_filter or date_filter %}
+                            No jobs match your current filters. Try adjusting your search criteria or 
+                            <a href="{% url 'gigs:my_provider_jobs' %}" class="alert-link">clear all filters</a>.
+                        {% else %}
+                            You haven't been hired for any jobs yet. Keep applying to jobs that match your skills!
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'gigs:list' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Browse Available Jobs
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

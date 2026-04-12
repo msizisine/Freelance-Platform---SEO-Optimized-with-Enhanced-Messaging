@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}Sign Up - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">Join Home Services Hub</h4>
+                    <p class="text-muted mb-0">Connect homeowners with trusted service providers</p>
+                </div>
+                <div class="card-body">
+                    <!-- User Type Selection -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="text-center mb-3">I want to:</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card text-center user-type-card" data-user-type="homeowner">
+                                        <div class="card-body">
+                                            <i class="fas fa-home fa-3x text-primary mb-3"></i>
+                                            <h6 class="card-title">Post Jobs & Hire</h6>
+                                            <p class="card-text small">Find and hire trusted service providers for your home needs</p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="user_type" id="homeowner" value="homeowner" checked>
+                                                <label class="form-check-label" for="homeowner">
+                                                    Sign up as Homeowner
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card text-center user-type-card" data-user-type="service_provider">
+                                        <div class="card-body">
+                                            <i class="fas fa-tools fa-3x text-success mb-3"></i>
+                                            <h6 class="card-title">Offer Services</h6>
+                                            <p class="card-text small">Find work and showcase your skills to homeowners</p>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="user_type" id="service_provider" value="service_provider">
+                                                <label class="form-check-label" for="service_provider">
+                                                    Sign up as Service Provider
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sign Up Form -->
+                    <form method="post" action="{% url 'account_signup' %}" id="signupForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label">Email Address</label>
+                                    <input type="email" name="email" class="form-control" id="id_email" placeholder="your@email.com" required>
+                                    {% if form.email.errors %}
+                                        <div class="text-danger">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_user_type" class="form-label">Account Type</label>
+                                    <input type="hidden" name="user_type" id="id_user_type" value="homeowner" required>
+                                    <div class="form-control bg-light" id="userTypeDisplay">Homeowner</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_password1" class="form-label">Password</label>
+                                    <input type="password" name="password1" class="form-control" id="id_password1" placeholder="Create a password" required>
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password1.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_password2" class="form-label">Confirm Password</label>
+                                    <input type="password" name="password2" class="form-control" id="id_password2" placeholder="Confirm your password" required>
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger">
+                                            {{ form.password2.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service Provider Specific Fields (shown conditionally) -->
+                        <div id="serviceProviderFields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_phone" class="form-label">Phone Number</label>
+                                        <input type="tel" name="phone" class="form-control" id="id_phone" placeholder="Your phone number">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_location" class="form-label">Service Area</label>
+                                        <input type="text" name="location" class="form-control" id="id_location" placeholder="City/Area you serve">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label">Brief Bio</label>
+                                <textarea name="bio" class="form-control" id="id_bio" rows="3" placeholder="Tell us about your services and experience"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Homeowner Specific Fields (shown conditionally) -->
+                        <div id="homeownerFields">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_location" class="form-label">Location</label>
+                                        <input type="text" name="location" class="form-control" id="id_homeowner_location" placeholder="Your city/area">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="id_phone" class="form-label">Phone Number</label>
+                                        <input type="tel" name="phone" class="form-control" id="id_homeowner_phone" placeholder="Your phone number">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="id_terms" required>
+                                <label class="form-check-label" for="id_terms">
+                                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                {% trans "Sign Up" %}
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="mb-0">Already have an account? <a href="{% url 'account_login' %}">Sign in</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeRadios = document.querySelectorAll('input[name="user_type"]');
+    const userTypeDisplay = document.getElementById('userTypeDisplay');
+    const userTypeInput = document.getElementById('id_user_type');
+    const serviceProviderFields = document.getElementById('serviceProviderFields');
+    const homeownerFields = document.getElementById('homeownerFields');
+    
+    function updateUserType() {
+        const selectedType = document.querySelector('input[name="user_type"]:checked').value;
+        userTypeDisplay.textContent = selectedType === 'homeowner' ? 'Homeowner' : 'Service Provider';
+        userTypeInput.value = selectedType;
+        
+        if (selectedType === 'service_provider') {
+            serviceProviderFields.style.display = 'block';
+            homeownerFields.style.display = 'none';
+        } else {
+            serviceProviderFields.style.display = 'none';
+            homeownerFields.style.display = 'block';
+        }
+    }
+    
+    userTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateUserType);
+    });
+    
+    // Update user type display on card clicks
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const userType = this.dataset.userType;
+            document.getElementById(userType).checked = true;
+            updateUserType();
+        });
+    });
+    
+    // Initialize
+    updateUserType();
+});
+</script>
+
+<style>
+.user-type-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.user-type-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.user-type-card.selected {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+input[name="user_type"]:checked + label {
+    font-weight: bold;
+}
+</style>
+{% endblock %}

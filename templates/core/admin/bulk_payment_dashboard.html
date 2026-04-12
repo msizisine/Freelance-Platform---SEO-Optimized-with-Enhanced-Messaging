@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Payment Processing{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-file-csv me-2"></i>Bulk Payment Processing</h2>
+                <a href="{% url 'core:payout_selection' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Select Payouts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Approved Payouts</h5>
+                    <h2>{{ approved_payouts_count }}</h2>
+                    <small>Total: R{{ approved_total_amount|floatformat:2 }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">eWallet Ready</h5>
+                    <h2>{{ ewallet_payouts }}</h2>
+                    <small>Mobile payments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">EFT Ready</h5>
+                    <h2>{{ eft_payouts }}</h2>
+                    <small>Bank transfers</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Total Batches</h5>
+                    <h2>{{ batches.count }}</h2>
+                    <small>Payment batches</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if approved_payouts_count > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'core:generate_bulk_payment' %}">
+                        {% csrf_token %}
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <label class="form-label">Select All Approved Payouts:</label>
+                                <input type="hidden" name="selected_payouts" value="{{ approved_payouts_ids|join:',' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Payment Type:</label>
+                                <select name="payment_type" class="form-select">
+                                    <option value="mixed">Mixed (Auto-separate)</option>
+                                    <option value="ewallet">eWallet Only</option>
+                                    <option value="eft">EFT Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label><br>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-download me-2"></i>Generate CSV
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Batches -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-history me-2"></i>Recent Payment Batches</h5>
+                    <a href="{% url 'core:bulk_payment_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if batches %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Batch ID</th>
+                                        <th>Type</th>
+                                        <th>Payouts</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for batch in batches %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ batch.id|truncatechars:8 }}</code>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if batch.batch_type == 'ewallet' %}bg-success{% elif batch.batch_type == 'eft' %}bg-info{% else %}bg-warning{% endif %}">
+                                                {{ batch.get_batch_type_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ batch.payout_count }}</td>
+                                        <td>
+                                            <span class="badge {% if batch.status == 'completed' %}bg-success{% elif batch.status == 'uploaded' %}bg-info{% elif batch.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                {{ batch.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ batch.created_at|date:"Y-m-d H:i" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'core:batch_detail' batch.id %}" class="btn btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'core:download_batch_csv' batch.id %}" class="btn btn-outline-success" title="Download CSV">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-file-csv fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No payment batches generated yet.</p>
+                            <a href="{% url 'core:payout_selection' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create First Batch
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

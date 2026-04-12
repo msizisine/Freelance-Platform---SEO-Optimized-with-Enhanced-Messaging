@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+
+{% block title %}Quotation Details - {{ quotation.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Quotation Request Details -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ quotation.title }}</h4>
+                        <p class="mb-0 text-muted">Quotation Request Details</p>
+                    </div>
+                    <div>
+                        <span class="badge bg-{% if quotation.status == 'pending' %}warning{% elif quotation.status == 'receiving_responses' %}info{% elif quotation.status == 'evaluation_period' %}primary{% elif quotation.status == 'provider_selected' %}success{% else %}secondary{% endif %}">
+                            {{ quotation.get_status_display|title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Category:</strong> {{ quotation.category.name }}</p>
+                            <p><strong>Location:</strong> {{ quotation.location }}</p>
+                            <p><strong>Start Date:</strong> {{ quotation.start_date|date:"M d, Y" }}</p>
+                            <p><strong>End Date:</strong> {{ quotation.end_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Urgency:</strong> {{ quotation.get_urgency_display|title }}</p>
+                            {% if quotation.budget_range %}
+                                <p><strong>Budget Range:</strong> {{ quotation.budget_range }}</p>
+                            {% endif %}
+                            <p><strong>Posted:</strong> {{ quotation.created_at|date:"M d, Y" }}</p>
+                            {% if quotation.response_deadline %}
+                                <p><strong>Response Deadline:</strong> 
+                                    {% if quotation.is_response_deadline_passed %}
+                                        <span class="text-danger">{{ quotation.response_deadline|date:"M d, Y H:i" }} (Expired)</span>
+                                    {% else %}
+                                        <span class="text-success">{{ quotation.response_deadline|date:"M d, Y H:i" }}</span>
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <p><strong>Description:</strong></p>
+                        <p class="text-muted">{{ quotation.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Providers Sent To -->
+            {% if user == quotation.homeowner %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users me-2"></i>
+                            Providers Sent To
+                            <span class="badge bg-info">{{ providers_with_status|length }} Providers</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for provider_info in providers_with_status %}
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                                <div class="d-flex align-items-center">
+                                    {% if provider_info.provider.profile.profile_picture %}
+                                        <img src="{{ provider_info.provider.profile.profile_picture.url }}" class="rounded-circle me-3" width="40" height="40" alt="{{ provider_info.provider.email }}">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold">{{ provider_info.provider.get_full_name|default:provider_info.provider.email }}</div>
+                                        <div class="text-muted small">Sent {{ provider_info.sent_at|date:"M d, Y H:i" }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    {% if provider_info.status == 'not_responded' %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-clock me-1"></i>Not Responded
+                                        </span>
+                                        {% if provider_info.provider.phone %}
+                                            <div class="text-muted small mt-1">
+                                                <i class="fab fa-whatsapp me-1"></i>WhatsApp sent
+                                            </div>
+                                        {% else %}
+                                            <div class="text-muted small mt-1">
+                                                <i class="fas fa-envelope me-1"></i>Email sent
+                                            </div>
+                                        {% endif %}
+                                    {% elif provider_info.status == 'pending' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-hourglass-half me-1"></i>Pending
+                                        </span>
+                                    {% elif provider_info.status == 'accepted' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Selected
+                                        </span>
+                                    {% elif provider_info.status == 'rejected' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Rejected
+                                        </span>
+                                    {% endif %}
+                                    {% if provider_info.response %}
+                                        <div class="text-muted small mt-1">
+                                            {% if provider_info.response.estimated_price %}
+                                                <strong>R{{ provider_info.response.estimated_price }}</strong>
+                                            {% endif %}
+                                            {% if "Submitted via WhatsApp" in provider_info.response.notes %}
+                                                <div class="text-success small">
+                                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp response
+                                                </div>
+                                            {% elif "Submitted via web form" in provider_info.response.notes %}
+                                                <div class="text-primary small">
+                                                    <i class="fas fa-laptop me-1"></i>Web form response
+                                                </div>
+                                            {% elif "Declined via WhatsApp" in provider_info.response.price_breakdown %}
+                                                <div class="text-info small">
+                                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp decline
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Quotation Responses -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>
+                            Quotation Responses
+                            {% if responses %}
+                                <span class="badge bg-info">{{ responses|length }} Responses</span>
+                            {% endif %}
+                        </h5>
+                        {% if user == quotation.homeowner and responses %}
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-gavel me-1"></i>
+                                <strong>Assessment Required:</strong> Review each quotation below and select the best provider for your project
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if user == quotation.homeowner and quotation.status == 'evaluation_period' %}
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Evaluation Period: Review and select the best quotation
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if responses %}
+                        <!-- Price Comparison Summary -->
+                        {% if user == quotation.homeowner and responses|length > 1 %}
+                            <div class="alert alert-info mb-4">
+                                <h6 class="mb-2">
+                                    <i class="fas fa-chart-bar me-2"></i>Price Comparison Summary
+                                </h6>
+                                <div class="row text-center">
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Total Bids</small>
+                                        <p class="mb-0 fw-bold text-info">
+                                            {{ responses|length }} quotations received
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Price Range</small>
+                                        <p class="mb-0 fw-bold text-primary">
+                                            Multiple bids to review
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted">Status</small>
+                                        <p class="mb-0 fw-bold text-warning">
+                                            Evaluation in progress
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% for response in responses %}
+                            <div class="card mb-3 {% if response.status == 'accepted' %}border-success{% elif response.status == 'rejected' %}border-danger{% else %}border-primary{% endif %} {% if response.status == 'pending' %}shadow-sm{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center {% if response.status == 'accepted' %}bg-success bg-opacity-10{% elif response.status == 'rejected' %}bg-danger bg-opacity-10{% else %}bg-primary bg-opacity-5{% endif %}">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            {{ response.service_provider.get_full_name|default:response.service_provider.email }}
+                                            {% if response.status == 'accepted' %}
+                                                <span class="badge bg-success ms-2">
+                                                    <i class="fas fa-check me-1"></i>Selected
+                                                </span>
+                                            {% elif response.status == 'rejected' %}
+                                                <span class="badge bg-danger ms-2">
+                                                    <i class="fas fa-times me-1"></i>Rejected
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-primary ms-2">
+                                                    <i class="fas fa-clock me-1"></i>Pending Review
+                                                </span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-0 text-muted">
+                                            <i class="fas fa-calendar me-1"></i>Submitted {{ response.submitted_at|date:"M d, Y H:i" }}
+                                            {% if "Submitted via WhatsApp" in response.notes %}
+                                                <span class="badge bg-success ms-2">
+                                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                                </span>
+                                            {% elif "Submitted via web form" in response.notes %}
+                                                <span class="badge bg-primary ms-2">
+                                                    <i class="fas fa-laptop me-1"></i>Web Form
+                                                </span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <h5 class="mb-0 text-primary">
+                                            <i class="fas fa-rand-sign me-1"></i>R{{ response.estimated_price }}
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="fas fa-hourglass-half me-1"></i>{{ response.estimated_duration }}
+                                        </small>
+                                        {% if user == quotation.homeowner and response.status == 'pending' %}
+                                            <div class="mt-2">
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'gigs:select_quotation' quotation.pk response.pk %}" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check me-1"></i>Accept
+                                                    </a>
+                                                    <a href="{% url 'gigs:reject_quotation' quotation.pk response.pk %}" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-times me-1"></i>Reject
+                                                    </a>
+                                                </div>
+                                                {% if quotation.homeowner.phone %}
+                                                    <div class="text-muted small mt-1">
+                                                        <i class="fab fa-whatsapp me-1"></i>Or reply: ACCEPT {{ response.pk }} / REJECT {{ response.pk }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Price Breakdown:</h6>
+                                            <p class="text-muted">{{ response.price_breakdown|linebreaks }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Availability:</h6>
+                                            <p class="text-muted">{{ response.availability|linebreaks }}</p>
+                                        </div>
+                                    </div>
+                                    {% if response.notes %}
+                                        <div class="mt-3">
+                                            <h6>Additional Notes:</h6>
+                                            <p class="text-muted">{{ response.notes|linebreaks }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if user == quotation.homeowner and response.status == 'pending' %}
+                                    <div class="card-footer">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="text-muted small">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                {% if quotation.status == 'evaluation_period' %}
+                                                    Selecting this quotation will create a private job and automatically reject all other quotations
+                                                {% else %}
+                                                    Ready to assess this quotation for your project
+                                                {% endif %}
+                                            </div>
+                                            <div class="btn-group">
+                                                <a href="{% url 'gigs:reject_quotation' quotation.pk response.pk %}" 
+                                                   class="btn btn-outline-danger btn-sm"
+                                                   onclick="return confirm('Are you sure you want to reject this quotation?')">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </a>
+                                                <a href="{% url 'gigs:select_quotation' quotation.pk response.pk %}" 
+                                                   class="btn btn-success btn-sm"
+                                                   onclick="return confirm('Are you sure you want to select this quotation? This will create a private job and all other quotations will be automatically rejected.')">
+                                                    <i class="fas fa-check me-1"></i>Select & Create Job
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            {% if user.user_type == 'service_provider' and quotation.status == 'receiving_responses' and not quotation.is_response_deadline_passed %}
+                                <p class="text-muted">No responses yet. Be the first to provide a quotation!</p>
+                                <a href="{% url 'gigs:respond_to_quotation' quotation.pk %}" class="btn btn-primary">
+                                    <i class="fas fa-reply me-2"></i>Respond to Quotation
+                                </a>
+                            {% elif quotation.status == 'receiving_responses' %}
+                                <p class="text-muted">Waiting for service providers to respond...</p>
+                                {% if quotation.response_deadline and not quotation.is_response_deadline_passed %}
+                                    <p class="text-muted small">Deadline: {{ quotation.response_deadline|date:"M d, Y H:i" }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">No quotation responses available.</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{% url 'gigs:my_quotations' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to My Quotations
+                </a>
+                <div class="btn-group">
+                    {% if user.user_type == 'service_provider' and quotation.status == 'receiving_responses' and not quotation.is_response_deadline_passed %}
+                        <a href="{% url 'gigs:respond_to_quotation' quotation.pk %}" class="btn btn-primary">
+                            <i class="fas fa-reply me-2"></i>Respond to Quotation
+                        </a>
+                    {% endif %}
+                    {% if user == quotation.homeowner and quotation.status not in 'provider_selected,completed' and quotation.responses.count == 0 %}
+                        <a href="{% url 'gigs:update_quotation' quotation.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit me-2"></i>Update Quotation
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

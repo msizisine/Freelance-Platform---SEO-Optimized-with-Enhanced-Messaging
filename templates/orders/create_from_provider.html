@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if provider %}Hire {{ provider.get_full_name|default:provider.email }}{% else %}Create Job Order{% endif %} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        {% if provider %}
+                            <i class="fas fa-user-tie me-2"></i>
+                            Hire {{ provider.get_full_name|default:provider.email }}
+                        {% else %}
+                            <i class="fas fa-briefcase me-2"></i>
+                            Create Job Order
+                        {% endif %}
+                    </h4>
+                    <p class="mb-0 text-muted">
+                        {% if provider %}
+                            Create a service order for this provider
+                        {% else %}
+                            Post a job for service providers to bid on
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-body">
+                    {% if provider %}
+                    <!-- Provider Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" class="rounded-circle" width="80" height="80" alt="{{ provider.email }}">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ provider.get_full_name|default:provider.email }}</h5>
+                            <p class="text-muted mb-1">{{ provider.bio|default:"Professional service provider" }}</p>
+                            <div class="mb-2">
+                                {% if provider.hourly_rate %}
+                                    <span class="badge bg-primary">R{{ provider.hourly_rate }}/hour</span>
+                                {% endif %}
+                                {% if provider.square_meter_rate %}
+                                    <span class="badge bg-info">R{{ provider.square_meter_rate }}/m²</span>
+                                {% endif %}
+                                {% if provider.years_experience %}
+                                    <span class="badge bg-success">{{ provider.years_experience }} years exp</span>
+                                {% endif %}
+                            </div>
+                            {% if provider.location %}
+                                <p class="mb-1"><i class="fas fa-map-marker-alt"></i> {{ provider.location }}</p>
+                            {% endif %}
+                            {% if provider.service_categories.exists %}
+                                <div>
+                                    {% for category in provider.service_categories.all %}
+                                        <span class="badge bg-secondary me-1">{{ category.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Order Form -->
+                    <form method="post" class="needs-validation" novalidate {% if not provider %}enctype="multipart/form-data"{% endif %}>
+                        {% csrf_token %}
+                        <div class="row">
+                            {% if provider %}
+                            <!-- Order from existing gig -->
+                            <div class="col-12 mb-3">
+                                <label for="id_gig" class="form-label">Select Job *</label>
+                                {{ form.gig }}
+                                <div class="form-text">Choose an existing job for this provider</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_total_amount" class="form-label">Budget (R)</label>
+                                {{ form.total_amount }}
+                                <div class="form-text">Your budget for this job</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_due_date" class="form-label">Due Date *</label>
+                                {{ form.due_date }}
+                                <div class="form-text">When do you need this job completed?</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="id_requirements" class="form-label">Job Requirements *</label>
+                                {{ form.requirements }}
+                                <div class="form-text">Describe what you need done and any specific requirements</div>
+                            </div>
+                            {% else %}
+                            <!-- New Job Creation -->
+                            <div class="col-12 mb-3">
+                                <label for="id_job_title" class="form-label">Job Title *</label>
+                                {{ form.job_title }}
+                                <div class="form-text">Enter a descriptive title for your job</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_category" class="form-label">Category *</label>
+                                {{ form.category }}
+                                <div class="form-text">Select the appropriate category for your job</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_location" class="form-label">Location</label>
+                                {{ form.location }}
+                                <div class="form-text">Where do you need this job done?</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="id_description" class="form-label">Job Description *</label>
+                                {{ form.description }}
+                                <div class="form-text">Describe your job in detail</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_budget_min" class="form-label">Min Budget (R)</label>
+                                {{ form.budget_min }}
+                                <div class="form-text">Minimum budget for quotes</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_budget_max" class="form-label">Max Budget (R) *</label>
+                                {{ form.budget_max }}
+                                <div class="form-text">Maximum budget for quotes</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_start_date" class="form-label">Start Date</label>
+                                {{ form.start_date }}
+                                <div class="form-text">When would you like this job to start?</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_completion_date" class="form-label">Completion Date</label>
+                                {{ form.completion_date }}
+                                <div class="form-text">When do you need this job completed?</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_urgency" class="form-label">Urgency</label>
+                                {{ form.urgency }}
+                                <div class="form-text">How urgent is this job?</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="id_job_images" class="form-label">Job Images</label>
+                                {{ form.job_images }}
+                                <div class="form-text">Upload images to help professionals understand your job (optional)</div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-flex justify-content-end">
+                            <a href="{% if provider %}{% url 'gigs:service_providers' %}{% else %}{% url 'gigs:list' %}{% endif %}" class="btn btn-outline-secondary">
+                                {% if provider %}Back to Providers{% else %}Back to Jobs{% endif %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>
+                                {% if provider %}Create Order{% else %}Post Job{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

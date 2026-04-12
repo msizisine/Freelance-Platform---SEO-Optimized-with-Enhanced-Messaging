@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoice #{{ order.pk }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Invoice Header -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-invoice me-2"></i>Invoice #{{ order.pk }}
+                        </h4>
+                        <div>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ order.created_at|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Job Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Job Details</h6>
+                            <h5>{{ order.gig.title }}</h5>
+                            <p class="text-muted">{{ order.gig.description|truncatewords:30 }}</p>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-primary">{{ order.gig.category.name }}</span>
+                                {% if order.gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ order.gig.subcategory.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Job Status</h6>
+                            <span class="badge bg-success fs-6">
+                                <i class="fas fa-check-circle me-1"></i>
+                                {{ order.get_status_display }}
+                            </span>
+                            <div class="mt-3">
+                                <small class="text-muted">Location:</small><br>
+                                <strong>{{ order.gig.location }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parties Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-muted mb-2">Client (Homeowner)</h6>
+                                <strong>{{ order.homeowner.email }}</strong>
+                                {% if order.homeowner.profile.phone %}
+                                    <br><small class="text-muted">{{ order.homeowner.profile.phone }}</small>
+                                {% endif %}
+                                {% if order.homeowner.profile.location %}
+                                    <br><small class="text-muted">{{ order.homeowner.profile.location }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3">
+                                <h6 class="text-muted mb-2">Service Provider</h6>
+                                <strong>{{ order.service_provider.email }}</strong>
+                                {% if order.service_provider.profile.phone %}
+                                    <br><small class="text-muted">{{ order.service_provider.profile.phone }}</small>
+                                {% endif %}
+                                {% if order.service_provider.profile.location %}
+                                    <br><small class="text-muted">{{ order.service_provider.profile.location }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="bg-light rounded p-4 mb-4">
+                        <h5 class="mb-3">
+                            <i class="fas fa-money-bill-wave me-2"></i>Payment Details
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted">Job Budget</small>
+                                <div class="h5">
+                                    {% if order.gig.budget_min and order.gig.budget_max %}
+                                        R{{ order.gig.budget_min }} - R{{ order.gig.budget_max }}
+                                    {% elif order.gig.budget_min %}
+                                        R{{ order.gig.budget_min }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Final Amount</small>
+                                <div class="h5 text-success">
+                                    R{{ order.total_amount }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Payment Status</small>
+                                <div class="h5">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check me-1"></i>
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Job Timeline</h6>
+                        <div class="timeline">
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-plus text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Job Posted</strong>
+                                    <br><small class="text-muted">{{ order.gig.created_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                            </div>
+                            
+                            {% if order.gig.hired_provider %}
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user-check text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Provider Hired</strong>
+                                    <br><small class="text-muted">{{ order.service_provider.email }}</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="d-flex">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-check text-white"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <strong>Job Completed</strong>
+                                    <br><small class="text-muted">{{ order.updated_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <button onclick="window.print()" class="btn btn-outline-primary">
+                            <i class="fas fa-print me-2"></i>Print Invoice
+                        </button>
+                        <a href="{% url 'gigs:detail' order.gig.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Job
+                        </a>
+                        {% if user == order.homeowner and order.gig.job_status == 'completed' %}
+                            <a href="{% url 'reviews:create' order_id=order.pk %}" 
+                               class="btn btn-outline-success">
+                                <i class="fas fa-star me-2"></i>Leave Review
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Invoice Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Invoice Number:</strong> #{{ order.pk }}</p>
+                    <p class="mb-2"><strong>Issue Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                    <p class="mb-2"><strong>Due Date:</strong> {{ order.updated_at|date:"F d, Y" }}</p>
+                    <p class="mb-0"><strong>Status:</strong> 
+                        <span class="badge bg-success">Paid</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+@media print {
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .bg-primary {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+    
+    .text-primary {
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}

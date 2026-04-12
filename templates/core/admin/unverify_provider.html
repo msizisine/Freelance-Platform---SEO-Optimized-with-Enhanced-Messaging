@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Unverify Service Provider - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-times-circle me-2"></i>Unverify Service Provider</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> You are about to unverify this service provider. This will remove their verified status and may affect their ability to get jobs on the platform.
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            {% if provider.profile_picture %}
+                                <img src="{{ provider.profile_picture.url }}" class="rounded-circle" width="100" height="100" alt="Profile">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                                    <i class="fas fa-user fa-2x text-white"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h5>{{ provider.first_name }} {{ provider.last_name }}</h5>
+                            <p class="text-muted">{{ provider.email }}</p>
+                            <p><strong>Member Since:</strong> {{ provider.created_at|date:"F d, Y" }}</p>
+                            <p><strong>Currently Verified:</strong> <span class="badge bg-success">Yes</span></p>
+                            {% if provider.years_experience %}
+                                <p><strong>Experience:</strong> {{ provider.years_experience }} years</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'core:admin_provider_detail' provider.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-times-circle me-2"></i>Confirm Unverification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

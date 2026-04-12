@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Category Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-cog me-2"></i>Admin Dashboard</h1>
+                <div class="btn-group">
+                    <a href="{% url 'gigs:admin_category_list' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>Manage Categories
+                    </a>
+                    <a href="{% url 'gigs:admin_subcategory_list' %}" class="btn btn-info">
+                        <i class="fas fa-sitemap me-2"></i>Manage Subcategories
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_categories }}</h4>
+                            <p class="card-text">Total Categories</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-folder fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_subcategories }}</h4>
+                            <p class="card-text">Total Subcategories</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-sitemap fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ categories_with_gigs }}</h4>
+                            <p class="card-text">Categories with Gigs</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-briefcase fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_categories|add:"-"|add:categories_with_gigs }}</h4>
+                            <p class="card-text">Empty Categories</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-folder-open fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Categories -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Categories</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_categories %}
+                        <div class="list-group list-group-flush">
+                            {% for category in recent_categories %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if category.icon %}
+                                            <i class="{{ category.icon }} me-2"></i>
+                                        {% endif %}
+                                        {{ category.name }}
+                                    </div>
+                                    <small class="text-muted">{{ category.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No categories created yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Categories -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Popular Categories</h5>
+                </div>
+                <div class="card-body">
+                    {% if popular_categories %}
+                        <div class="list-group list-group-flush">
+                            {% for category in popular_categories %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if category.icon %}
+                                            <i class="{{ category.icon }} me-2"></i>
+                                        {% endif %}
+                                        {{ category.name }}
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ category.gig_count }} gigs</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No gigs posted yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

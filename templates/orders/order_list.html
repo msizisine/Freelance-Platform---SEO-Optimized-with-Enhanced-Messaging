@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders - FreelanceHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">My Orders</h1>
+            
+            <!-- Order Tabs -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.status == 'all' or not request.GET.status %}active{% endif %}" 
+                       href="?status=all">All Orders</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.status == 'pending' %}active{% endif %}" 
+                       href="?status=pending">Pending</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.status == 'active' %}active{% endif %}" 
+                       href="?status=active">Active</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.GET.status == 'completed' %}active{% endif %}" 
+                       href="?status=completed">Completed</a>
+                </li>
+            </ul>
+            
+            <!-- Orders List -->
+            <div class="row">
+                {% for order in orders %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ order.gig.title }}</h6>
+                                <span class="badge bg-{{ order.status_color }}">{{ order.get_status_display }}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <small class="text-muted">Order ID: {{ order.id }}</small>
+                                    <small class="text-muted">{{ order.created_at|date:"M d, Y" }}</small>
+                                </div>
+                                
+                                <p class="mb-2"><strong>Service Provider:</strong> {{ order.service_provider.email }}</p>
+                                <p class="mb-2"><strong>Package:</strong> {{ order.get_package_display }}</p>
+                                <p class="mb-2"><strong>Total:</strong> R{{ order.total_amount }}</p>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'orders:detail' order.id %}" class="btn btn-outline-primary btn-sm">View Details</a>
+                                    {% if order.status == 'pending' %}
+                                        <a href="{% url 'orders:accept' order.id %}" class="btn btn-success btn-sm">Accept</a>
+                                        <a href="{% url 'orders:reject' order.id %}" class="btn btn-danger btn-sm">Reject</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No orders found. {% if request.user.user_type == 'service_provider' %}Start creating gigs to get orders!{% else %}Start browsing gigs to place orders!{% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Orders pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

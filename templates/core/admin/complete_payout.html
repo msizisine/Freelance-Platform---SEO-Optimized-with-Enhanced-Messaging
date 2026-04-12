@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Payout{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-check-double me-2"></i>Complete Payout</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:admin_payout_management' %}">Payout Management</a></li>
+                        <li class="breadcrumb-item active">Complete Payout</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user me-2"></i>Payout Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Provider:</strong> {{ payout.provider.email }}</p>
+                            <p><strong>Amount:</strong> R{{ payout.amount|floatformat:2 }}</p>
+                            <p><strong>Method:</strong> {{ payout.get_payout_method_display }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-info">{{ payout.get_status_display }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Requested:</strong> {{ payout.requested_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>Approved:</strong> {{ payout.approved_at|date:"Y-m-d H:i"|default:"Not approved" }}</p>
+                            <p><strong>Priority:</strong> {{ payout.get_priority_display }}</p>
+                            <p><strong>Bank Account:</strong> {{ payout.bank_account.account_number|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if payout.admin_notes %}
+                        <div class="mt-3">
+                            <p><strong>Admin Notes:</strong></p>
+                            <p class="text-muted">{{ payout.admin_notes }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if payout.description %}
+                        <div class="mt-3">
+                            <p><strong>Description:</strong></p>
+                            <p class="text-muted">{{ payout.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-check-circle me-2"></i>Mark as Completed</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="receipt_url" class="form-label">Payment Receipt URL</label>
+                            <input type="url" name="receipt_url" id="receipt_url" class="form-control" 
+                                placeholder="Enter receipt or proof URL (optional)">
+                            <div class="form-text">Optional: URL to payment proof or receipt image</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="completion_notes" class="form-label">Completion Notes</label>
+                            <textarea name="completion_notes" id="completion_notes" class="form-control" rows="3" 
+                                placeholder="Add any completion notes..."></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Marking this payout as completed will notify the provider that their payment has been processed.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-double me-2"></i>Mark as Completed
+                            </button>
+                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user.email }} - Service Provider Profile{% endblock %}
+
+{% block content %}
+<style>
+/* Enhanced Statistics Styling */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.bg-primary-subtle {
+    background-color: #e7f3ff;
+    color: #004085;
+}
+
+.bg-success-subtle {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.bg-info-subtle {
+    background-color: #e7f3ff;
+    color: #084298;
+}
+
+.bg-warning-subtle {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.bg-secondary-subtle {
+    background-color: #e9ecef;
+    color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Icon animations */
+.fa-star {
+    transition: color 0.2s ease;
+}
+
+.fa-star:hover {
+    color: #ffc107;
+}
+
+/* Number formatting */
+.stat-card h4 {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.stat-card h6 {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Card header styling */
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    font-weight: 600;
+}
+
+/* Grid spacing */
+.row.g-2 > * {
+    padding: 0.5rem;
+}
+
+/* Rating stars */
+.rating-stars {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.rating-stars i {
+    font-size: 0.875rem;
+}
+</style>
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.email }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle mb-3 d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; background-color: #f8f9fa;">
+                            <i class="fas fa-user fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <div class="mb-2">
+                        <span class="badge bg-success me-2">Service Provider</span>
+                        {% if user.is_verified %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-check-circle me-1"></i>Verified
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if user.whatsapp_number %}
+                        <div class="mt-3">
+                            <a href="https://wa.me/{{ user.whatsapp_number|cut:'+' }}" class="btn btn-success btn-sm w-100" target="_blank">
+                                <i class="fab fa-whatsapp me-2"></i> Chat on WhatsApp
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Service Provider Statistics -->
+            <div class="card mt-3">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Service Provider Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Performance Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary mb-3"><i class="fas fa-tachometer-alt me-2"></i>Performance Metrics</h6>
+                            <div class="row g-2">
+                                <div class="col-6 col-lg-3">
+                                    <div class="stat-card bg-primary-subtle rounded p-3 text-center">
+                                        <h4 class="text-primary mb-1">{{ average_rating|floatformat:1 }}</h4>
+                                        <small class="text-muted">Average Rating</small>
+                                        <div class="mt-2">
+                                            {% for dist in rating_distribution %}
+                                                {% if dist.rating == 5 %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="stat-card bg-success-subtle rounded p-3 text-center">
+                                        <h4 class="text-success mb-1">{{ completed_orders }}</h4>
+                                        <small class="text-muted">Completed Jobs</small>
+                                        <div class="mt-2">
+                                            <small class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i>{{ completion_rate|floatformat:0 }}% Rate
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="stat-card bg-info-subtle rounded p-3 text-center">
+                                        <h4 class="text-info mb-1">{{ active_orders }}</h4>
+                                        <small class="text-muted">Active Jobs</small>
+                                        <div class="mt-2">
+                                            <small class="text-info">
+                                                <i class="fas fa-clock me-1"></i>{{ response_rate|floatformat:0 }}% Response
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="stat-card bg-warning-subtle rounded p-3 text-center">
+                                        <h4 class="text-warning mb-1">{{ total_reviews }}</h4>
+                                        <small class="text-muted">Total Reviews</small>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-comment me-1"></i>Customer Feedback
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Metrics -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-success mb-3"><i class="fas fa-dollar-sign me-2"></i>Financial Metrics</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="stat-card bg-success-subtle rounded p-3 text-center">
+                                        <h4 class="text-success mb-1">R{{ total_earnings|floatformat:0|intcomma }}</h4>
+                                        <small class="text-muted">Total Earnings</small>
+                                        <div class="mt-2">
+                                            <small class="text-success">
+                                                <i class="fas fa-chart-line me-1"></i>Completed Orders
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="stat-card bg-primary-subtle rounded p-3 text-center">
+                                        <h4 class="text-primary mb-1">R{{ total_earnings|div:completed_orders|default:0|floatformat:0|intcomma }}</h4>
+                                        <small class="text-muted">Average per Job</small>
+                                        <div class="mt-2">
+                                            <small class="text-primary">
+                                                <i class="fas fa-calculator me-1"></i>Job Value
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Experience -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-info mb-3"><i class="fas fa-briefcase me-2"></i>Professional Experience</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="stat-card bg-info-subtle rounded p-3 text-center">
+                                        <h4 class="text-info mb-1">{{ years_experience }}+</h4>
+                                        <small class="text-muted">Years Experience</small>
+                                        <div class="mt-2">
+                                            <small class="text-info">
+                                                <i class="fas fa-award me-1"></i>Expert Level
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="stat-card bg-secondary-subtle rounded p-3 text-center">
+                                        <h4 class="text-secondary mb-1">{{ total_orders }}</h4>
+                                        <small class="text-muted">Total Orders</small>
+                                        <div class="mt-2">
+                                            <small class="text-secondary">
+                                                <i class="fas fa-clipboard-list me-1"></i>All Time
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating Breakdown -->
+                    {% if rating_distribution %}
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-warning mb-3"><i class="fas fa-star me-2"></i>Rating Breakdown</h6>
+                            <div class="row g-2">
+                                {% for dist in rating_distribution %}
+                                <div class="col-6 col-lg-2">
+                                    <div class="stat-card bg-light rounded p-3 text-center">
+                                        <div class="mb-2">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= dist.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-muted"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <h6 class="text-muted mb-1">{{ dist.count }}</h6>
+                                        <small class="text-muted">{{ dist.rating }} Star{{ dist.rating|pluralize }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <!-- Service Categories -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Service Categories</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.service_categories %}
+                        {% for category in user.service_categories|split:',' %}
+                            <span class="badge bg-primary me-2 mb-2">{{ category|strip }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No service categories specified</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Rates -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Rates</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if user.hourly_rate %}
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h4 class="text-primary">R{{ user.hourly_rate }}</h4>
+                                    <small class="text-muted">Per Hour</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if user.daily_rate %}
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h4 class="text-info">R{{ user.daily_rate }}</h4>
+                                    <small class="text-muted">Per Day</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if user.square_meter_rate %}
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <h4 class="text-success">R{{ user.square_meter_rate }}</h4>
+                                    <small class="text-muted">Per Square Meter</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if not user.hourly_rate and not user.daily_rate and not user.square_meter_rate %}
+                        <p class="text-muted text-center">No rates specified</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Skills & Experience -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Skills & Experience</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Years of Experience</h6>
+                            <p class="text-primary">
+                                {% if user.years_experience %}
+                                    {{ user.years_experience }} years
+                                {% else %}
+                                    Not specified
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Service Area</h6>
+                            <p class="text-muted">{{ user.location|default:"Not specified" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Skills & Qualifications</h6>
+                        <p>{{ user.skills|default:"No skills specified"|linebreaks }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Portfolio & References -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Portfolio & References</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Portfolio Description</h6>
+                            <p>{{ user.portfolio_description|default:"No portfolio description provided"|linebreaks }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Professional References</h6>
+                            <p>{{ user.references|default:"No references provided"|linebreaks }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Verification Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>Verification Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>ID/Passport Number</h6>
+                            <p class="text-muted">{{ user.id_passport_number|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Contact Information</h6>
+                            <p class="text-muted">
+                                <i class="fas fa-phone me-2"></i>{{ user.phone|default:"Not provided" }}<br>
+                                <i class="fas fa-envelope me-2"></i>{{ user.email }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Profile Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'users:signup_profile_edit' %}" class="btn-hire edit-profile-btn">
+                    <i class="fas fa-edit me-2"></i>Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

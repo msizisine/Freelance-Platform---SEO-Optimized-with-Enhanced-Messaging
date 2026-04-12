@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Job & Invoice - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Complete Job & Generate Invoice
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Job Information -->
+                    <div class="alert alert-info mb-4">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>Job Information
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Job Title:</strong> {{ gig.title }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Location:</strong> {{ gig.location }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>Budget Range:</strong> R{{ gig.budget_min }} - R{{ gig.budget_max }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Completed Date:</strong> {% now "B d, Y" %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Provider Information -->
+                    <div class="alert alert-primary mb-4">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-user-check me-2"></i>Service Provider Information
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Name:</strong> {{ service_provider.first_name }} {{ service_provider.last_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Email:</strong> {{ service_provider.email }}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <strong>Payment Amount:</strong> R{{ proposed_amount }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="alert alert-warning mb-4">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Important Notice
+                            </h6>
+                            <p class="mb-0">
+                                <strong>By clicking "Complete Job", you agree to:</strong>
+                            </p>
+                            <ul>
+                                <li>Mark this job as completed</li>
+                                <li>Generate a downloadable PDF invoice</li>
+                                <li>Release payment from escrow to service provider</li>
+                                <li>Rate the service provider's performance</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Complete Job & Generate Invoice
+                            </button>
+                            <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

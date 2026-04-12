@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Applications - {{ gig.title }} - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Job Header -->
+            <div class="card mb-4">
+                {% if gig.image %}
+                    <img src="{{ gig.image.url }}" class="card-img-top" alt="{{ gig.title }}">
+                {% else %}
+                    <img src="https://picsum.photos/seed/{{ gig.id }}/800/400" class="card-img-top" alt="{{ gig.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ gig.title }}</h1>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-primary">{{ gig.category.name }}</span>
+                                {% if gig.subcategory %}
+                                    <span class="badge bg-secondary">{{ gig.subcategory.name }}</span>
+                                {% endif %}
+                                {% if gig.is_private %}
+                                    <span class="badge bg-warning">Private</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            {% if gig.budget_min and gig.budget_max %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }} - R{{ gig.budget_max }}</div>
+                                <small class="text-muted">Budget Range</small>
+                            {% elif gig.budget_min %}
+                                <div class="h4 text-primary mb-1">R{{ gig.budget_min }}</div>
+                                <small class="text-muted">Starting from</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ gig.description|truncatewords:50 }}</p>
+                </div>
+            </div>
+            
+            <!-- Applications List -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Job Applications ({{ applications.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if applications %}
+                        {% for application in applications %}
+                            <div class="card mb-3 border-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h6 class="mb-2">
+                                                <a href="{% url 'users:profile' application.service_provider.pk %}" class="text-decoration-none">
+                                                    {{ application.service_provider.email }}
+                                                </a>
+                                                {% if application.service_provider.profile.average_rating %}
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-star"></i> {{ application.service_provider.profile.average_rating|floatformat:1 }}
+                                                    </small>
+                                                {% endif %}
+                                            </h6>
+                                            <span class="badge bg-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                                {{ application.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">Applied {{ application.applied_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong><i class="fas fa-dollar-sign me-2"></i>Proposed Rate:</strong> R{{ application.proposed_rate|default:"Not specified" }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong><i class="fas fa-clock me-2"></i>Duration:</strong> {{ application.estimated_duration|default:"Not specified" }}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if application.cover_letter %}
+                                        <div class="mt-3">
+                                            <strong><i class="fas fa-envelope me-2"></i>Cover Letter:</strong>
+                                            <div class="mt-2 p-3 bg-light rounded">
+                                                {{ application.cover_letter|truncatewords:100 }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if application.availability_start %}
+                                        <div class="mt-3">
+                                            <strong><i class="fas fa-calendar-alt me-2"></i>Available From:</strong> {{ application.availability_start|date:"M d, Y"|default:"Not specified" }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if application.portfolio_links %}
+                                        <div class="mt-3">
+                                            <strong><i class="fas fa-link me-2"></i>Portfolio:</strong>
+                                            <div class="mt-2 p-3 bg-light rounded">
+                                                {{ application.portfolio_links|linebreaksbr }}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if is_job_homeowner %}
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            {% if application.status == 'pending' %}
+                                                <form method="post" action="{% url 'gigs:update_application_status' application.pk %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="accepted">
+                                                    <button type="submit" class="btn btn-success" 
+                                                            onclick="return confirm('Are you sure you want to accept this application? All other pending applications will be automatically rejected.')">
+                                                        <i class="fas fa-check me-1"></i>Accept
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="{% url 'gigs:update_application_status' application.pk %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="rejected">
+                                                    <button type="submit" class="btn btn-danger" 
+                                                            onclick="return confirm('Are you sure you want to reject this application?')">
+                                                        <i class="fas fa-times me-1"></i>Reject
+                                                    </button>
+                                                </form>
+                                            {% elif application.status == 'accepted' %}
+                                                <span class="badge bg-success">Accepted</span>
+                                                <small class="text-muted">This application was accepted and others were automatically rejected</small>
+                                            {% elif application.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No applications received yet for this job.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

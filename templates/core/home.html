@@ -1,0 +1,874 @@
+{% extends 'base.html' %}
+
+{% block title %}pro4me - Get a Pro for Your Next Job in South Africa{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Bootstrap 5 Enhanced Styles */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --info-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    --hover-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.hero-section {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 100px 0 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,90.7C960,96,1056,128,1152,133.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 3rem;
+    opacity: 0.95;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.btn-hero {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-hero::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-hero:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-hero-primary {
+    background: #fff;
+    color: #667eea;
+    border: 2px solid #fff;
+}
+
+.btn-hero-primary:hover {
+    background: transparent;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.btn-hero-outline {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+}
+
+.btn-hero-outline:hover {
+    background: #fff;
+    color: #667eea;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.services-section {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: var(--primary-gradient);
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #6c757d;
+    margin-bottom: 4rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    margin-bottom: 4rem;
+}
+
+.service-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: var(--card-shadow);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--hover-shadow);
+    color: inherit;
+    text-decoration: none;
+}
+
+.service-card:hover::before {
+    transform: scaleX(1);
+}
+
+.service-icon {
+    width: 90px;
+    height: 90px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    font-size: 2.2rem;
+    color: white;
+    transition: all 0.4s ease;
+    position: relative;
+}
+
+.service-card:hover .service-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.service-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #2c3e50;
+}
+
+.service-count {
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.jobs-section {
+    background: var(--secondary-gradient);
+    color: white;
+    padding: 80px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.jobs-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,90.7C960,96,1056,128,1152,133.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.jobs-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+}
+
+.jobs-subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.95;
+}
+
+.jobs-button {
+    padding: 15px 40px;
+    background: white;
+    color: #f5576c;
+    border: 2px solid white;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+.jobs-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(245, 87, 108, 0.1);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.jobs-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.jobs-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    color: #f5576c;
+}
+
+.how-it-works {
+    padding: 100px 0;
+    background: white;
+}
+
+/* Ensure smooth color transition when jobs section is hidden for homeowners */
+.how-it-works.homeowner-view {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding-top: 120px;
+}
+
+/* Ensure smooth color transition when services section is hidden for service providers */
+.how-it-works.provider-view {
+    background: var(--primary-gradient);
+    color: white;
+    padding-top: 120px;
+}
+
+.how-it-works.provider-view .section-title {
+    color: white;
+}
+
+.how-it-works.provider-view .section-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.how-it-works.provider-view .step-number {
+    background: white;
+    color: #667eea;
+}
+
+.how-it-works.provider-view .step-title {
+    color: white;
+}
+
+.how-it-works.provider-view .step-description {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.how-it-works.provider-view .step-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+    margin-top: 4rem;
+}
+
+.step-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 20px;
+    transition: all 0.4s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-5px);
+    background: #f8f9fa;
+}
+
+.step-number {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.step-card:hover .step-number {
+    transform: scale(1.1);
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+.step-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+}
+
+.step-description {
+    color: #6c757d;
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.cta-section {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 100px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,128C672,107,768,85,864,90.7C960,96,1056,128,1152,133.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+    background-size: cover;
+}
+
+.cta-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.cta-subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 3rem;
+    opacity: 0.95;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Enhanced Footer Styles */
+footer {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 60px 0 30px;
+    position: relative;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+}
+
+.footer-content {
+    margin-bottom: 40px;
+}
+
+.footer-section h5 {
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-section ul li a {
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 30px;
+    text-align: center;
+    color: #bdc3c7;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    background: var(--primary-gradient);
+    transform: translateY(-3px);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .services-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+    
+    .section-title {
+        font-size: 2.5rem;
+    }
+    
+    .jobs-title {
+        font-size: 2.2rem;
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+    }
+    
+    .steps-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+{% if not user.is_authenticated or user.user_type != 'service_provider' %}
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Get a Pro for Your Next Job</h1>
+        <p class="hero-subtitle">Expertise, Verified. Life, Simplified.</p>
+        
+        <div class="hero-buttons">
+            {% if user.is_authenticated %}
+                {% if user.user_type == 'homeowner' %}
+                    <a href="{% url 'gigs:service_providers' %}" class="btn-hero btn-hero-primary">
+                        <i class="fas fa-search me-2"></i>Hire a Pro
+                    </a>
+                    <a href="{% url 'gigs:create_quotation_request' %}" class="btn-hero btn-hero-outline">
+                        <i class="fas fa-quote-right me-2"></i>Request Quotes
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'gigs:service_providers' %}" class="btn-hero btn-hero-primary">
+                    <i class="fas fa-search me-2"></i>Hire a Pro
+                </a>
+                <a href="{% url 'users:signup' %}" class="btn-hero btn-hero-outline">
+                    <i class="fas fa-quote-right me-2"></i>Request Quotes
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Services Section -->
+{% if not user.is_authenticated or user.user_type != 'service_provider' %}
+<section class="services-section">
+    <div class="container">
+        <h2 class="section-title">Explore Our Categories Pros</h2>
+        <p class="section-subtitle">Connect with vetted professionals for all your home maintenance needs</p>
+        
+        <div class="services-grid">
+            <a href="{% url 'gigs:service_providers' %}?category=Electrical" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="service-name">Electricians</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Plumbing" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-wrench"></i>
+                </div>
+                <div class="service-name">Plumbers</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Construction" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-hammer"></i>
+                </div>
+                <div class="service-name">Carpenters</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Painting" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+                <div class="service-name">Painters</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Construction" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="service-name">Builders</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Construction" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-th"></i>
+                </div>
+                <div class="service-name">Tilers</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Landscaping" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="service-name">Landscaping</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+            
+            <a href="{% url 'gigs:service_providers' %}?category=Cleaning" class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-broom"></i>
+                </div>
+                <div class="service-name">Cleaning</div>
+                <div class="service-count">Available Pros</div>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Jobs Section -->
+{% if not user.is_authenticated or user.user_type != 'homeowner' %}
+<section class="jobs-section">
+    <div class="container">
+        <h2 class="jobs-title">Looking for a Job as Pro?</h2>
+        <p class="jobs-subtitle">Browse all available job postings and find your next opportunity</p>
+        
+        <a href="{% url 'gigs:list' %}" class="jobs-button">
+            <i class="fas fa-briefcase me-2"></i>View All Jobs
+        </a>
+    </div>
+</section>
+{% endif %}
+
+<!-- How It Works Section -->
+<section class="how-it-works {% if user.is_authenticated and user.user_type == 'homeowner' %}homeowner-view{% elif user.is_authenticated and user.user_type == 'service_provider' %}provider-view{% endif %}">
+    <div class="container">
+        {% if user.is_authenticated and user.user_type == 'service_provider' %}
+            <h2 class="section-title">How It Works for Pros</h2>
+            <p class="section-subtitle">Grow your business and find quality jobs in 3 simple steps</p>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Browse Available Jobs</h3>
+                    <p class="step-description">Find jobs that match your skills and expertise in your area. Apply to projects that fit your schedule.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Submit Quotes & Get Hired</h3>
+                    <p class="step-description">Send competitive quotes, showcase your skills, and get hired by homeowners who value quality work.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Complete & Get Paid</h3>
+                    <p class="step-description">Deliver excellent work, receive reviews, and get paid securely through our platform.</p>
+                </div>
+            </div>
+        {% else %}
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Get your home maintenance done in 3 simple steps</p>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Tell Us What You Need</h3>
+                    <p class="step-description">Describe your project or problem and we'll match you with qualified pros in your area.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Compare & Choose</h3>
+                    <p class="step-description">Review quotes, read reviews, and choose the pro that's right for your job and budget.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Get It Done</h3>
+                    <p class="step-description">Your chosen pro completes the work to your satisfaction. Pay securely when you're happy.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not user.is_authenticated or user.user_type != 'service_provider' %}
+<section class="cta-section">
+    <div class="container">
+        <h2 class="cta-title">Feel confident every time you book a Pro</h2>
+        <p class="cta-subtitle">Join thousands of South Africans who trust pro4me for their home maintenance needs</p>
+        
+        <div class="cta-buttons">
+            <a href="{% url 'gigs:service_providers' %}" class="btn-hero btn-hero-primary">
+                <i class="fas fa-search me-2"></i>Book a Pro
+            </a>
+            <a href="{% url 'users:signup' %}" class="btn-hero btn-hero-outline">
+                <i class="fas fa-user-plus me-2"></i>Join as Pro
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Enhanced Footer -->
+<footer>
+    <div class="container">
+        <div class="row footer-content">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="footer-section">
+                    <h5>About pro4me</h5>
+                    <p class="text-white-50">Your trusted platform for connecting with verified professionals for home maintenance and improvement services across South Africa.</p>
+                    <div class="social-links">
+                        <a href="#" class="text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-2 col-md-6 mb-4">
+                <div class="footer-section">
+                    <h5>Quick Links</h5>
+                    <ul>
+                        <li><a href="{% url 'gigs:service_providers' %}">Find Pros</a></li>
+                        <li><a href="{% url 'gigs:list' %}">Browse Jobs</a></li>
+                        <li><a href="{% url 'users:signup' %}">Sign Up</a></li>
+                        <li><a href="{% url 'account_login' %}">Login</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="footer-section">
+                    <h5>Services</h5>
+                    <ul>
+                        <li><a href="{% url 'gigs:service_providers' %}?category=Electrical">Electricians</a></li>
+                        <li><a href="{% url 'gigs:service_providers' %}?category=Plumbing">Plumbers</a></li>
+                        <li><a href="{% url 'gigs:service_providers' %}?category=Construction">Builders</a></li>
+                        <li><a href="{% url 'gigs:service_providers' %}?category=Painting">Painters</a></li>
+                        <li><a href="{% url 'gigs:service_providers' %}">All Services</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="footer-section">
+                    <h5>Support</h5>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Safety Tips</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; {% now "Y" %} pro4me. All rights reserved.</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-0 text-end">Made with <i class="fas fa-heart text-danger"></i> in South Africa</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% if not user.is_authenticated %}
+<script>
+// Handle button clicks for non-logged in users
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle "Hire a Pro" button click
+    const hireProBtn = document.querySelector('a[href*="service_providers"]');
+    if (hireProBtn) {
+        hireProBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect to registration with phone number collection
+            window.location.href = '{% url "users:signup" %}?next=' + encodeURIComponent(window.location.href) + '&role=homeowner&phone_required=true';
+        });
+    }
+    
+    // Handle "Request Quotes" button click
+    const requestQuotesBtn = document.querySelector('a[href*="signup"]');
+    if (requestQuotesBtn) {
+        requestQuotesBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect to quote form with phone number collection
+            window.location.href = '{% url "gigs:create_quotation_request" %}?redirect_to_signup=true';
+        });
+    }
+    
+    // Handle "View All Jobs" button click
+    const viewJobsBtn = document.querySelector('a[href*="list"]');
+    if (viewJobsBtn) {
+        viewJobsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect to registration with phone number collection
+            window.location.href = '{% url "users:signup" %}?next=' + encodeURIComponent('{% url "gigs:list" %}') + '&role=service_provider&phone_required=true';
+        });
+    }
+});
+</script>
+{% endif %}
+
+
+{% endblock %}

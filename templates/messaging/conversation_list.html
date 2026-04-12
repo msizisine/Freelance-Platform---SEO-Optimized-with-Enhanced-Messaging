@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - FreelanceHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Messages</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    {% if conversations %}
+                        <div class="list-group">
+                            {% for conversation in conversations %}
+                                <a href="{% url 'messaging:detail' conversation.pk %}" 
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            {% for participant in conversation.participants.all %}
+                                                {% if participant != request.user %}
+                                                    {{ participant.email }}
+                                                {% endif %}
+                                            {% endfor %}
+                                        </h6>
+                                        <small>{{ conversation.updated_at|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <p class="mb-1">
+                                        {% if conversation.messages.last %}
+                                            {{ conversation.messages.last.content|truncatewords:10 }}
+                                        {% else %}
+                                            No messages yet
+                                        {% endif %}
+                                    </p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <h5>No conversations yet</h5>
+                            <p class="text-muted">Start a conversation by browsing gigs and contacting freelancers.</p>
+                            <a href="{% url 'gigs:list' %}" class="btn btn-primary">Browse Gigs</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

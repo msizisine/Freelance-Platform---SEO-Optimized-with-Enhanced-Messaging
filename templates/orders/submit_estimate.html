@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Estimate - {{ job_offer.job_title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>Submit Estimate
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Job Details -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Job Details</h6>
+                        <p class="mb-2"><strong>Title:</strong> {{ job_offer.job_title }}</p>
+                        <p class="mb-2"><strong>Description:</strong> {{ job_offer.job_description }}</p>
+                        <p class="mb-0">
+                            <strong>Budget Range:</strong> 
+                            R{{ job_offer.budget_min|floatformat:2 }} - R{{ job_offer.budget_max|floatformat:2 }}
+                        </p>
+                    </div>
+
+                    <!-- Homeowner Info -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-user me-2"></i>From Homeowner</h6>
+                        <p class="text-muted">{{ job_offer.homeowner.get_full_name|default:job_offer.homeowner.email }}</p>
+                    </div>
+
+                    <!-- Estimate Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Provider Rates Display -->
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading">Your Current Rates</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Hourly Rate:</strong> 
+                                    {% if request.user.hourly_rate %}R{{ request.user.hourly_rate|floatformat:2 }}{% else %}<span class="text-muted">Not set</span>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Daily Rate:</strong> 
+                                    {% if request.user.daily_rate %}R{{ request.user.daily_rate|floatformat:2 }}{% else %}<span class="text-muted">Not set</span>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Sq Meter Rate:</strong> 
+                                    {% if request.user.square_meter_rate %}R{{ request.user.square_meter_rate|floatformat:2 }}{% else %}<span class="text-muted">Not set</span>{% endif %}
+                                </div>
+                            </div>
+                            {% if not request.user.hourly_rate and not request.user.daily_rate and not request.user.square_meter_rate %}
+                                <div class="mt-2">
+                                    <small class="text-warning">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Please set your rates in your profile to calculate estimates automatically.
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Rate Type Selection -->
+                        <div class="mb-3">
+                            <label for="{{ form.rate_type.id_for_label }}" class="form-label">
+                                <i class="fas fa-calculator me-1"></i>{{ form.rate_type.label }} *
+                            </label>
+                            {{ form.rate_type }}
+                            {% if form.rate_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.rate_type.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Choose which rate type to use for this estimate</div>
+                        </div>
+
+                        <!-- Square Meters (conditional) -->
+                        <div class="mb-3" id="square_meters_field" style="display: none;">
+                            <label for="{{ form.square_meters.id_for_label }}" class="form-label">
+                                <i class="fas fa-ruler-combined me-1"></i>Square Meters *
+                            </label>
+                            {{ form.square_meters }}
+                            {% if form.square_meters.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.square_meters.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.square_meters.help_text }}</div>
+                        </div>
+
+                        <!-- Duration Selection -->
+                        <div class="mb-3">
+                            <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Estimated Duration *
+                            </label>
+                            {{ form.estimated_duration }}
+                            {% if form.estimated_duration.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.estimated_duration.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Select the estimated time to complete this job</div>
+                        </div>
+
+                        <!-- Calculated Price -->
+                        <div class="mb-3">
+                            <label for="{{ form.estimated_price.id_for_label }}" class="form-label">
+                                <i class="fas fa-dollar-sign me-1"></i>Calculated Price *
+                            </label>
+                            {{ form.estimated_price }}
+                            {% if form.estimated_price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.estimated_price.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Price is automatically calculated based on your rates and duration</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.estimate_description.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-alt me-1"></i>Estimate Description
+                            </label>
+                            {{ form.estimate_description }}
+                            {% if form.estimate_description.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.estimate_description.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Describe your approach and what's included in your estimate</div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'orders:job_offers_received' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Job Offers
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Estimate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rateTypeSelect = document.getElementById('rate_type_select');
+    const durationSelect = document.getElementById('duration_select');
+    const squareMetersField = document.getElementById('square_meters_field');
+    const squareMetersInput = document.getElementById('square_meters_input');
+    const calculatedPriceInput = document.getElementById('calculated_price');
+    
+    // Provider rates (from template context)
+    const hourlyRate = parseFloat('{{ request.user.hourly_rate|default:0 }}') || 0;
+    const dailyRate = parseFloat('{{ request.user.daily_rate|default:0 }}') || 0;
+    const squareMeterRate = parseFloat('{{ request.user.square_meter_rate|default:0 }}') || 0;
+    
+    // Duration to days mapping
+    const durationToDays = {
+        '1 day': 1,
+        '1 week': 7,
+        '2 weeks': 14,
+        '1 month': 30
+    };
+    
+    function calculatePrice() {
+        const rateType = rateTypeSelect.value;
+        const duration = durationSelect.value;
+        const squareMeters = parseFloat(squareMetersInput.value) || 0;
+        
+        let price = 0;
+        
+        if (rateType === 'hourly' && hourlyRate > 0) {
+            const days = durationToDays[duration] || 1;
+            const totalHours = days * 8; // 8 working hours per day
+            price = hourlyRate * totalHours;
+        } else if (rateType === 'daily' && dailyRate > 0) {
+            const days = durationToDays[duration] || 1;
+            price = dailyRate * days;
+        } else if (rateType === 'square_meter' && squareMeterRate > 0 && squareMeters > 0) {
+            price = squareMeterRate * squareMeters;
+        }
+        
+        calculatedPriceInput.value = price.toFixed(2);
+    }
+    
+    function toggleSquareMetersField() {
+        const rateType = rateTypeSelect.value;
+        if (rateType === 'square_meter') {
+            squareMetersField.style.display = 'block';
+            squareMetersInput.required = true;
+        } else {
+            squareMetersField.style.display = 'none';
+            squareMetersInput.required = false;
+            squareMetersInput.value = '';
+        }
+        calculatePrice();
+    }
+    
+    // Event listeners
+    rateTypeSelect.addEventListener('change', toggleSquareMetersField);
+    durationSelect.addEventListener('change', calculatePrice);
+    squareMetersInput.addEventListener('input', calculatePrice);
+    
+    // Initialize on page load
+    toggleSquareMetersField();
+});
+</script>
+{% endblock %}

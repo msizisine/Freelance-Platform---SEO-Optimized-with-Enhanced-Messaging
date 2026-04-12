@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Thank You - Home Services Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    </div>
+                    <h2 class="mb-3">Thank You!</h2>
+                    <p class="lead mb-4">Your review has been submitted successfully.</p>
+                    <p class="text-muted">We appreciate your feedback and it will help other users make informed decisions.</p>
+                    
+                    <div class="mt-4">
+                        {% if user.user_type == 'homeowner' %}
+                            <a href="{% url 'gigs:my_jobs' %}" class="btn btn-primary">
+                                <i class="fas fa-briefcase me-2"></i>View My Jobs
+                            </a>
+                            <a href="{% url 'gigs:create' %}" class="btn btn-success ms-2">
+                                <i class="fas fa-plus me-2"></i>Post More Jobs
+                            </a>
+                        {% elif user.user_type == 'service_provider' %}
+                            <a href="{% url 'gigs:my_provider_jobs' %}" class="btn btn-primary">
+                                <i class="fas fa-briefcase me-2"></i>View My Jobs
+                            </a>
+                            <a href="{% url 'gigs:list' %}" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-search me-2"></i>Browse More Jobs
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

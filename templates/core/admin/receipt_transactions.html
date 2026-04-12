@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment Receipts - Transactions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-receipt me-2"></i>Payment Receipts & Transactions</h1>
+                <small class="text-muted">Showing receipts with homeowner and provider details</small>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Payment Receipts</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_amount|floatformat:2 }}</h4>
+                            <p class="card-text">Total Amount</p>
+                            <small>{{ total_receipts }} receipts</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ completed_amount|floatformat:2 }}</h4>
+                            <p class="card-text">Completed Payments</p>
+                            <small>{{ completed_receipts }} receipts</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ pending_amount|floatformat:2 }}</h4>
+                            <p class="card-text">Pending Payments</p>
+                            <small>{{ pending_receipts }} receipts</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ failed_receipts }}</h4>
+                            <p class="card-text">Failed Payments</p>
+                            <small>Need attention</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Breakdown -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Payment Method Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-primary">EFT Transfers</h6>
+                                <h4 class="text-primary">R{{ eft_amount|floatformat:2 }}</h4>
+                                <small class="text-muted">{{ eft_count }} transactions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-success">Ozow Payments</h6>
+                                <h4 class="text-success">R{{ ozow_amount|floatformat:2 }}</h4>
+                                <small class="text-muted">{{ ozow_count }} transactions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-warning">Cash Payments</h6>
+                                <h4 class="text-warning">R{{ cash_amount|floatformat:2 }}</h4>
+                                <small class="text-muted">{{ cash_count }} transactions</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h6 class="text-info">Other Methods</h6>
+                                <h4 class="text-info">R{{ other_amount|floatformat:2 }}</h4>
+                                <small class="text-muted">{{ other_count }} transactions</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select name="payment_method" id="payment_method" class="form-select">
+                                <option value="">All Methods</option>
+                                <option value="eft" {% if payment_method == 'eft' %}selected{% endif %}>EFT Transfer</option>
+                                <option value="ozow" {% if payment_method == 'ozow' %}selected{% endif %}>Ozow Payment</option>
+                                <option value="cash" {% if payment_method == 'cash' %}selected{% endif %}>Cash Payment</option>
+                                <option value="card" {% if payment_method == 'card' %}selected{% endif %}>Card Payment</option>
+                                <option value="other" {% if payment_method == 'other' %}selected{% endif %}>Other Method</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="payment_status" class="form-label">Payment Status</label>
+                            <select name="payment_status" id="payment_status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="pending" {% if payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="completed" {% if payment_status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="failed" {% if payment_status == 'failed' %}selected{% endif %}>Failed</option>
+                                <option value="refunded" {% if payment_status == 'refunded' %}selected{% endif %}>Refunded</option>
+                                <option value="cancelled" {% if payment_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_from" class="form-label">From Date</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ date_from }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="date_to" class="form-label">To Date</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ date_to }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                            <a href="{% url 'core:receipt_transactions' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipts List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list me-2"></i>Payment Receipts ({{ receipts|length }} total)</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-success" onclick="exportReceipts()">
+                            <i class="fas fa-download me-2"></i>Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if receipts %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Receipt #</th>
+                                        <th>Date</th>
+                                        <th>Homeowner</th>
+                                        <th>Provider</th>
+                                        <th>Order</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th>Payout Status</th>
+                                        <th>Reference</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for receipt in receipts %}
+                                        <tr>
+                                            <td>
+                                                <code>{{ receipt.receipt_number }}</code>
+                                            </td>
+                                            <td>{{ receipt.payment_date|date:"Y-m-d H:i" }}</td>
+                                            <td>
+                                                <strong>{{ receipt.homeowner.email }}</strong><br>
+                                                <small class="text-muted">{{ receipt.homeowner.get_user_type_display }}</small>
+                                            </td>
+                                            <td>
+                                                {% if receipt.order and receipt.order.service_provider %}
+                                                    <strong>{{ receipt.order.service_provider.email }}</strong><br>
+                                                    <small class="text-muted">{{ receipt.order.service_provider.get_user_type_display }}</small>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if receipt.order %}
+                                                    <a href="/orders/{{ receipt.order.id }}/" class="text-decoration-none">
+                                                        #{{ receipt.order.id }}
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-success fw-bold">R{{ receipt.amount|floatformat:2 }}</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ receipt.get_payment_method_display }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge {% if receipt.payment_status == 'completed' %}bg-success{% elif receipt.payment_status == 'pending' %}bg-warning{% elif receipt.payment_status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    {{ receipt.get_payment_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% with payout_status=receipt.get_provider_payout_status %}
+                                                    <span class="badge {{ payout_status.badge_class }}" title="{{ payout_status.description }}">
+                                                        {{ payout_status.display }}
+                                                    </span>
+                                                {% endwith %}
+                                            </td>
+                                            <td>
+                                                {% if receipt.transaction_reference %}
+                                                    <code>{{ receipt.transaction_reference }}</code>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    {% if receipt.order %}
+                                                        <a href="/orders/{{ receipt.order.id }}/" class="btn btn-outline-primary" title="View Order">
+                                                            <i class="fas fa-briefcase"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                    <button type="button" class="btn btn-outline-info" onclick="viewReceiptDetails('{{ receipt.pk }}')" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    {% if receipt.payment_status == 'pending' %}
+                                                        <button type="button" class="btn btn-outline-success" onclick="confirmPayment('{{ receipt.pk }}')" title="Confirm Payment">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Monthly Statistics -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Monthly Statistics (Last 6 Months)</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Month</th>
+                                                        <th>Transactions</th>
+                                                        <th>Total Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for stat in monthly_stats %}
+                                                        <tr>
+                                                            <td>{{ stat.month }}</td>
+                                                            <td>{{ stat.count }}</td>
+                                                            <td>R{{ stat.total|floatformat:2 }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6>Payment Method Distribution</h6>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-primary" data-width="{{ eft_amount|default:0 }}" data-total="{{ total_amount|default:0 }}">
+                                                EFT: {{ eft_count }}
+                                            </div>
+                                        </div>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-success" data-width="{{ ozow_amount|default:0 }}" data-total="{{ total_amount|default:0 }}">
+                                                Ozow: {{ ozow_count }}
+                                            </div>
+                                        </div>
+                                        <div class="progress mb-2">
+                                            <div class="progress-bar bg-warning" data-width="{{ cash_amount|default:0 }}" data-total="{{ total_amount|default:0 }}">
+                                                Cash: {{ cash_count }}
+                                            </div>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-info" data-width="{{ other_amount|default:0 }}" data-total="{{ total_amount|default:0 }}">
+                                                Other: {{ other_count }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h5>No payment receipts found</h5>
+                            <p class="text-muted">No payment receipts match your current filter criteria.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Details Modal -->
+<div class="modal fade" id="receiptDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Payment Receipt Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="receiptDetailsContent">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calculate progress bar widths on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar[data-width]');
+    progressBars.forEach(bar => {
+        const width = parseFloat(bar.getAttribute('data-width')) || 0;
+        const total = parseFloat(bar.getAttribute('data-total')) || 1;
+        const percentage = total > 0 ? (width / total * 100) : 0;
+        bar.style.width = percentage + '%';
+    });
+});
+
+function viewReceiptDetails(receiptId) {
+    const modal = document.getElementById('receiptDetailsModal');
+    const content = document.getElementById('receiptDetailsContent');
+    
+    content.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+            <p>Loading receipt details...</p>
+        </div>
+    `;
+    
+    // Show modal
+    const modalInstance = new bootstrap.Modal(modal);
+    modalInstance.show();
+    
+    // In a real implementation, you would fetch the details via AJAX
+    setTimeout(() => {
+        content.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Receipt details would be loaded here via AJAX call for receipt ID: ${receiptId}
+            </div>
+        `;
+    }, 1000);
+}
+
+function confirmPayment(receiptId) {
+    if (confirm('Are you sure you want to confirm this payment?')) {
+        fetch(`/system/receipts/${receiptId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while confirming the payment.');
+        });
+    }
+}
+
+function exportReceipts() {
+    // Get current filters
+    const url = new URL(window.location);
+    url.pathname = '/system/receipts/export/';
+    url.searchParams.set('format', 'csv');
+    
+    // Create a temporary link and click it
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.download = 'payment_receipts.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show success message
+    alert('Receipt export started. The file will be downloaded shortly.');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Platform Fees{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-percentage me-2"></i>Platform Fees</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'core:system_dashboard' %}">System Dashboard</a></li>
+                        <li class="breadcrumb-item active">Platform Fees</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Platform Fees ({{ fees|length }} total)</h5>
+                    <div class="card-actions">
+                        <a href="/admin/core/platformfee/add/" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Platform Fee
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if fees %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Fee Structure</th>
+                                        <th>Applies To</th>
+                                        <th>Minimum Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for fee in fees %}
+                                        <tr>
+                                            <td><strong>{{ fee.name }}</strong></td>
+                                            <td>
+                                                <span class="badge bg-info">{{ fee.get_fee_type_display }}</span>
+                                            </td>
+                                            <td>{{ fee.description|truncatechars:50 }}</td>
+                                            <td>
+                                                {% if fee.fee_percentage > 0 %}
+                                                    {{ fee.fee_percentage }}%
+                                                {% endif %}
+                                                {% if fee.fee_fixed > 0 %}
+                                                    {% if fee.fee_percentage > 0 %} + {% endif %}
+                                                    R{{ fee.fee_fixed }}
+                                                {% endif %}
+                                                {% if fee.fee_percentage == 0 and fee.fee_fixed == 0 %}
+                                                    <span class="text-muted">Free</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ fee.applies_to|title }}</span>
+                                            </td>
+                                            <td>R{{ fee.minimum_amount }}</td>
+                                            <td>
+                                                {% if fee.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="/admin/core/platformfee/{{ fee.pk }}/change/" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-percentage fa-3x text-muted mb-3"></i>
+                            <h5>No platform fees configured</h5>
+                            <p class="text-muted">No platform fees have been set up for transactions.</p>
+                            <a href="/admin/core/platformfee/add/" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add First Platform Fee
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Platform Fee Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Fee Types:</h6>
+                            <ul>
+                                <li><strong>Commission Fee:</strong> Percentage charged to service providers</li>
+                                <li><strong>Service Fee:</strong> Fixed fee for platform usage</li>
+                                <li><strong>Transaction Fee:</strong> Payment processing costs</li>
+                                <li><strong>Withdrawal Fee:</strong> Fees for withdrawing earnings</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Configuration Notes:</h6>
+                            <ul>
+                                <li>Fees can be structured as percentage, fixed amount, or both</li>
+                                <li>Minimum amounts prevent fees from being applied to small transactions</li>
+                                <li>Fees can be applied to service providers, homeowners, or both</li>
+                                <li>Active fees are automatically calculated during transactions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

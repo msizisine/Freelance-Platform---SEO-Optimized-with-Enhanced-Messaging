@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}System Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-cogs me-2"></i>System Configuration Dashboard</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="breadcrumb-item active">System Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_providers }}</h4>
+                            <p class="card-text">Total Providers</p>
+                            <small>{{ verified_providers }} verified</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_configs }}</h4>
+                            <p class="card-text">Total Configurations</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-cog fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ active_configs }}</h4>
+                            <p class="card-text">Active Configurations</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_homeowners }}</h4>
+                            <p class="card-text">Total Homeowners</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-home fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ total_homeowner_payments|floatformat:2 }}</h4>
+                            <p class="card-text">Homeowner Payments</p>
+                            <small>Total paid by homeowners</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-up fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ pending_homeowner_payments|floatformat:2 }}</h4>
+                            <p class="card-text">Pending Payments</p>
+                            <small>Orders in progress</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ total_provider_earnings|floatformat:2 }}</h4>
+                            <p class="card-text">Provider Earnings</p>
+                            <small>Total earned by providers</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-coins fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">R{{ total_provider_payouts|floatformat:2 }}</h4>
+                            <p class="card-text">Provider Payouts</p>
+                            <small>Total paid to providers</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-arrow-down fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tools me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:admin_provider_list' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-user-check me-2"></i>Verify Providers
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:admin_payout_management' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-hand-holding-usd me-2"></i>Manage Payouts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:generate_monthly_fees' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-calendar-alt me-2"></i>Generate Monthly Fees
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:system_config_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cog me-2"></i>System Configurations
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:bank_account_list' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-university me-2"></i>Bank Accounts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:payment_method_list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-credit-card me-2"></i>Payment Methods
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:platform_fee_list' %}" class="btn btn-outline-dark w-100">
+                                <i class="fas fa-percentage me-2"></i>Platform Fees
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:all_transactions' %}" class="btn btn-info w-100">
+                                <i class="fas fa-history me-2"></i>All Transactions
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'core:receipt_transactions' %}" class="btn btn-success w-100">
+                                <i class="fas fa-receipt me-2"></i>Payment Receipts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Summary -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Configuration Summary</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Service Providers
+                            <span class="badge bg-danger rounded-pill">{{ total_providers }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Verified Providers
+                            <span class="badge bg-success rounded-pill">{{ verified_providers }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Pending Verification
+                            <span class="badge bg-warning rounded-pill">{{ pending_verification }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Platform Configurations
+                            <span class="badge bg-primary rounded-pill">{{ total_configs }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Active Payment Methods
+                            <span class="badge bg-info rounded-pill">{{ active_payment_methods }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Email Configurations
+                            <span class="badge bg-secondary rounded-pill">{{ email_configs }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>System Configuration Management</strong></p>
+                    <p>This dashboard allows you to manage all system-wide configurations including:</p>
+                    <ul>
+                        <li>Platform settings and preferences</li>
+                        <li>Bank account information for payments</li>
+                        <li>Available payment methods and their settings</li>
+                        <li>Platform fee structures</li>
+                        <li>Email configuration settings</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Only superusers can access and modify system configurations.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

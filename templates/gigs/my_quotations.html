@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if user_type == 'homeowner' %}My Quotation Requests{% else %}Providers Sent To{% endif %} - Home Services Hub
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    {% if user_type == 'homeowner' %}
+                        <i class="fas fa-file-invoice me-2"></i>My Quotation Requests
+                    {% else %}
+                        <i class="fas fa-inbox me-2"></i>Homeowner request for quotation
+                    {% endif %}
+                </h2>
+                <div>
+                    {% if user.user_type == 'homeowner' %}
+                        <a href="{% url 'gigs:create_quotation_request' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus me-1"></i>New Quotation Request
+                        </a>
+                    {% endif %}
+                    <span class="badge bg-primary fs-6">{{ total_quotations }} Requests</span>
+                </div>
+            </div>
+            
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ total_quotations }}</h4>
+                            <p class="card-text">Total Requests</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ pending_quotations }}</h4>
+                            <p class="card-text">Pending Response</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ evaluation_quotations }}</h4>
+                            <p class="card-text">In Evaluation</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h4 class="card-title">{{ selected_quotations }}</h4>
+                            <p class="card-text">Provider Selected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" name="search" 
+                                       placeholder="Search quotations..." value="{{ search_query }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Status Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="status">
+                                <option value="">All Status</option>
+                                <option value="receiving_responses" {% if status_filter == 'receiving_responses' %}selected{% endif %}>Receiving Responses</option>
+                                <option value="evaluation_period" {% if status_filter == 'evaluation_period' %}selected{% endif %}>Evaluation Period</option>
+                                <option value="provider_selected" {% if status_filter == 'provider_selected' %}selected{% endif %}>Provider Selected</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Date Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="date">
+                                <option value="">All Time</option>
+                                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if date_filter == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if date_filter == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="year" {% if date_filter == 'year' %}selected{% endif %}>This Year</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Sort Filter -->
+                        <div class="col-md-2">
+                            <select class="form-select" name="sort">
+                                <option value="created_desc" {% if sort_by == 'created_desc' %}selected{% endif %}>Newest First</option>
+                                <option value="created_asc" {% if sort_by == 'created_asc' %}selected{% endif %}>Oldest First</option>
+                                <option value="deadline_asc" {% if sort_by == 'deadline_asc' %}selected{% endif %}>Deadline Soon</option>
+                                <option value="deadline_desc" {% if sort_by == 'deadline_desc' %}selected{% endif %}>Deadline Later</option>
+                                <option value="title_asc" {% if sort_by == 'title_asc' %}selected{% endif %}>Title A-Z</option>
+                                <option value="title_desc" {% if sort_by == 'title_desc' %}selected{% endif %}>Title Z-A</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Submit and Clear Buttons -->
+                        <div class="col-md-2">
+                            <div class="btn-group w-100" role="group">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter me-1"></i>Filter
+                                </button>
+                                <a href="{% url 'gigs:my_quotations' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if quotations %}
+                <div class="row">
+                    {% for quotation in quotations %}
+                        <div class="col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-0">{{ quotation.title }}</h5>
+                                        <p class="mb-0 text-muted small">{{ quotation.category.name }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{% if quotation.status == 'pending' %}warning{% elif quotation.status == 'receiving_responses' %}info{% elif quotation.status == 'evaluation_period' %}primary{% elif quotation.status == 'provider_selected' %}success{% else %}secondary{% endif %}">
+                                            {{ quotation.get_status_display|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Location:</strong> {{ quotation.location }}</p>
+                                            <p class="mb-1"><strong>Posted:</strong> {{ quotation.created_at|date:"M d, Y" }}</p>
+                                            {% if quotation.response_deadline %}
+                                                <p class="mb-1">
+                                                    <strong>Deadline:</strong> 
+                                                    {% if quotation.is_response_deadline_passed %}
+                                                        <span class="text-danger">{{ quotation.response_deadline|date:"M d, Y" }} (Expired)</span>
+                                                    {% else %}
+                                                        <span class="text-success">{{ quotation.response_deadline|date:"M d, Y" }}</span>
+                                                    {% endif %}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>Urgency:</strong> {{ quotation.get_urgency_display|title }}</p>
+                                            {% if quotation.budget_range %}
+                                                <p class="mb-1"><strong>Budget:</strong> {{ quotation.budget_range }}</p>
+                                            {% endif %}
+                                            {% if quotation.selected_provider %}
+                                                <p class="mb-1">
+                                                    <strong>Selected:</strong> 
+                                                    {{ quotation.selected_provider.get_full_name|default:quotation.selected_provider.email }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-muted small mb-3">{{ quotation.description|truncatewords:20 }}</p>
+                                    
+                                    <!-- Response Count / Provider Status -->
+                                    <div class="mb-3">
+                                        {% if user_type == 'homeowner' %}
+                                            <span class="badge bg-info">
+                                                {% with responses_count=quotation.responses.count %}
+                                                    {{ responses_count }} Response{{ responses_count|pluralize }}
+                                                {% endwith %}
+                                            </span>
+                                        {% else %}
+                                            {% if quotation.provider_response %}
+                                                <span class="badge bg-{% if quotation.provider_response.status == 'accepted' %}success{% elif quotation.provider_response.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                                    {{ quotation.provider_response.get_status_display|title }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Responded</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Action Buttons -->
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'gigs:quotation_detail' quotation.pk %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                        {% if user_type == 'homeowner' and quotation.status == 'provider_selected' and quotation.selected_provider %}
+                                            {% with gig=quotation.selected_provider.hired_jobs.first %}
+                                                {% if gig %}
+                                                    <a href="{% url 'gigs:detail' gig.pk %}" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-briefcase me-1"></i>View Job
+                                                    </a>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% elif user_type == 'service_provider' and not quotation.provider_response and quotation.status == 'receiving_responses' and not quotation.is_response_deadline_passed %}
+                                            <a href="{% url 'gigs:respond_to_quotation' quotation.pk %}" class="btn btn-success btn-sm">
+                                                <i class="fas fa-reply me-1"></i>Respond Now
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        {% if user_type == 'homeowner' %}
+                            <i class="fas fa-file-invoice fa-3x text-muted"></i>
+                        {% else %}
+                            <i class="fas fa-inbox fa-3x text-muted"></i>
+                        {% endif %}
+                    </div>
+                    {% if user_type == 'homeowner' %}
+                        <h4 class="text-muted mb-3">No Quotation Requests Found</h4>
+                        <p class="text-muted mb-4">
+                            {% if search_query or status_filter or date_filter %}
+                                No quotation requests match your current filters. Try adjusting your search criteria or 
+                                <a href="{% url 'gigs:my_quotations' %}" class="alert-link">clear all filters</a>.
+                            {% else %}
+                                Start by creating your first quotation request to get competitive quotes from service providers.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'gigs:create_quotation_request' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Quotation Request
+                        </a>
+                    {% else %}
+                        <h4 class="text-muted mb-3">No Quotations Found</h4>
+                        <p class="text-muted mb-4">
+                            {% if search_query or status_filter or date_filter %}
+                                No quotations match your current filters. Try adjusting your search criteria or 
+                                <a href="{% url 'gigs:my_quotations' %}" class="alert-link">clear all filters</a>.
+                            {% else %}
+                                Homeowners haven't sent any quotation requests to you yet. Make sure your profile is complete and you're listed in relevant service categories.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'core:profile_edit' %}" class="btn btn-primary">
+                            <i class="fas fa-user-edit me-2"></i>Update Your Profile
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Status Legend -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% if user_type == 'homeowner' %}Quotation Status Guide{% else %}Response Status Guide{% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if user_type == 'homeowner' %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                <span class="badge bg-warning me-2">Pending</span>
+                                <small>Request being created</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-info me-2">Receiving Responses</span>
+                                <small>Waiting for provider quotes</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-primary me-2">Evaluation Period</span>
+                                <small>Deadline passed, time to choose</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-success me-2">Provider Selected</span>
+                                <small>Job created with provider</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="row">
+                            <div class="col-md-3">
+                                <span class="badge bg-secondary me-2">Not Responded</span>
+                                <small>You haven't responded yet</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-warning me-2">Pending</span>
+                                <small>Your response is under review</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-success me-2">Accepted</span>
+                                <small>You got the job!</small>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-danger me-2">Rejected</span>
+                                <small>Your quote was not selected</small>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
