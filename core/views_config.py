@@ -10,10 +10,19 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q, Sum
-from .models_config import (
-    SystemConfiguration, BankAccount, PaymentMethod, 
-    PlatformFee, EmailConfiguration
-)
+# Try to import configuration models (optional modules)
+try:
+    from .models_config import (
+        SystemConfiguration, BankAccount, PaymentMethod, 
+        PlatformFee, EmailConfiguration
+    )
+except ImportError as e:
+    # Handle missing models gracefully
+    print(f"Warning: Could not import some config models: {e}")
+    from .models_config import (
+        SystemConfiguration, BankAccount, PlatformFee, EmailConfiguration
+    )
+    PaymentMethod = None
 from .models_payments import ProviderEarnings, ProviderPayout, PaymentTransaction
 from orders.models import Order
 
@@ -87,6 +96,8 @@ class PaymentMethodListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         return self.request.user.is_superuser
     
     def get_queryset(self):
+        if PaymentMethod is None:
+            return []
         return PaymentMethod.objects.all().order_by('sort_order', 'name')
 
 
@@ -119,14 +130,25 @@ class EmailConfigurationListView(LoginRequiredMixin, UserPassesTestMixin, ListVi
 @login_required
 @user_passes_test(is_admin)
 def system_dashboard(request):
-    """System configuration dashboard for administrators"""
-    # Configuration statistics
+    """System configuration dashboard - admin only"""
+    if not request.user.is_superuser:
+        messages.error(request, "Access denied. Admins only.")
+        return redirect('core:home')
+    
+    # Get statistics for dashboard
     total_configs = SystemConfiguration.objects.count()
     active_configs = SystemConfiguration.objects.filter(is_active=True).count()
     total_bank_accounts = BankAccount.objects.count()
     active_bank_accounts = BankAccount.objects.filter(is_active=True).count()
-    total_payment_methods = PaymentMethod.objects.count()
-    active_payment_methods = PaymentMethod.objects.filter(is_active=True).count()
+    
+    # Handle PaymentMethod being None
+    if PaymentMethod is not None:
+        total_payment_methods = PaymentMethod.objects.count()
+        active_payment_methods = PaymentMethod.objects.filter(is_active=True).count()
+    else:
+        total_payment_methods = 0
+        active_payment_methods = 0
+    
     total_platform_fees = PlatformFee.objects.count()
     active_platform_fees = PlatformFee.objects.filter(is_active=True).count()
     email_configs = EmailConfiguration.objects.count()
