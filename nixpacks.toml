@@ -4,7 +4,7 @@ nixPkgs = ["postgresql", "libjpeg", "libpng", "zlib"]
 [phases.install]
 cmds = [
     "python -m pip install --upgrade pip setuptools wheel",
-    "pip install -r requirements.txt"
+    "pip install -r requirements-railway.txt"
 ]
 
 [phases.build]
@@ -17,4 +17,4 @@ cmd = "sh -c 'python manage.py migrate && gunicorn --bind 0.0.0.0:$PORT freelanc
 PYTHON_VERSION = "3.11"
 PORT = "8000"
 DJANGO_SETTINGS_MODULE = "freelance_platform.settings.production"
-BUILD_VERSION = "2026-04-12-v2"
+BUILD_VERSION = "2026-04-12-v3"
