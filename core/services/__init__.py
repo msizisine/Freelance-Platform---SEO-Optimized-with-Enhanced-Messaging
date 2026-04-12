@@ -7,7 +7,6 @@ from .config_service import (
     EmailConfigService, PlatformConfigService,
     get_config, set_config
 )
-
 __all__ = [
     'ConfigService', 'BankConfigService', 'WhatsAppConfigService',
     'EmailConfigService', 'PlatformConfigService',
