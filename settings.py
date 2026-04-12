@@ -29,7 +29,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = '/app/mediafiles'
 
 # Allowed hosts
-ALLOWED_HOSTS = ['*']  # Railway handles this
+ALLOWED_HOSTS = ['pro4me.up.railway.app']  # Railway handles this
 
 # Security
 SECURE_SSL_REDIRECT = False  # Let Railway handle SSL
