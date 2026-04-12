@@ -1,521 +1,507 @@
-"""
-User Views for Freelance Platform
-Handles user profiles, authentication, and dashboard functionality
-"""
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import AuthenticationForm
+from django.views.generic import CreateView, DetailView, UpdateView
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.urls import reverse_lazy
+from django.db import models
+from django.db.models import Avg, Count, Sum, Q
+from django.db.models.functions import Coalesce
+from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.db.models import Sum, Q, Count, Avg
-from django.http import JsonResponse, HttpResponse
-from django.core.paginator import Paginator
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-import json
-from datetime import datetime, timedelta
-from .models import User, Profile, Education, WorkExperience, Certification, Portfolio
+from decimal import Decimal
+from .forms import ServiceProviderProfileForm, HomeownerProfileForm, PortfolioForm, WorkExperienceForm, ProfessionalReferenceForm
+from core.models import Portfolio, WorkExperience, ProfessionalReference, PortfolioImage
 from gigs.models import Gig, JobApplication
+from reviews.models import Review
 from orders.models import Order
 
-from reviews.models import Review
-from notifications.models import Notification
 
-# Try to import payment services (optional modules)
-try:
-    from core.services.payment_service import PaymentProcessingService
-    from core.models_payments import ProviderEarnings, ProviderPayout, PaymentTransaction
-except ImportError:
-    PaymentProcessingService = None
-    ProviderEarnings = None
-    ProviderPayout = None
-    PaymentTransaction = None
+User = get_user_model()
 
 
-class ProfileView(LoginRequiredMixin, DetailView):
-    """View user profile"""
+class ProfileView(DetailView):
     model = User
     template_name = 'users/profile.html'
     context_object_name = 'profile_user'
     
-    def get_object(self):
-        username = self.kwargs.get('username')
-        if username:
-            return get_object_or_404(User, username=username)
-        return self.request.user
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        profile_user = self.get_object()
+        user = self.get_object()
         
-        # Get user's profile
-        try:
-            profile = profile_user.profile
-        except Profile.DoesNotExist:
-            profile = Profile.objects.create(user=profile_user)
+        # Add common context
+        context.update({
+            'completed_orders': Order.objects.filter(homeowner=user, status='completed').count(),
+            'active_orders': Order.objects.filter(homeowner=user, status='in_progress').count(),
+            'total_spent': Order.objects.filter(homeowner=user, status='completed').aggregate(
+                total=Sum('total_amount')
+            )['total'] or 0,
+        })
         
-        context['profile'] = profile
-        
-        # Get user's gigs if service provider
-        if profile_user.user_type == 'service_provider':
-            context['gigs'] = Gig.objects.filter(user=profile_user, is_active=True)
-            context['completed_orders'] = Order.objects.filter(
-                service_provider=profile_user,
-                status='completed'
-            ).count()
+        if user.user_type == 'service_provider':
+            # Service provider specific context
+            # Use Gig model for job statistics
+            total_jobs = Gig.objects.filter(hired_provider=user).count()
+            completed_orders = Gig.objects.filter(hired_provider=user, job_status='completed').count()
+            active_orders = Gig.objects.filter(hired_provider=user, job_status__in=['pending', 'accepted']).count()
             
-            # Get reviews
-            context['reviews'] = Review.objects.filter(
-                service_provider=profile_user
-            ).order_by('-created_at')[:10]
+            # Calculate earnings from Order model (financial data)
+            total_earnings = Order.objects.filter(service_provider=user, status__in=['completed', 'delivered']).aggregate(
+                total=Sum('total_amount')
+            )['total'] or 0
             
-            # Calculate average rating
-            avg_rating = Review.objects.filter(
-                service_provider=profile_user
-            ).aggregate(avg_rating=Avg('rating'))['avg_rating']
-            context['average_rating'] = avg_rating or 0
-        
-        # Get user's orders if client
-        if profile_user.user_type == 'homeowner':
-            context['orders'] = Order.objects.filter(
-                client=profile_user
-            ).order_by('-created_at')[:10]
-        
-        # Check if viewing own profile
-        context['is_own_profile'] = profile_user == self.request.user
+            # Calculate response rate (jobs responded to within 24 hours)
+            from datetime import timedelta
+            twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+            response_rate = 0
+            if total_jobs > 0:
+                # Calculate based on job applications or offers responded to
+                responded_applications = JobApplication.objects.filter(
+                    service_provider=user,
+                    applied_at__gte=twenty_four_hours_ago,
+                    status__in=['accepted', 'rejected']
+                ).count()
+                response_rate = (responded_applications / total_jobs) * 100
+            
+            # Calculate completion rate
+            completion_rate = 0
+            if total_jobs > 0:
+                completion_rate = (completed_orders / total_jobs) * 100
+            
+            # Get total reviews
+            total_reviews = Review.objects.filter(service_provider=user).count()
+            
+            # Calculate rating distribution
+            rating_distribution = Review.objects.filter(service_provider=user).values('rating').annotate(
+                count=Count('id')
+            ).order_by('rating')
+            
+            context.update({
+                'portfolio_items': user.portfolio_items.all(),
+                'work_experiences': user.work_experiences.all(),
+                'professional_references': user.professional_references.all(),
+                'average_rating': Review.objects.filter(service_provider=user).aggregate(Avg('rating'))['rating__avg'] or 0,
+                'total_orders': total_jobs,
+                'completed_orders': completed_orders,
+                'active_orders': active_orders,
+                'total_earnings': total_earnings,
+                'response_rate': response_rate,
+                'completion_rate': completion_rate,
+                'total_reviews': total_reviews,
+                'rating_distribution': rating_distribution,
+                'years_experience': user.years_experience or 0,
+            })
+        else:
+            # Homeowner specific context
+            context.update({
+                'average_rating': Review.objects.filter(client=user).aggregate(Avg('rating'))['rating__avg'] or 0,
+                'total_jobs_posted': Gig.objects.filter(homeowner=user).count(),
+                'completed_orders': Order.objects.filter(homeowner=user, status='completed').count(),
+            })
         
         return context
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
-    """Update user profile"""
-    model = Profile
-    template_name = 'users/profile_update.html'
-    fields = [
-        'bio', 'location', 'phone', 'website', 'profile_image',
-        'skills', 'experience_years', 'hourly_rate', 'daily_rate',
-        'rate_per_square_meter', 'service_areas', 'availability_status'
-    ]
-    success_url = reverse_lazy('users:profile')
+    model = User
+    template_name = 'users/profile_edit.html'
+    success_url = reverse_lazy('users:my_profile')
     
     def get_object(self):
-        profile, created = Profile.objects.get_or_create(user=self.request.user)
-        return profile
+        # Return the current logged-in user instead of looking up by pk
+        return self.request.user
+    
+    def get_template_names(self):
+        user = self.request.user
+        if user.user_type == 'service_provider':
+            return ['users/profile_edit_service_provider.html']
+        else:
+            return ['users/profile_edit.html']
+    
+    def get_form_class(self):
+        user = self.request.user
+        if user.user_type == 'service_provider':
+            return ServiceProviderProfileForm
+        else:
+            return HomeownerProfileForm
+    
+    def get_object(self, queryset=None):
+        # Return the current logged-in user for editing
+        return self.request.user
     
     def form_valid(self, form):
-        messages.success(self.request, 'Profile updated successfully!')
-        return super().form_valid(form)
+        try:
+            print(f"Form is valid: {form.is_valid()}")
+            print(f"Form cleaned data: {form.cleaned_data}")
+            print(f"User type: {self.request.user.user_type}")
+            
+            # Save the form
+            response = super().form_valid(form)
+            print(f"Save response: {response}")
+            
+            messages.success(self.request, 'Profile updated successfully!')
+            return response
+            
+        except Exception as e:
+            print(f"Error saving profile: {str(e)}")
+            messages.error(self.request, f'Error updating profile: {str(e)}')
+            return self.form_invalid(form)
 
 
-class EducationCreateView(LoginRequiredMixin, CreateView):
-    """Add education to profile"""
-    model = Education
-    template_name = 'users/education_form.html'
-    fields = ['institution', 'degree', 'field_of_study', 'start_date', 'end_date', 'description']
-    success_url = reverse_lazy('users:profile')
+from core.models import Portfolio, WorkExperience, ProfessionalReference, PortfolioImage
+
+
+@login_required
+def portfolio_edit(request, pk):
+    portfolio = get_object_or_404(Portfolio, pk=pk, service_provider=request.user)
     
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        messages.success(self.request, 'Education added successfully!')
-        return super().form_valid(form)
-
-
-class WorkExperienceCreateView(LoginRequiredMixin, CreateView):
-    """Add work experience to profile"""
-    model = WorkExperience
-    template_name = 'users/work_experience_form.html'
-    fields = ['company', 'position', 'start_date', 'end_date', 'description']
-    success_url = reverse_lazy('users:profile')
+    if request.method == 'POST':
+        form = PortfolioForm(request.POST, request.FILES, instance=portfolio)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Portfolio item updated successfully!')
+            return redirect('users:profile')
+    else:
+        form = PortfolioForm(instance=portfolio)
     
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        messages.success(self.request, 'Work experience added successfully!')
-        return super().form_valid(form)
+    return render(request, 'users/portfolio_form.html', {'form': form, 'title': 'Edit Portfolio Item'})
 
 
-class CertificationCreateView(LoginRequiredMixin, CreateView):
-    """Add certification to profile"""
-    model = Certification
-    template_name = 'users/certification_form.html'
-    fields = ['name', 'issuing_organization', 'issue_date', 'expiry_date', 'credential_id', 'certificate_url']
-    success_url = reverse_lazy('users:profile')
+@login_required
+def portfolio_delete(request, pk):
+    portfolio = get_object_or_404(Portfolio, pk=pk, service_provider=request.user)
     
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        messages.success(self.request, 'Certification added successfully!')
-        return super().form_valid(form)
-
-
-class PortfolioCreateView(LoginRequiredMixin, CreateView):
-    """Add portfolio item to profile"""
-    model = Portfolio
-    template_name = 'users/portfolio_form.html'
-    fields = ['title', 'description', 'image', 'project_url', 'technologies_used']
-    success_url = reverse_lazy('users:profile')
+    if request.method == 'POST':
+        portfolio.delete()
+        messages.success(request, 'Portfolio item deleted successfully!')
+        return redirect('users:profile_edit')
     
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        messages.success(self.request, 'Portfolio item added successfully!')
-        return super().form_valid(form)
+    return render(request, 'users/portfolio_delete.html', {'portfolio': portfolio})
+
+
+@login_required
+def portfolio_create(request):
+    if request.method == 'POST':
+        print("POST data:", request.POST)
+        print("FILES data:", request.FILES)
+        form = PortfolioForm(request.POST, request.FILES)
+        if form.is_valid():
+            portfolio = form.save(commit=False)
+            portfolio.service_provider = request.user
+            portfolio.save()
+            print("Portfolio saved with ID:", portfolio.id)
+            
+            # Handle multiple image uploads
+            images = request.FILES.getlist('images')
+            for image in images:
+                PortfolioImage.objects.create(
+                    portfolio=portfolio,
+                    image=image
+                )
+            print(f"Created {len(images)} images for portfolio {portfolio.id}")
+            
+            messages.success(request, 'Portfolio item added successfully!')
+            return redirect('users:profile_edit')
+        else:
+            # Add debugging to see form errors
+            print("Form is not valid. Errors:", form.errors)
+            print("Form cleaned_data:", form.cleaned_data if hasattr(form, 'cleaned_data') else 'No cleaned_data')
+            for field, errors in form.errors.items():
+                print(f"Field {field}: {errors}")
+            messages.error(request, f'Please correct the errors below: {form.errors}')
+    else:
+        form = PortfolioForm()
+    
+    return render(request, 'users/portfolio_form.html', {'form': form, 'title': 'Add Portfolio Item'})
+
+
+@login_required
+def reference_create(request):
+    if request.method == 'POST':
+        form = ProfessionalReferenceForm(request.POST)
+        if form.is_valid():
+            reference = form.save(commit=False)
+            reference.service_provider = request.user
+            reference.save()
+            messages.success(request, 'Professional reference added successfully!')
+            return redirect('users:profile_edit')
+    else:
+        form = ProfessionalReferenceForm()
+    
+    return render(request, 'users/reference_form.html', {'form': form, 'title': 'Add Professional Reference'})
+
+
+@login_required
+def reference_delete(request, pk):
+    reference = get_object_or_404(ProfessionalReference, pk=pk, service_provider=request.user)
+    
+    if request.method == 'POST':
+        reference.delete()
+        messages.success(request, 'Reference deleted successfully!')
+        return redirect('users:profile_edit')
+    
+    return render(request, 'users/reference_delete.html', {'reference': reference})
 
 
 @login_required
 def dashboard(request):
-    """Main dashboard for users"""
     user = request.user
     
     if user.user_type == 'service_provider':
-        return service_provider_dashboard(request)
-    elif user.user_type == 'homeowner':
-        return homeowner_dashboard(request)
-    else:
-        return redirect('users:profile_update')
-
-
-def service_provider_dashboard(request):
-    """Dashboard for service providers"""
-    user = request.user
-    
-    # Get basic stats
-    active_gigs = Gig.objects.filter(user=user, is_active=True).count()
-    total_orders = Order.objects.filter(service_provider=user).count()
-    completed_orders = Order.objects.filter(service_provider=user, status='completed').count()
-    
-    # Get recent orders
-    recent_orders = Order.objects.filter(
-        service_provider=user
-    ).order_by('-created_at')[:5]
-    
-    # Get job applications
-    recent_applications = JobApplication.objects.filter(
-        applicant=user
-    ).order_by('-applied_at')[:5]
-    
-    # Get earnings and payment info with error handling
-    try:
-        if PaymentProcessingService and ProviderEarnings:
-            available_balance = PaymentProcessingService.get_provider_balance(user)
-            total_earnings = ProviderEarnings.objects.filter(provider=user).aggregate(
-                total=Sum('amount')
-            )['total'] or 0
-            
-            pending_payouts = ProviderPayout.objects.filter(
-                provider=user,
-                status='pending'
-            ).count()
-        else:
-            available_balance = 0
-            total_earnings = 0
-            pending_payouts = 0
-    except Exception as e:
-        available_balance = 0
-        total_earnings = 0
-        pending_payouts = 0
-    
-    # Get notifications
-    notifications = Notification.objects.filter(
-        recipient=user,
-        is_read=False
-    ).order_by('-created_at')[:10]
-    
-    context = {
-        'active_gigs': active_gigs,
-        'total_orders': total_orders,
-        'completed_orders': completed_orders,
-        'recent_orders': recent_orders,
-        'recent_applications': recent_applications,
-        'available_balance': available_balance,
-        'total_earnings': total_earnings,
-        'pending_payouts': pending_payouts,
-        'notifications': notifications,
-        'unread_notifications_count': notifications.count(),
-    }
-    
-    return render(request, 'users/service_provider_dashboard.html', context)
-
-
-def homeowner_dashboard(request):
-    """Dashboard for homeowners"""
-    user = request.user
-    
-    # Get user's orders
-    orders = Order.objects.filter(client=user)
-    active_orders = orders.filter(status__in=['pending', 'in_progress']).count()
-    completed_orders = orders.filter(status='completed').count()
-    
-    # Get recent orders
-    recent_orders = orders.order_by('-created_at')[:5]
-    
-    # Get saved gigs (bookmarks)
-    # Note: This would require a Bookmark model
-    saved_gigs = []
-    
-    # Get notifications
-    notifications = Notification.objects.filter(
-        recipient=user,
-        is_read=False
-    ).order_by('-created_at')[:10]
-    
-    context = {
-        'active_orders': active_orders,
-        'completed_orders': completed_orders,
-        'recent_orders': recent_orders,
-        'saved_gigs': saved_gigs,
-        'notifications': notifications,
-        'unread_notifications_count': notifications.count(),
-    }
-    
-    return render(request, 'users/homeowner_dashboard.html', context)
-
-
-@login_required
-def search_users(request):
-    """Search for users (service providers)"""
-    query = request.GET.get('q', '')
-    user_type = request.GET.get('user_type', 'service_provider')
-    
-    users = User.objects.filter(
-        user_type=user_type,
-        is_active=True
-    )
-    
-    if query:
-        users = users.filter(
-            Q(username__icontains=query) |
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(profile__bio__icontains=query) |
-            Q(profile__skills__icontains=query)
+        # Service Provider Dashboard
+        available_jobs = Gig.objects.filter(is_active=True, hired_provider__isnull=True)  # Available jobs for new applications
+        
+        # Jobs the service provider is working on (accepted/active jobs)
+        active_jobs = Gig.objects.filter(
+            Q(hired_provider=user) | Q(applications__service_provider=user, applications__status='accepted')
+        ).filter(job_status__in=['accepted', 'active']).distinct()
+        
+        # All jobs the service provider was hired for (including completed)
+        hired_jobs = Gig.objects.filter(hired_provider=user)
+        
+        # Jobs the service provider has applied to
+        applied_jobs = Gig.objects.filter(applications__service_provider=user).distinct()
+        
+        # Calculate earnings from completed orders
+        completed_orders = Order.objects.filter(
+            service_provider=user,
+            status='completed'
         )
+        
+        # Completed jobs - count based on completed orders for consistency
+        completed_jobs = completed_orders
+        total_earnings = completed_orders.aggregate(
+            total=Coalesce(Sum('total_amount'), Decimal('0.00'))
+        )['total'] or Decimal('0.00')
+        
+        # Calculate pending payments (accepted orders not yet paid)
+        pending_payments = Order.objects.filter(
+            service_provider=user,
+            status__in=['accepted', 'in_progress', 'delivered'],
+            payment_status='pending'
+        ).aggregate(
+            total=Coalesce(Sum('total_amount'), Decimal('0.00'))
+        )['total'] or Decimal('0.00')
+        
+        context = {
+            'user_type': 'service_provider',
+            'posted_jobs': available_jobs,  # Available jobs they can apply to
+            'applied_jobs': applied_jobs,  # Jobs they've applied to
+            'active_jobs': active_jobs,  # Jobs they're working on
+            'hired_jobs': hired_jobs,  # All jobs they were hired for
+            'completed_jobs': completed_jobs,  # Jobs they've completed
+            'total_earnings': total_earnings,  # Earnings from completed jobs
+            'pending_payments': pending_payments,  # Pending payments
+            'profile_completion': 75,  # Would calculate from profile completeness
+        }
+    else:
+        # Homeowner Dashboard
+        my_jobs = Gig.objects.filter(homeowner=user)
+        # Active jobs include accepted and active jobs (not completed)
+        active_jobs = my_jobs.filter(job_status__in=['accepted', 'active'])
+        completed_jobs = my_jobs.filter(job_status='completed')
+        # Pending jobs include open and pending jobs
+        pending_jobs = my_jobs.filter(job_status__in=['open', 'pending'])
+        
+        context = {
+            'user_type': 'homeowner',
+            'my_jobs': my_jobs,
+            'active_jobs': active_jobs,
+            'completed_jobs': completed_jobs,
+            'pending_jobs': pending_jobs,
+            'total_spent': 0,  # Would calculate from completed jobs
+            'jobs_posted': my_jobs.count(),
+        }
     
-    # Filter by skills
-    skills = request.GET.get('skills')
-    if skills:
-        skill_list = [skill.strip() for skill in skills.split(',')]
-        for skill in skill_list:
-            users = users.filter(profile__skills__icontains=skill)
-    
-    # Filter by location
-    location = request.GET.get('location')
-    if location:
-        users = users.filter(profile__location__icontains=location)
-    
-    # Filter by availability
-    available = request.GET.get('available')
-    if available == 'yes':
-        users = users.filter(profile__availability_status='available')
-    
-    # Pagination
-    paginator = Paginator(users, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    return render(request, f'users/dashboard_{user.user_type}.html', context)
+
+
+@login_required
+def portfolio_view(request, user_id):
+    """View all portfolio items for a specific user"""
+    profile_user = get_object_or_404(User, pk=user_id)
+    portfolio_items = profile_user.portfolio_items.all()
     
     context = {
-        'page_obj': page_obj,
-        'query': query,
-        'user_type': user_type,
-        'total_results': users.count(),
+        'profile_user': profile_user,
+        'portfolio_items': portfolio_items,
+        'total_items': portfolio_items.count(),
     }
+    return render(request, 'users/portfolio_view.html', context)
+
+
+@login_required
+def user_reviews(request, user_id):
+    """View all reviews for a specific user"""
+    profile_user = get_object_or_404(User, pk=user_id)
     
-    return render(request, 'users/search_results.html', context)
+    # Get reviews where user is either service provider (receiving reviews) or homeowner (leaving reviews)
+    reviews_received = Review.objects.filter(order__service_provider=profile_user).order_by('-created_at')
+    reviews_left = Review.objects.filter(client=profile_user).order_by('-created_at')
+    
+    context = {
+        'profile_user': profile_user,
+        'reviews_received': reviews_received,
+        'reviews_left': reviews_left,
+        'total_reviews_received': reviews_received.count(),
+        'total_reviews_left': reviews_left.count(),
+        'average_rating_received': reviews_received.aggregate(Avg('rating'))['rating__avg'] or 0,
+        'average_rating_left': reviews_left.aggregate(Avg('rating'))['rating__avg'] or 0,
+    }
+    return render(request, 'users/user_reviews.html', context)
 
 
 @login_required
-@require_POST
-def toggle_availability(request):
-    """Toggle user availability status"""
-    try:
-        profile = request.user.profile
-        if profile.availability_status == 'available':
-            profile.availability_status = 'unavailable'
-        else:
-            profile.availability_status = 'available'
-        profile.save()
-        
-        return JsonResponse({
-            'success': True,
-            'status': profile.availability_status
-        })
-    except Profile.DoesNotExist:
-        return JsonResponse({'error': 'Profile not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+def my_profile(request):
+    """View the current user's profile"""
+    return ProfileView.as_view()(request, pk=request.user.pk)
 
 
 @login_required
-def upload_profile_image(request):
-    """Upload profile image"""
+def send_message(request, user_id):
+    """Send message to a user via platform, SMS, or WhatsApp"""
+    from django.http import JsonResponse
+    from django.views.decorators.csrf import csrf_exempt
+    from django.views.decorators.http import require_POST
+    from messaging.models import Conversation, Message, MessageNotification
+    
     if request.method != 'POST':
-        return JsonResponse({'error': 'POST method required'}, status=405)
+        return JsonResponse({'success': False, 'error': 'Only POST method allowed'})
+    
+    recipient = get_object_or_404(User, pk=user_id)
+    sender = request.user
+    
+    # Validate user types
+    if sender.user_type != 'homeowner' or recipient.user_type != 'service_provider':
+        return JsonResponse({'success': False, 'error': 'Invalid user types for messaging'})
+    
+    message_method = request.POST.get('message_method', 'platform')
+    message_content = request.POST.get('message_content', '').strip()
+    
+    if not message_content:
+        return JsonResponse({'success': False, 'error': 'Message content is required'})
     
     try:
-        profile = request.user.profile
-        image = request.FILES.get('profile_image')
-        
-        if not image:
-            return JsonResponse({'error': 'No image provided'}, status=400)
-        
-        # Validate image
-        if not image.content_type.startswith('image/'):
-            return JsonResponse({'error': 'Invalid file type'}, status=400)
-        
-        # Update profile image
-        profile.profile_image = image
-        profile.save()
-        
-        return JsonResponse({
-            'success': True,
-            'image_url': profile.profile_image.url if profile.profile_image else None
-        })
-        
-    except Profile.DoesNotExist:
-        return JsonResponse({'error': 'Profile not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-@login_required
-def delete_education(request, education_id):
-    """Delete education entry"""
-    try:
-        education = Education.objects.get(id=education_id, user=request.user)
-        education.delete()
-        messages.success(request, 'Education deleted successfully!')
-        return redirect('users:profile')
-    except Education.DoesNotExist:
-        messages.error(request, 'Education not found!')
-        return redirect('users:profile')
-
-
-@login_required
-def delete_work_experience(request, experience_id):
-    """Delete work experience entry"""
-    try:
-        experience = WorkExperience.objects.get(id=experience_id, user=request.user)
-        experience.delete()
-        messages.success(request, 'Work experience deleted successfully!')
-        return redirect('users:profile')
-    except WorkExperience.DoesNotExist:
-        messages.error(request, 'Work experience not found!')
-        return redirect('users:profile')
-
-
-@login_required
-def delete_certification(request, certification_id):
-    """Delete certification entry"""
-    try:
-        certification = Certification.objects.get(id=certification_id, user=request.user)
-        certification.delete()
-        messages.success(request, 'Certification deleted successfully!')
-        return redirect('users:profile')
-    except Certification.DoesNotExist:
-        messages.error(request, 'Certification not found!')
-        return redirect('users:profile')
-
-
-@login_required
-def delete_portfolio_item(request, portfolio_id):
-    """Delete portfolio item"""
-    try:
-        portfolio = Portfolio.objects.get(id=portfolio_id, user=request.user)
-        portfolio.delete()
-        messages.success(request, 'Portfolio item deleted successfully!')
-        return redirect('users:profile')
-    except Portfolio.DoesNotExist:
-        messages.error(request, 'Portfolio item not found!')
-        return redirect('users:profile')
-
-
-@login_required
-@require_POST
-def update_notification_settings(request):
-    """Update user notification preferences"""
-    try:
-        profile = request.user.profile
-        
-        # Update notification settings
-        profile.email_notifications = request.POST.get('email_notifications') == 'on'
-        profile.sms_notifications = request.POST.get('sms_notifications') == 'on'
-        profile.push_notifications = request.POST.get('push_notifications') == 'on'
-        
-        profile.save()
-        
-        messages.success(request, 'Notification settings updated successfully!')
-        return redirect('users:profile')
-        
-    except Profile.DoesNotExist:
-        messages.error(request, 'Profile not found!')
-        return redirect('users:profile')
-    except Exception as e:
-        messages.error(request, f'Error updating settings: {str(e)}')
-        return redirect('users:profile')
-
-
-class UserListView(ListView):
-    """List all users (for admin or public directory)"""
-    model = User
-    template_name = 'users/user_list.html'
-    context_object_name = 'users'
-    paginate_by = 20
-    
-    def get_queryset(self):
-        queryset = User.objects.filter(is_active=True)
-        
-        # Filter by user type
-        user_type = self.request.GET.get('user_type')
-        if user_type:
-            queryset = queryset.filter(user_type=user_type)
-        
-        # Search functionality
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(username__icontains=search) |
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search)
+        if message_method == 'platform':
+            # Create platform message
+            conversation = Conversation.objects.filter(
+                participants__in=[sender, recipient]
+            ).annotate(
+                participant_count=Count('participants')
+            ).filter(participant_count=2).first()
+            
+            if not conversation:
+                conversation = Conversation.objects.create()
+                conversation.participants.add(sender, recipient)
+            
+            message = Message.objects.create(
+                conversation=conversation,
+                sender=sender,
+                content=message_content
             )
+            
+            # Create notification for recipient
+            MessageNotification.objects.create(
+                user=recipient,
+                message=message
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'conversation_id': conversation.pk,
+                'message': 'Platform message sent successfully'
+            })
+            
+        elif message_method in ['sms', 'whatsapp']:
+            # For SMS/WhatsApp, we'll simulate the external messaging
+            # In a real implementation, you would integrate with SMS/WhatsApp APIs
+            
+            # Log the external message attempt
+            print(f"External message ({message_method}) to {recipient.email}: {message_content}")
+            
+            # Also create a platform message record for tracking
+            conversation = Conversation.objects.filter(
+                participants__in=[sender, recipient]
+            ).annotate(
+                participant_count=Count('participants')
+            ).filter(participant_count=2).first()
+            
+            if not conversation:
+                conversation = Conversation.objects.create()
+                conversation.participants.add(sender, recipient)
+            
+            # Create message with external method indicator
+            external_content = f"[{message_method.upper()}] {message_content}"
+            message = Message.objects.create(
+                conversation=conversation,
+                sender=sender,
+                content=external_content
+            )
+            
+            # Create notification
+            MessageNotification.objects.create(
+                user=recipient,
+                message=message
+            )
+            
+            # Simulate SMS/WhatsApp sending (in production, use actual APIs)
+            if recipient.phone:
+                # Here you would integrate with:
+                # - Twilio for SMS
+                # - WhatsApp Business API for WhatsApp
+                success = simulate_external_message(
+                    method=message_method,
+                    phone_number=recipient.phone,
+                    message=message_content,
+                    sender_name=sender.get_full_name() or sender.email
+                )
+                
+                if success:
+                    return JsonResponse({
+                        'success': True,
+                        'conversation_id': conversation.pk,
+                        'message': f'{message_method.upper()} message sent successfully'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Failed to send {message_method.upper()} message'
+                    })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Recipient has not added their phone number'
+                })
+                
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid message method'})
+            
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+def simulate_external_message(method, phone_number, message, sender_name):
+    """
+    Simulate sending external SMS/WhatsApp messages.
+    In production, replace this with actual API calls to Twilio (SMS) or WhatsApp Business API.
+    """
+    try:
+        # Simulate API call delay
+        import time
+        time.sleep(0.5)
         
-        return queryset.order_by('-date_joined')
-
-
-@login_required
-def user_analytics(request):
-    """Analytics for user activity (admin view)"""
-    if not request.user.is_staff:
-        messages.error(request, "Access denied.")
-        return redirect('users:dashboard')
-    
-    # Get user statistics
-    total_users = User.objects.filter(is_active=True).count()
-    service_providers = User.objects.filter(user_type='service_provider', is_active=True).count()
-    homeowners = User.objects.filter(user_type='homeowner', is_active=True).count()
-    
-    # Get recent registrations
-    recent_users = User.objects.filter(
-        is_active=True,
-        date_joined__gte=timezone.now() - timedelta(days=30)
-    ).count()
-    
-    # Get user activity by month
-    from django.db.models import Count
-    from django.db.models.functions import TruncMonth
-    
-    user_registrations = User.objects.annotate(
-        month=TruncMonth('date_joined')
-    ).values('month').annotate(
-        count=Count('id')
-    ).order_by('month')[:12]
-    
-    context = {
-        'total_users': total_users,
-        'service_providers': service_providers,
-        'homeowners': homeowners,
-        'recent_users': recent_users,
-        'user_registrations': user_registrations,
-    }
-    
-    return render(request, 'users/user_analytics.html', context)
+        # Log the message (in production, this would be actual API calls)
+        print(f"=== EXTERNAL MESSAGE ===")
+        print(f"Method: {method.upper()}")
+        print(f"To: {phone_number}")
+        print(f"From: {sender_name}")
+        print(f"Message: {message}")
+        print(f"Status: Sent")
+        print("======================")
+        
+        # Simulate success (in production, check actual API response)
+        return True
+        
+    except Exception as e:
+        print(f"Error sending {method}: {e}")
+        return False
