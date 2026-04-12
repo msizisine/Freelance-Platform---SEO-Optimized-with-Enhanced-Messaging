@@ -30,35 +30,63 @@ def dashboard(request):
     
     # Add payment functionality for service providers
     if user.user_type == 'service_provider':
-        from core.services.payment_service import PaymentProcessingService
-        from core.models_payments import ProviderEarnings, ProviderPayout, PaymentTransaction
+        try:
+            from core.services.payment_service import PaymentProcessingService
+            from core.models_payments import ProviderEarnings, ProviderPayout, PaymentTransaction
+            
+            # Get payment statistics
+            available_balance = PaymentProcessingService.get_provider_balance(user)
+        except ImportError:
+            # Handle case where payment service is not available
+            available_balance = 0
+            PaymentProcessingService = None
+            ProviderEarnings = None
+            ProviderPayout = None
+            PaymentTransaction = None
+        if PaymentProcessingService:
+            recent_transactions = PaymentProcessingService.get_provider_transaction_history(user, limit=5)
+        else:
+            recent_transactions = []
         
-        # Get payment statistics
-        available_balance = PaymentProcessingService.get_provider_balance(user)
-        recent_transactions = PaymentProcessingService.get_provider_transaction_history(user, limit=5)
-        pending_payouts = ProviderPayout.objects.filter(
-            provider=user, 
-            status__in=['requested', 'processing', 'approved']
-        ).aggregate(total=Sum('net_amount'))['total'] or 0
+        if ProviderPayout:
+            pending_payouts = ProviderPayout.objects.filter(
+                provider=user, 
+                status__in=['requested', 'processing', 'approved']
+            ).aggregate(total=Sum('net_amount'))['total'] or 0
+        else:
+            pending_payouts = 0
         
         # Get available earnings for immediate payment request
-        available_earnings = ProviderEarnings.objects.filter(
-            provider=user,
-            status='available'
-        ).order_by('-created_at')
+        if ProviderEarnings:
+            available_earnings = ProviderEarnings.objects.filter(
+                provider=user,
+                status='available'
+            ).order_by('-created_at')
+        else:
+            available_earnings = []
+        
+        if ProviderEarnings:
+            total_earnings = ProviderEarnings.objects.filter(provider=user).aggregate(
+                total=Sum('net_amount')
+            )['total'] or 0
+        else:
+            total_earnings = 0
+            
+        if ProviderPayout:
+            completed_payouts = ProviderPayout.objects.filter(
+                provider=user, 
+                status='completed'
+            ).aggregate(total=Sum('net_amount'))['total'] or 0
+        else:
+            completed_payouts = 0
         
         context.update({
             'available_balance': available_balance,
             'recent_transactions': recent_transactions,
             'pending_payouts': pending_payouts,
             'available_earnings': available_earnings,
-            'total_earnings': ProviderEarnings.objects.filter(provider=user).aggregate(
-                total=Sum('net_amount')
-            )['total'] or 0,
-            'completed_payouts': ProviderPayout.objects.filter(
-                provider=user, 
-                status='completed'
-            ).aggregate(total=Sum('net_amount'))['total'] or 0,
+            'total_earnings': total_earnings,
+            'completed_payouts': completed_payouts,
         })
     
     return render(request, 'users/dashboard.html', context)
