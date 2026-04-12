@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView, DetailView, View
 from django.utils import timezone
 from django.db.models import Sum
+from core.models import User
 
 from core.models_payments import ProviderPayout
 from core.models_bulk_payments import PaymentBatch, BulkPaymentSettings
