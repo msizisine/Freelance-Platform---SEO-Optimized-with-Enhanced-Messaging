@@ -1,3 +1,4 @@
+# Railway deployment fix - 2026-04-12 v5
 Django==4.2.7
 django-allauth==0.57.0
 django-crispy-forms==2.1
