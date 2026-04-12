@@ -18,9 +18,10 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
 from datetime import datetime, timedelta
-
 from .models import User, Profile, Education, WorkExperience, Certification, Portfolio
-from gigs.models import Gig, Order, JobApplication
+from gigs.models import Gig, JobApplication
+from orders.models import Order
+
 from reviews.models import Review
 from notifications.models import Notification
 
