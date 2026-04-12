@@ -1,7 +1,21 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from core.models import ProfessionalReference, Portfolio, WorkExperience
-from phone_utils import validate_phone_number, format_for_whatsapp
+
+# Try to import phone utils, but make it optional
+try:
+    from phone_utils import validate_phone_number, format_for_whatsapp
+    PHONE_UTILS_AVAILABLE = True
+except ImportError:
+    PHONE_UTILS_AVAILABLE = False
+    print("Warning: Phone utils not available. Phone validation will be disabled.")
+    
+    # Create dummy functions if phone_utils is not available
+    def validate_phone_number(value):
+        return value
+    
+    def format_for_whatsapp(value):
+        return value
 
 User = get_user_model()
 
