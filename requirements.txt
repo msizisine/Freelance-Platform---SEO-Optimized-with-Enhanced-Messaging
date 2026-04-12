@@ -6,7 +6,6 @@ django-extensions==3.2.3
 Pillow==11.0.0
 python-decouple==3.8
 stripe==7.6.0
-django-stripe==1.0.2
 django-taggit==4.0.0
 django-filter==23.3
 django-debug-toolbar==4.2.0
