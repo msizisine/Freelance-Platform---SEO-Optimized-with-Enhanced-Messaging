@@ -1,8 +1,14 @@
 import os
+import sys
 from pathlib import Path
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Add project root to Python path for importing modules like phone_utils
+sys.path.insert(0, str(BASE_DIR))
+
+# Railway deployment rebuild - 2026-04-12
 
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-your-secret-key-here')
 

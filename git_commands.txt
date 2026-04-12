@@ -1,0 +1,25 @@
+# Git Commands to Push to GitHub
+
+# Stage all changes
+git add .
+
+# Create commit with descriptive message
+git commit -m "feat: Complete SEO optimization and messaging enhancements
+
+- Add comprehensive SEO meta tags (descriptions, keywords, Open Graph, Twitter Cards)
+- Implement structured data (JSON-LD) for gig details
+- Create sitemap.xml and robots.txt for better search indexing
+- Add breadcrumb navigation for improved UX
+- Fix TemplateSyntaxError in base template (nested title blocks)
+- Fix FieldError in service_providers view (gigs_hired -> hired_jobs)
+- Enhance messaging system with automatic conversation messages for important events
+- Add search and filter UI to all list pages (my_jobs, my_gigs, my_quotations, service_providers, conversation_list)
+- Hide message header in conversation detail view
+- Fix messaging FieldError (select_related -> prefetch_related for participants)
+- Complete SEO-ready implementation for production deployment"
+
+# Push to GitHub
+git push origin main
+
+# Alternative: Push to specific branch
+# git push origin main --force

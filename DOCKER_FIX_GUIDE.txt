@@ -1,0 +1,55 @@
+DOCKER CONTAINER FIX INSTRUCTIONS
+==================================
+
+The Docker container is still running the old code. Here are the steps to fix it:
+
+METHOD 1: RESTART WITH VOLUME MOUNT (Recommended)
+------------------------------------------------
+Since I've already updated docker-compose.yml to include volume mounts:
+
+1. Open Command Prompt or PowerShell as Administrator
+2. Navigate to your project directory:
+   cd c:\Users\msizi\CascadeProjects\windsurf-project
+3. Restart the web service:
+   docker-compose restart web
+4. Check the logs to see if the error is resolved:
+   docker-compose logs web
+
+METHOD 2: MANUAL FILE COPY
+--------------------------
+If restart doesn't work, manually copy the fixed files:
+
+1. Find the container ID:
+   docker-compose ps -q web
+2. Copy the fixed forms.py:
+   docker cp users/forms.py [CONTAINER_ID]:/app/users/forms.py
+3. Copy the phone_utils.py:
+   docker cp users/phone_utils.py [CONTAINER_ID]:/app/users/phone_utils.py
+4. Restart the container:
+   docker-compose restart web
+
+METHOD 3: FULL REBUILD
+--------------------
+If all else fails, rebuild completely:
+
+1. Stop all containers:
+   docker-compose down
+2. Rebuild with no cache:
+   docker-compose build --no-cache web
+3. Start again:
+   docker-compose up -d
+
+WHAT WAS FIXED:
+--------------
+- users/forms.py: Changed import from "from phone_utils import" to "from .phone_utils import"
+- users/phone_utils.py: Created local copy of phone utilities
+- docker-compose.yml: Added volume mount (.:/app) for live updates
+
+AFTER FIX:
+---------
+The container should start without the ModuleNotFoundError and the Django app should work properly.
+
+NEXT STEPS FOR RAILWAY:
+----------------------
+1. Once local Docker is working, commit and push to Git
+2. Railway will auto-deploy with the fixed code
