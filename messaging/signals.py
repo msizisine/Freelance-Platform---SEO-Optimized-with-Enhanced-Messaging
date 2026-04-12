@@ -5,7 +5,14 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from .models import Message
-from notifications.enhanced_services import EnhancedNotificationService
+
+# Try to import enhanced services, but make it optional
+try:
+    from notifications.enhanced_services import EnhancedNotificationService
+    ENHANCED_SERVICES_AVAILABLE = True
+except ImportError:
+    ENHANCED_SERVICES_AVAILABLE = False
+    print("Warning: Enhanced notification services not available. WhatsApp notifications will be disabled.")
 
 User = get_user_model()
 
@@ -16,6 +23,10 @@ def send_whatsapp_notification(sender, instance, created, **kwargs):
     """
     if not created:
         return  # Only notify for new messages
+    
+    # Check if enhanced services are available
+    if not ENHANCED_SERVICES_AVAILABLE:
+        return  # Skip notification if enhanced services are not available
     
     # Get the recipient (other participant in conversation)
     recipient = instance.conversation.get_other_participant(instance.sender)
