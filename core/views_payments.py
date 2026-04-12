@@ -1,337 +1,507 @@
 """
-Views for provider payment processing and management
+Payment Views for Freelance Platform
+Handles provider payouts, earnings, transactions, and payment processing
 """
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, View
 from django.urls import reverse_lazy
-from django.db.models import Q, Sum
-from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
-from datetime import date, timedelta
-import uuid
+from django.db.models import Sum, Q, Count, Avg
+from django.http import JsonResponse, HttpResponse
+from django.core.paginator import Paginator
 import csv
+from datetime import datetime, timedelta
 
+from .models_payments import (
+    ProviderEarnings, ProviderPayout, PaymentTransaction, 
+    PaymentMethod, PaymentSettings, Invoice, Refund
+)
 from .models import User
-from .models_payments import ProviderEarnings, ProviderPayout, MonthlyServiceFee, PaymentTransaction
+from gigs.models import Order, Gig
 
-# Lazy import to prevent ModuleNotFoundError when Django settings aren't configured
+# Try to import payment services (optional modules)
 try:
     from .services.payment_service import PaymentProcessingService
 except ImportError:
     PaymentProcessingService = None
 
+try:
+    from .services.payment_bulk_service import BulkPaymentService
+except ImportError:
+    BulkPaymentService = None
 
-def is_service_provider(user):
-    """Check if user is a service provider"""
-    return user.is_authenticated and user.user_type == 'service_provider'
 
-
-def is_admin(user):
-    """Check if user is admin (superuser)"""
-    return user.is_superuser
+@login_required
+def payout_dashboard(request):
+    """Main dashboard for provider payouts and earnings"""
+    if request.user.user_type != 'service_provider':
+        messages.error(request, "Access denied. Service providers only.")
+        return redirect('core:home')
+    
+    # Get basic stats
+    try:
+        if PaymentProcessingService:
+            available_balance = PaymentProcessingService.get_provider_balance(request.user)
+        else:
+            available_balance = 0
+    except:
+        available_balance = 0
+    
+    # Get recent earnings
+    recent_earnings = ProviderEarnings.objects.filter(
+        provider=request.user
+    ).order_by('-created_at')[:10]
+    
+    # Get recent payouts
+    recent_payouts = ProviderPayout.objects.filter(
+        provider=request.user
+    ).order_by('-created_at')[:10]
+    
+    # Get monthly earnings summary
+    monthly_earnings = ProviderEarnings.objects.filter(
+        provider=request.user,
+        created_at__gte=timezone.now() - timedelta(days=30)
+    ).aggregate(
+        total=Sum('amount'),
+        count=Count('id')
+    )
+    
+    context = {
+        'available_balance': available_balance,
+        'recent_earnings': recent_earnings,
+        'recent_payouts': recent_payouts,
+        'monthly_earnings': monthly_earnings,
+        'pending_payouts': ProviderPayout.objects.filter(
+            provider=request.user,
+            status='pending'
+        ).count(),
+        'total_earnings': ProviderEarnings.objects.filter(
+            provider=request.user
+        ).aggregate(total=Sum('amount'))['total'] or 0,
+    }
+    
+    return render(request, 'core/payout_dashboard.html', context)
 
 
 class ProviderEarningsListView(LoginRequiredMixin, ListView):
-    """List earnings for the current service provider"""
+    """List view for provider earnings"""
     model = ProviderEarnings
-    template_name = 'core/payments/provider_earnings_list.html'
+    template_name = 'core/provider_earnings_list.html'
     context_object_name = 'earnings'
     paginate_by = 20
-
+    
     def get_queryset(self):
-        return ProviderEarnings.objects.filter(provider=self.request.user).order_by('-created_at')
+        queryset = ProviderEarnings.objects.filter(provider=self.request.user)
+        
+        # Filter by date range
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        
+        if start_date:
+            queryset = queryset.filter(created_at__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(created_at__lte=end_date)
+            
+        # Filter by status
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        return queryset.order_by('-created_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_earnings'] = self.get_queryset().aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        return context
 
 
 class ProviderPayoutCreateView(LoginRequiredMixin, CreateView):
     """Create a new payout request"""
     model = ProviderPayout
-    template_name = 'core/payments/payout_request_form.html'
-    fields = ['amount', 'bank_account']
-    success_url = reverse_lazy('core:payout_list')
-
+    template_name = 'core/provider_payout_form.html'
+    fields = ['amount', 'payment_method', 'bank_account', 'notes']
+    success_url = reverse_lazy('core:payout_dashboard')
+    
     def form_valid(self, form):
         form.instance.provider = self.request.user
-        form.instance.status = 'requested'
+        form.instance.status = 'pending'
+        
+        # Check available balance
+        try:
+            if PaymentProcessingService:
+                available_balance = PaymentProcessingService.get_provider_balance(self.request.user)
+                if form.instance.amount > available_balance:
+                    form.add_error('amount', 'Insufficient balance')
+                    return self.form_invalid(form)
+        except:
+            pass
+        
         messages.success(self.request, 'Payout request submitted successfully!')
         return super().form_valid(form)
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Add available earnings balance
-        available_earnings = ProviderEarnings.objects.filter(
-            provider=self.request.user,
-            status='available'
-        ).aggregate(total=Sum('net_amount'))['total'] or 0
-        context['available_earnings'] = available_earnings
+        try:
+            if PaymentProcessingService:
+                context['available_balance'] = PaymentProcessingService.get_provider_balance(self.request.user)
+            else:
+                context['available_balance'] = 0
+        except:
+            context['available_balance'] = 0
         return context
 
 
 class ProviderPayoutListView(LoginRequiredMixin, ListView):
-    """List payout requests for the current service provider"""
+    """List view for provider payouts"""
     model = ProviderPayout
-    template_name = 'core/payments/provider_payout_list.html'
+    template_name = 'core/provider_payout_list.html'
     context_object_name = 'payouts'
     paginate_by = 20
-
+    
     def get_queryset(self):
-        return ProviderPayout.objects.filter(provider=self.request.user).order_by('-created_at')
+        return ProviderPayout.objects.filter(
+            provider=self.request.user
+        ).order_by('-created_at')
 
 
 class ProviderTransactionListView(LoginRequiredMixin, ListView):
-    """List payment transactions for the current service provider"""
+    """List view for provider transactions"""
     model = PaymentTransaction
-    template_name = 'core/payments/transaction_history.html'
+    template_name = 'core/provider_transaction_list.html'
     context_object_name = 'transactions'
     paginate_by = 20
-
+    
     def get_queryset(self):
-        return PaymentTransaction.objects.filter(provider=self.request.user).order_by('-created_at')
+        return PaymentTransaction.objects.filter(
+            provider=self.request.user
+        ).order_by('-created_at')
 
 
-class AdminPayoutManagementView(LoginRequiredMixin, UserPassesTestMixin, ListView):
-    """Admin view for managing all payout requests"""
+class AdminPayoutManagementView(LoginRequiredMixin, ListView):
+    """Admin view for managing all payouts"""
     model = ProviderPayout
-    template_name = 'core/payments/admin_payout_management.html'
+    template_name = 'core/admin_payout_management.html'
     context_object_name = 'payouts'
     paginate_by = 20
-
-    def test_func(self):
-        return self.request.user.is_superuser
-
+    
     def get_queryset(self):
-        queryset = ProviderPayout.objects.all().order_by('-created_at')
-        status_filter = self.request.GET.get('status')
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        return queryset
+        if not self.request.user.is_staff:
+            return ProviderPayout.objects.none()
+        
+        queryset = ProviderPayout.objects.all()
+        
+        # Filter by status
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        return queryset.order_by('-created_at')
 
 
 @login_required
-@user_passes_test(is_admin)
-def approve_payout(request, pk):
+def approve_payout(request, payout_id):
     """Approve a payout request"""
-    payout = get_object_or_404(ProviderPayout, pk=pk)
-    payout.status = 'approved'
-    payout.approved_at = timezone.now()
-    payout.approved_by = request.user
-    payout.save()
-    messages.success(request, 'Payout approved successfully!')
-    return redirect('core:admin_payout_management')
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    payout = get_object_or_404(ProviderPayout, id=payout_id)
+    
+    if payout.status != 'pending':
+        return JsonResponse({'error': 'Payout already processed'}, status=400)
+    
+    try:
+        # Process payout
+        if PaymentProcessingService:
+            result = PaymentProcessingService.process_payout(payout)
+            if result['success']:
+                payout.status = 'approved'
+                payout.processed_at = timezone.now()
+                payout.save()
+                
+                # Create transaction record
+                PaymentTransaction.objects.create(
+                    provider=payout.provider,
+                    transaction_type='payout',
+                    amount=payout.amount,
+                    status='completed',
+                    reference=payout.reference,
+                    description=f'Payout approved - {payout.reference}'
+                )
+                
+                return JsonResponse({'success': True, 'message': 'Payout approved successfully'})
+            else:
+                return JsonResponse({'error': result['message']}, status=400)
+        else:
+            # Fallback processing without payment service
+            payout.status = 'approved'
+            payout.processed_at = timezone.now()
+            payout.save()
+            
+            PaymentTransaction.objects.create(
+                provider=payout.provider,
+                transaction_type='payout',
+                amount=payout.amount,
+                status='completed',
+                reference=payout.reference,
+                description=f'Payout approved - {payout.reference}'
+            )
+            
+            return JsonResponse({'success': True, 'message': 'Payout approved successfully'})
+            
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
-@user_passes_test(is_admin)
-def complete_payout(request, pk):
+def complete_payout(request, payout_id):
     """Mark a payout as completed"""
-    payout = get_object_or_404(ProviderPayout, pk=pk)
-    payout.status = 'completed'
-    payout.completed_at = timezone.now()
-    payout.completed_by = request.user
-    payout.save()
-    messages.success(request, 'Payout marked as completed!')
-    return redirect('core:admin_payout_management')
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    payout = get_object_or_404(ProviderPayout, id=payout_id)
+    
+    if payout.status != 'approved':
+        return JsonResponse({'error': 'Payout must be approved first'}, status=400)
+    
+    try:
+        payout.status = 'completed'
+        payout.completed_at = timezone.now()
+        payout.save()
+        
+        return JsonResponse({'success': True, 'message': 'Payout marked as completed'})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
-@user_passes_test(is_admin)
-def reject_payout(request, pk):
+def reject_payout(request, payout_id):
     """Reject a payout request"""
-    payout = get_object_or_404(ProviderPayout, pk=pk)
-    payout.status = 'rejected'
-    payout.rejected_at = timezone.now()
-    payout.rejected_by = request.user
-    payout.save()
-    messages.success(request, 'Payout rejected!')
-    return redirect('core:admin_payout_management')
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    payout = get_object_or_404(ProviderPayout, id=payout_id)
+    
+    if payout.status != 'pending':
+        return JsonResponse({'error': 'Payout already processed'}, status=400)
+    
+    try:
+        reason = request.POST.get('reason', 'No reason provided')
+        payout.status = 'rejected'
+        payout.rejected_at = timezone.now()
+        payout.rejection_reason = reason
+        payout.save()
+        
+        return JsonResponse({'success': True, 'message': 'Payout rejected'})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
-@user_passes_test(is_admin)
 def generate_monthly_fees(request):
-    """Generate monthly service fees for all providers"""
-    if PaymentProcessingService:
-        try:
-            count = PaymentProcessingService.generate_monthly_fees()
-            messages.success(request, f'Generated {count} monthly service fees!')
-        except Exception as e:
-            messages.error(request, f'Error generating fees: {str(e)}')
-    else:
-        messages.error(request, 'Payment service not available')
-    return redirect('core:system_dashboard')
+    """Generate monthly fees for all providers"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        # Get all active providers
+        providers = User.objects.filter(user_type='service_provider', is_active=True)
+        
+        generated_count = 0
+        for provider in providers:
+            # Calculate monthly fee (example: 10% of earnings)
+            monthly_earnings = ProviderEarnings.objects.filter(
+                provider=provider,
+                created_at__gte=timezone.now() - timedelta(days=30)
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            fee_amount = monthly_earnings * 0.10  # 10% fee
+            
+            if fee_amount > 0:
+                ProviderEarnings.objects.create(
+                    provider=provider,
+                    amount=-fee_amount,  # Negative amount for fee
+                    description=f'Monthly platform fee ({timezone.now().strftime("%B %Y")})',
+                    status='pending'
+                )
+                generated_count += 1
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Generated {generated_count} monthly fees'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 @login_required
-@user_passes_test(is_admin)
 def all_transactions(request):
-    """Admin view of all transactions"""
+    """View all transactions (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('core:home')
+    
     transactions = PaymentTransaction.objects.all().order_by('-created_at')
-    return render(request, 'core/payments/admin_all_transactions.html', {
-        'transactions': transactions
-    })
+    
+    # Pagination
+    paginator = Paginator(transactions, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'total_transactions': transactions.count(),
+        'total_amount': transactions.aggregate(Sum('amount'))['total'] or 0,
+    }
+    
+    return render(request, 'core/all_transactions.html', context)
 
 
 @login_required
-@user_passes_test(is_admin)
 def manage_earnings(request):
-    """Admin view for managing provider earnings"""
+    """Manage earnings for providers (admin view)"""
+    if not request.user.is_staff:
+        messages.error(request, "Access denied.")
+        return redirect('core:home')
+    
     earnings = ProviderEarnings.objects.all().order_by('-created_at')
-    return render(request, 'core/payments/admin_manage_earnings.html', {
-        'earnings': earnings
-    })
+    
+    # Pagination
+    paginator = Paginator(earnings, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'total_earnings': earnings.count(),
+        'total_amount': earnings.aggregate(Sum('amount'))['total'] or 0,
+    }
+    
+    return render(request, 'core/manage_earnings.html', context)
 
 
 @login_required
-def payout_dashboard(request):
-    """Dashboard for payout overview"""
-    user = request.user
-    
-    if user.is_superuser:
-        # Admin dashboard
-        pending_payouts = ProviderPayout.objects.filter(status='requested').count()
-        total_payouts = ProviderPayout.objects.count()
-        recent_payouts = ProviderPayout.objects.all().order_by('-created_at')[:10]
-        
-        context = {
-            'is_admin': True,
-            'pending_payouts': pending_payouts,
-            'total_payouts': total_payouts,
-            'recent_payouts': recent_payouts,
-        }
-    else:
-        # Provider dashboard
-        available_balance = 0
-        if PaymentProcessingService:
-            try:
-                available_balance = PaymentProcessingService.get_provider_balance(user)
-            except:
-                pass
-        
-        pending_payouts = ProviderPayout.objects.filter(
-            provider=user, 
-            status__in=['requested', 'processing', 'approved']
-        ).aggregate(total=Sum('net_amount'))['total'] or 0
-        
-        recent_transactions = []
-        if PaymentProcessingService:
-            try:
-                recent_transactions = PaymentProcessingService.get_provider_transaction_history(user, limit=5)
-            except:
-                pass
-        
-        context = {
-            'is_admin': False,
-            'available_balance': available_balance,
-            'pending_payouts': pending_payouts,
-            'recent_transactions': recent_transactions,
-        }
-    
-    return render(request, 'core/payments/payout_dashboard.html', context)
-
-
-@login_required
-@user_passes_test(is_admin)
 def download_payout_history_csv(request):
     """Download payout history as CSV"""
+    if request.user.user_type != 'service_provider':
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="payout_history.csv"'
     
     writer = csv.writer(response)
-    writer.writerow(['Provider', 'Amount', 'Status', 'Created', 'Completed'])
+    writer.writerow(['Date', 'Amount', 'Status', 'Payment Method', 'Reference'])
     
-    payouts = ProviderPayout.objects.all().order_by('-created_at')
+    payouts = ProviderPayout.objects.filter(provider=request.user).order_by('-created_at')
+    
     for payout in payouts:
         writer.writerow([
-            payout.provider.email,
-            payout.net_amount,
+            payout.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            payout.amount,
             payout.status,
-            payout.created_at,
-            payout.completed_at or ''
+            payout.payment_method,
+            payout.reference
         ])
     
     return response
 
 
 @login_required
-@user_passes_test(is_admin)
 def download_payout_requests_csv(request):
-    """Download payout requests as CSV"""
+    """Download all payout requests as CSV (admin only)"""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="payout_requests.csv"'
     
     writer = csv.writer(response)
-    writer.writerow(['Provider', 'Amount', 'Status', 'Requested', 'Approved'])
+    writer.writerow(['Provider', 'Date', 'Amount', 'Status', 'Payment Method', 'Reference'])
     
-    payouts = ProviderPayout.objects.filter(status='requested').order_by('-created_at')
+    payouts = ProviderPayout.objects.all().order_by('-created_at')
+    
     for payout in payouts:
         writer.writerow([
-            payout.provider.email,
-            payout.net_amount,
+            payout.provider.get_full_name() or payout.provider.email,
+            payout.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            payout.amount,
             payout.status,
-            payout.created_at,
-            payout.approved_at or ''
+            payout.payment_method,
+            payout.reference
         ])
     
     return response
 
 
-# Bulk payment handling with error handling
-class BulkPaymentEFTView(LoginRequiredMixin, UserPassesTestMixin, View):
-    """Handle bulk EFT CSV generation from earnings"""
-    template_name = 'core/payments/admin_payout_management.html'
+class BulkPaymentEFTView(LoginRequiredMixin, View):
+    """Handle bulk EFT payments for providers"""
     
-    def test_func(self):
-        return is_admin(self.request.user)
-    
-    def post(self, request, *args, **kwargs):
-        """Handle bulk actions for EFT CSV generation"""
-        if 'generate_eft_csv' in request.POST:
-            selected_earnings = request.POST.getlist('selected_earnings')
-            
-            if not selected_earnings:
-                messages.error(request, "Please select at least one earning to generate EFT CSV.")
-                return redirect('core:admin_payout_management')
-            
-            # Lazy import to prevent ModuleNotFoundError when Django settings aren't configured
-            try:
-                from core.services.payment_bulk_service import BulkPaymentService
-            except ImportError:
-                BulkPaymentService = None
-            from core.models_payments import ProviderEarnings
-            
-            # Get selected earnings
-            earnings = ProviderEarnings.objects.filter(
-                id__in=selected_earnings,
-                status='available'
-            ).select_related('provider')
-            
-            if not earnings:
-                messages.error(request, "No valid earnings found for EFT processing.")
-                return redirect('core:admin_payout_management')
-            
-            if not BulkPaymentService:
-                messages.error(request, "Bulk payment service not available.")
-                return redirect('core:admin_payout_management')
-            
-            # Generate EFT CSV
-            csv_content, stats = BulkPaymentService.generate_eft_csv_from_earnings(earnings)
-            
-            if csv_content:
-                # Create HTTP response with CSV file
-                from django.http import HttpResponse
-                import datetime
-                
-                response = HttpResponse(csv_content, content_type='text/csv')
-                filename = f"EFT_Payouts_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                response['Content-Disposition'] = f'attachment; filename="{filename}"'
-                
-                messages.success(request, f"EFT CSV generated successfully with {stats['processed_count']} payouts totaling R{stats['total_amount']:.2f}")
-                return response
-            else:
-                messages.error(request, "Failed to generate EFT CSV. Please check the selected earnings have complete bank details.")
-                return redirect('core:admin_payout_management')
+    def get(self, request):
+        if not request.user.is_staff:
+            messages.error(request, "Access denied.")
+            return redirect('core:home')
         
-        return self.get(request)
+        # Get pending payouts
+        pending_payouts = ProviderPayout.objects.filter(status='pending')
+        
+        context = {
+            'pending_payouts': pending_payouts,
+            'total_amount': pending_payouts.aggregate(Sum('amount'))['total'] or 0,
+        }
+        
+        return render(request, 'core/bulk_payment_eft.html', context)
+    
+    def post(self, request):
+        if not request.user.is_staff:
+            return JsonResponse({'error': 'Permission denied'}, status=403)
+        
+        try:
+            payout_ids = request.POST.getlist('payout_ids')
+            
+            if not payout_ids:
+                return JsonResponse({'error': 'No payouts selected'}, status=400)
+            
+            if BulkPaymentService:
+                # Process bulk payments
+                result = BulkPaymentService.process_bulk_eft(payout_ids)
+                
+                if result['success']:
+                    # Update payout statuses
+                    ProviderPayout.objects.filter(
+                        id__in=payout_ids,
+                        status='pending'
+                    ).update(
+                        status='approved',
+                        processed_at=timezone.now()
+                    )
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Processed {len(payout_ids)} bulk payments'
+                    })
+                else:
+                    return JsonResponse({'error': result['message']}, status=400)
+            else:
+                # Fallback processing without bulk service
+                ProviderPayout.objects.filter(
+                    id__in=payout_ids,
+                    status='pending'
+                ).update(
+                    status='approved',
+                    processed_at=timezone.now()
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Approved {len(payout_ids)} payouts (bulk service unavailable)'
+                })
+                
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
