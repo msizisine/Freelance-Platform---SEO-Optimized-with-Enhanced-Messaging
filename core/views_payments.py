@@ -276,3 +276,62 @@ def download_payout_requests_csv(request):
         ])
     
     return response
+
+
+# Bulk payment handling with error handling
+class BulkPaymentEFTView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """Handle bulk EFT CSV generation from earnings"""
+    template_name = 'core/payments/admin_payout_management.html'
+    
+    def test_func(self):
+        return is_admin(self.request.user)
+    
+    def post(self, request, *args, **kwargs):
+        """Handle bulk actions for EFT CSV generation"""
+        if 'generate_eft_csv' in request.POST:
+            selected_earnings = request.POST.getlist('selected_earnings')
+            
+            if not selected_earnings:
+                messages.error(request, "Please select at least one earning to generate EFT CSV.")
+                return redirect('core:admin_payout_management')
+            
+            # Lazy import to prevent ModuleNotFoundError when Django settings aren't configured
+            try:
+                from core.services.payment_bulk_service import BulkPaymentService
+            except ImportError:
+                BulkPaymentService = None
+            from core.models_payments import ProviderEarnings
+            
+            # Get selected earnings
+            earnings = ProviderEarnings.objects.filter(
+                id__in=selected_earnings,
+                status='available'
+            ).select_related('provider')
+            
+            if not earnings:
+                messages.error(request, "No valid earnings found for EFT processing.")
+                return redirect('core:admin_payout_management')
+            
+            if not BulkPaymentService:
+                messages.error(request, "Bulk payment service not available.")
+                return redirect('core:admin_payout_management')
+            
+            # Generate EFT CSV
+            csv_content, stats = BulkPaymentService.generate_eft_csv_from_earnings(earnings)
+            
+            if csv_content:
+                # Create HTTP response with CSV file
+                from django.http import HttpResponse
+                import datetime
+                
+                response = HttpResponse(csv_content, content_type='text/csv')
+                filename = f"EFT_Payouts_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                
+                messages.success(request, f"EFT CSV generated successfully with {stats['processed_count']} payouts totaling R{stats['total_amount']:.2f}")
+                return response
+            else:
+                messages.error(request, "Failed to generate EFT CSV. Please check the selected earnings have complete bank details.")
+                return redirect('core:admin_payout_management')
+        
+        return self.get(request)
