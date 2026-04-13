@@ -12,8 +12,6 @@ celery==5.3.4
 redis==5.0.1
 django-celery-beat==2.5.0
 django-celery-results==2.5.1
-psycopg2-binary==2.9.9
-dj-database-url==2.1.0
 reportlab==4.0.4
 gunicorn==21.2.0
 twilio==8.11.0
