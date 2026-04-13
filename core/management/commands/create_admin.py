@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         email = 'admin@example.com'
-        password = 'admin123'
+        password = 'AdminPass123!@#'  # Stronger password that passes validators
 
         # Delete existing user completely
         User.objects.filter(email=email).delete()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
             user_type='homeowner'
         )
 
-        # Set password explicitly
+        # Set password explicitly (bypasses validators)
         user.set_password(password)
 
         # Save to database
@@ -45,9 +45,9 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(self.style.SUCCESS(f'✓ Superuser created: {email}'))
+        self.stdout.write(self.style.SUCCESS(f'✓ Password: {password}'))
         self.stdout.write(f'  is_active: {user.is_active}')
         self.stdout.write(f'  is_staff: {user.is_staff}')
         self.stdout.write(f'  is_superuser: {user.is_superuser}')
         self.stdout.write(f'  password_works: {password_works}')
-        self.stdout.write(f'  password_hash: {user.password[:50]}...')
         self.stdout.write(self.style.SUCCESS(f'✓ EmailAddress created and verified'))
