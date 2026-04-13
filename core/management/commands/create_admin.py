@@ -7,11 +7,17 @@ class Command(BaseCommand):
     help = 'Create a superuser for admin access'
 
     def handle(self, *args, **options):
-        if not User.objects.filter(email='admin@example.com').exists():
-            User.objects.create_superuser(
-                email='admin@example.com',
-                password='admin123'
-            )
-            self.stdout.write(self.style.SUCCESS('Superuser created successfully'))
-        else:
-            self.stdout.write(self.style.WARNING('Superuser already exists'))
+        email = 'admin@example.com'
+        password = 'admin123'
+
+        # Delete existing user if it exists to ensure clean state
+        User.objects.filter(email=email).delete()
+
+        # Create fresh superuser using the manager's create_superuser method
+        user = User.objects.create_superuser(
+            email=email,
+            password=password
+        )
+
+        self.stdout.write(self.style.SUCCESS(f'Superuser created: {email}'))
+        self.stdout.write(f'User status - is_active: {user.is_active}, is_staff: {user.is_staff}, is_superuser: {user.is_superuser}')
