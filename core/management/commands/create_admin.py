@@ -11,17 +11,32 @@ class Command(BaseCommand):
         email = 'admin@example.com'
         password = 'admin123'
 
-        # Delete existing user if it exists to ensure clean state
+        # Delete existing user completely
         User.objects.filter(email=email).delete()
+        EmailAddress.objects.filter(email=email).delete()
 
-        # Create fresh superuser using the manager's create_superuser method
-        user = User.objects.create_superuser(
+        # Create user without password first
+        user = User(
             email=email,
-            password=password
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+            user_type='homeowner'
         )
 
-        # Create EmailAddress record for allauth
-        EmailAddress.objects.filter(user=user).delete()
+        # Set password explicitly
+        user.set_password(password)
+
+        # Save to database
+        user.save()
+
+        # Refresh from database
+        user.refresh_from_db()
+
+        # Verify password works
+        password_works = user.check_password(password)
+
+        # Create EmailAddress for allauth
         EmailAddress.objects.create(
             user=user,
             email=email,
@@ -29,6 +44,10 @@ class Command(BaseCommand):
             primary=True
         )
 
-        self.stdout.write(self.style.SUCCESS(f'Superuser created: {email}'))
-        self.stdout.write(f'User status - is_active: {user.is_active}, is_staff: {user.is_staff}, is_superuser: {user.is_superuser}')
-        self.stdout.write(f'EmailAddress verified and set as primary')
+        self.stdout.write(self.style.SUCCESS(f'✓ Superuser created: {email}'))
+        self.stdout.write(f'  is_active: {user.is_active}')
+        self.stdout.write(f'  is_staff: {user.is_staff}')
+        self.stdout.write(f'  is_superuser: {user.is_superuser}')
+        self.stdout.write(f'  password_works: {password_works}')
+        self.stdout.write(f'  password_hash: {user.password[:50]}...')
+        self.stdout.write(self.style.SUCCESS(f'✓ EmailAddress created and verified'))
