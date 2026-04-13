@@ -163,11 +163,7 @@ CELERY_TIMEZONE = TIME_ZONE
 INTERNAL_IPS = ['127.0.0.1']
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = [
-    'https://pro4me.up.railway.app',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://pro4me.up.railway.app,http://localhost:8000,http://127.0.0.1:8000', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Communication Settings
 SITE_URL = config('SITE_URL', default='http://localhost:8000')
