@@ -162,10 +162,11 @@ CELERY_TIMEZONE = TIME_ZONE
 
 INTERNAL_IPS = ['127.0.0.1']
 
-# CSRF Settings for browser preview
+# CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:60695',
-    'http://localhost:60695',
+    'https://pro4me.up.railway.app',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
 # Communication Settings
