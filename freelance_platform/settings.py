@@ -1,5 +1,5 @@
 """
-Final Railway settings with all fixes applied
+Railway settings with SQLite database for immediate deployment
 """
 import os
 from pathlib import Path
@@ -11,15 +11,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-producti
 DEBUG = False
 ALLOWED_HOSTS = ['pro4me.up.railway.app', '*.up.railway.app', 'localhost', '127.0.0.1']
 
-# Database - Railway PostgreSQL
+# Database - SQLite for immediate deployment
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'freelance_platform'),
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -67,7 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'freelance_platform.urls'
+ROOT_URLCONF = 'freelance_platform.urls_railway'
 
 TEMPLATES = [
     {
@@ -132,15 +128,13 @@ AUTHENTICATION_BACKENDS = [
 # Site ID
 SITE_ID = 1
 
-# Django Allauth settings - Railway optimized
-ACCOUNT_EMAIL_REQUIRED = True
+# Django Allauth settings - Railway optimized (updated for newer version)
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Prevents redirect loops
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_METHODS = {'email'}  # Updated from ACCOUNT_AUTHENTICATION_METHOD
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Updated from deprecated settings
+ACCOUNT_RATE_LIMITS = {'login_failed': '5/m'}  # Updated from ACCOUNT_LOGIN_ATTEMPTS_LIMIT
 
 # Redirect URLs
 LOGIN_REDIRECT_URL = '/users/dashboard/'
