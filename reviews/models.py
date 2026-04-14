@@ -17,8 +17,8 @@ class Review(models.Model):
     ]
     
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
-    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_given')
-    service_provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_received', null=True, blank=True)
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client_reviews_given')
+    service_provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='service_provider_reviews_received', null=True, blank=True)
     gig = models.ForeignKey('gigs.Gig', on_delete=models.CASCADE)
     
     rating = models.IntegerField(

@@ -810,11 +810,11 @@ footer::before {
                 <div class="footer-section">
                     <h5>Support</h5>
                     <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Safety Tips</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="{% url 'core:help_center' %}">Help Center</a></li>
+                        <li><a href="{% url 'core:safety_tips' %}">Safety Tips</a></li>
+                        <li><a href="{% url 'core:terms_of_service' %}">Terms of Service</a></li>
+                        <li><a href="{% url 'core:privacy_policy' %}">Privacy Policy</a></li>
+                        <li><a href="{% url 'core:contact_us' %}">Contact Us</a></li>
                     </ul>
                 </div>
             </div>

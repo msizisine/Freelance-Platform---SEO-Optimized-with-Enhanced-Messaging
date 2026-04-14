@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block title %}Safety Tips - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+.safety-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.safety-hero {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.safety-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.safety-hero p {
+    font-size: 1.3rem;
+    color: #6c757d;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.safety-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 60px;
+}
+
+.safety-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.safety-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.safety-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.safety-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.safety-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.safety-card li {
+    padding: 0.5rem 0;
+    color: #495057;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.safety-card li:before {
+    content: "check";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    left: 0;
+    color: #28a745;
+}
+
+.emergency-section {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 4rem 0;
+    text-align: center;
+    border-radius: 15px;
+    margin-bottom: 60px;
+}
+
+.emergency-section h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+}
+
+.emergency-section p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+}
+
+.emergency-contacts {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.emergency-contact {
+    background: rgba(255,255,255,0.1);
+    padding: 1.5rem;
+    border-radius: 10px;
+    min-width: 200px;
+}
+
+.emergency-contact h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.emergency-contact p {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.reporting-section {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 60px;
+}
+
+.reporting-section h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.reporting-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.step-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.step-card:hover {
+    background: #e9ecef;
+    transform: translateY(-3px);
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: #007bff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+}
+
+.step-card h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.step-card p {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.btn-emergency {
+    background: white;
+    color: #dc3545;
+    padding: 15px 40px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.btn-emergency:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    color: #dc3545;
+    text-decoration: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="safety-section">
+    <div class="container">
+        <!-- Safety Hero Section -->
+        <div class="safety-hero">
+            <h1>Stay Safe on pro4me</h1>
+            <p>Your safety is our top priority. Follow these guidelines to ensure a secure and positive experience for everyone.</p>
+        </div>
+
+        <!-- Safety Tips Grid -->
+        <div class="safety-grid">
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <h3>For Homeowners</h3>
+                <ul>
+                    <li>Always verify professional credentials before hiring</li>
+                    <li>Check reviews and ratings from previous clients</li>
+                    <li>Meet in public places for initial consultations</li>
+                    <li>Never pay the full amount upfront</li>
+                    <li>Keep all communication on the pro4me platform</li>
+                    <li>Trust your instincts - if something feels off, it probably is</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>For Professionals</h3>
+                <ul>
+                    <li>Complete your profile with accurate information</li>
+                    <li>Verify your credentials and licenses</li>
+                    <li>Be clear about your services and pricing</li>
+                    <li>Meet clients in public spaces first</li>
+                    <li>Document everything with photos and written agreements</li>
+                    <li>Never start work without a confirmed agreement</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>During the Project</h3>
+                <ul>
+                    <li>Communicate regularly and clearly</li>
+                    <li>Take before and after photos</li>
+                    <li>Keep receipts for all materials</li>
+                    <li>Document any changes or issues immediately</li>
+                    <li>Maintain professional boundaries</li>
+                    <li>Follow local regulations and safety standards</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <h3>Payment Safety</h3>
+                <ul>
+                    <li>Use pro4me's secure payment system</li>
+                    <li>Avoid cash payments when possible</li>
+                    <li>Never share banking details directly</li>
+                    <li>Understand the refund policy</li>
+                    <li>Keep all payment receipts</li>
+                    <li>Report any suspicious payment requests</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3>Home Safety</h3>
+                <ul>
+                    <li>Secure valuables before work begins</li>
+                    <li>Ensure proper insurance coverage</li>
+                    <li>Check permits for major renovations</li>
+                    <li>Keep children and pets away from work areas</li>
+                    <li>Verify compliance with building codes</li>
+                    <li>Take photos of the work area before and after</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h3>Online Safety</h3>
+                <ul>
+                    <li>Use strong, unique passwords</li>
+                    <li>Enable two-factor authentication</li>
+                    <li>Never share personal financial information</li>
+                    <li>Be wary of urgent payment requests</li>
+                    <li>Report suspicious messages immediately</li>
+                    <li>Keep your contact information private until needed</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Emergency Section -->
+        <div class="emergency-section">
+            <h2>Emergency Contacts</h2>
+            <p>If you're in immediate danger or need urgent assistance, contact these services:</p>
+            <div class="emergency-contacts">
+                <div class="emergency-contact">
+                    <h4>Police</h4>
+                    <p>10111</p>
+                </div>
+                <div class="emergency-contact">
+                    <h4>Medical Emergency</h4>
+                    <p>10177</p>
+                </div>
+                <div class="emergency-contact">
+                    <h4>Fire Brigade</h4>
+                    <p>10111</p>
+                </div>
+                <div class="emergency-contact">
+                    <h4>pro4me Support</h4>
+                    <p>0800 123 456</p>
+                </div>
+            </div>
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'core:contact_us' %}" class="btn-emergency">
+                    <i class="fas fa-phone me-2"></i>Report Emergency
+                </a>
+                <a href="#" class="btn-emergency">
+                    <i class="fas fa-flag me-2"></i>Flag Suspicious Activity
+                </a>
+            </div>
+        </div>
+
+        <!-- Reporting Section -->
+        <div class="reporting-section">
+            <h2>How to Report Issues</h2>
+            <div class="reporting-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h4>Document Everything</h4>
+                    <p>Take screenshots, save messages, and gather all relevant information about the issue.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h4>Report to pro4me</h4>
+                    <p>Use our reporting system or contact support immediately with detailed information.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h4>Cooperate with Investigation</h4>
+                    <p>Provide any additional information requested and follow up on your report.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h4>Seek Legal Help if Needed</h4>
+                    <p>For serious issues, consider consulting with legal professionals.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Safety Resources -->
+        <div class="safety-grid">
+            <div class="safety-card">
+                <div class="safety-icon" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3>Red Flags to Watch For</h3>
+                <ul>
+                    <li>Requests for payment outside the platform</li>
+                    <li>Pressure to make quick decisions</li>
+                    <li>Vague or inconsistent information</li>
+                    <li>Refusal to provide references</li>
+                    <li>Unusually low prices that seem too good to be true</li>
+                    <li>Requests for sensitive personal information</li>
+                </ul>
+            </div>
+
+            <div class="safety-card">
+                <div class="safety-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3>Best Practices</h3>
+                <ul>
+                    <li>Read reviews from multiple sources</li>
+                    <li>Get multiple quotes for comparison</li>
+                    <li>Ask for proof of insurance and licenses</li>
+                    <li>Have a written agreement for all work</li>
+                    <li>Keep records of all communications</li>
+                    <li>Trust verified professionals with good ratings</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -12,56 +12,10 @@ from django.utils import timezone
 from decimal import Decimal
 from .forms import ServiceProviderProfileForm, HomeownerProfileForm, PortfolioForm, WorkExperienceForm, ProfessionalReferenceForm
 from core.models import Portfolio, WorkExperience, ProfessionalReference, PortfolioImage
-from gigs.models import Gig
+from gigs.models import Gig, JobApplication
 from reviews.models import Review
 from orders.models import Order
 
-@login_required
-def dashboard(request):
-    """User dashboard view with payment functionality for service providers"""
-    user = request.user
-    context = {
-        'user': user,
-        'recent_orders': Order.objects.filter(homeowner=user).order_by('-created_at')[:5],
-        'active_orders': Order.objects.filter(homeowner=user, status='in_progress').count(),
-        'completed_orders': Order.objects.filter(homeowner=user, status='completed').count(),
-        'pending_orders': Order.objects.filter(homeowner=user, status='pending').count(),
-    }
-    
-    # Add payment functionality for service providers
-    if user.user_type == 'service_provider':
-        from core.services.payment_service import PaymentProcessingService
-        from core.models_payments import ProviderEarnings, ProviderPayout, PaymentTransaction
-        
-        # Get payment statistics
-        available_balance = PaymentProcessingService.get_provider_balance(user)
-        recent_transactions = PaymentProcessingService.get_provider_transaction_history(user, limit=5)
-        pending_payouts = ProviderPayout.objects.filter(
-            provider=user, 
-            status__in=['requested', 'processing', 'approved']
-        ).aggregate(total=Sum('net_amount'))['total'] or 0
-        
-        # Get available earnings for immediate payment request
-        available_earnings = ProviderEarnings.objects.filter(
-            provider=user,
-            status='available'
-        ).order_by('-created_at')
-        
-        context.update({
-            'available_balance': available_balance,
-            'recent_transactions': recent_transactions,
-            'pending_payouts': pending_payouts,
-            'available_earnings': available_earnings,
-            'total_earnings': ProviderEarnings.objects.filter(provider=user).aggregate(
-                total=Sum('net_amount')
-            )['total'] or 0,
-            'completed_payouts': ProviderPayout.objects.filter(
-                provider=user, 
-                status='completed'
-            ).aggregate(total=Sum('net_amount'))['total'] or 0,
-        })
-    
-    return render(request, 'users/dashboard.html', context)
 
 User = get_user_model()
 
@@ -102,7 +56,6 @@ class ProfileView(DetailView):
             response_rate = 0
             if total_jobs > 0:
                 # Calculate based on job applications or offers responded to
-                from gigs.models import JobApplication
                 responded_applications = JobApplication.objects.filter(
                     service_provider=user,
                     applied_at__gte=twenty_four_hours_ago,

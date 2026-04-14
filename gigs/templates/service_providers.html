@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load core_tags %}
+
+{% block title %}Service Providers - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+.provider-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.provider-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.provider-rating {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.provider-rating .fas {
+    color: #ffc107;
+    margin-right: 2px;
+}
+
+.provider-rating .far {
+    color: #ffc107;
+    margin-right: 2px;
+    opacity: 0.7;
+}
+
+.search-results-count {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.stats-card h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.stats-card p {
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.filter-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.provider-stats {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.provider-stats strong {
+    color: #495057;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Service Providers</h1>
+                <div class="text-muted">
+                    <strong>{{ providers|length }}</strong> service providers found
+                    {% if search_query or provider_rating_filter or sort_by != 'rating_desc' or category_filter %}
+                        <span class="text-muted">- <a href="{% url 'gigs:service_providers' %}" class="alert-link">clear all filters</a></span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-section">
+                <div class="row">
+                    <!-- Search Bar -->
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" name="search" id="search" class="form-control" 
+                                   placeholder="Search providers..." value="{{ search_query }}">
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div class="col-md-2">
+                        <label for="provider_rating" class="form-label fw-semibold">Min Rating</label>
+                        <select name="provider_rating" id="provider_rating" class="form-select">
+                            <option value="">All Ratings</option>
+                            <option value="4.5" {% if provider_rating_filter == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                            <option value="4.0" {% if provider_rating_filter == '4.0' %}selected{% endif %}>4.0+ Stars</option>
+                            <option value="3.5" {% if provider_rating_filter == '3.5' %}selected{% endif %}>3.5+ Stars</option>
+                            <option value="3.0" {% if provider_rating_filter == '3.0' %}selected{% endif %}>3.0+ Stars</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Sort Filter -->
+                    <div class="col-md-2">
+                        <label for="sort" class="form-label fw-semibold">Sort By</label>
+                        <select name="sort" id="sort" class="form-select">
+                            <option value="avg_rating_desc" {% if sort_by == 'avg_rating_desc' %}selected{% endif %}>Highest Rating</option>
+                            <option value="avg_rating_asc" {% if sort_by == 'avg_rating_asc' %}selected{% endif %}>Lowest Rating</option>
+                            <option value="reviews_desc" {% if sort_by == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
+                            <option value="reviews_asc" {% if sort_by == 'reviews_asc' %}selected{% endif %}>Least Reviews</option>
+                            <option value="jobs_desc" {% if sort_by == 'jobs_desc' %}selected{% endif %}>Most Jobs</option>
+                            <option value="jobs_asc" {% if sort_by == 'jobs_asc' %}selected{% endif %}>Least Jobs</option>
+                            <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <label for="category" class="form-label fw-semibold">Category</label>
+                        <select name="category" id="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results Count -->
+    <div class="search-results-count">
+        <strong>{{ providers|length }}</strong> search result(s)
+        {% if search_query or provider_rating_filter or sort_by != 'rating_desc' or category_filter %}
+            <span class="text-muted">- <a href="{% url 'gigs:service_providers' %}" class="alert-link">clear all filters</a></span>
+        {% endif %}
+    </div>
+
+    <!-- Providers Grid -->
+    <div class="row">
+        {% for provider in providers %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card provider-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">
+                                    <a href="{% url 'users:profile' provider.pk %}" class="text-decoration-none text-dark">
+                                        {{ provider.first_name }} {{ provider.last_name }}
+                                    </a>
+                                </h5>
+                                <p class="text-muted mb-2">{{ provider.email }}</p>
+                            </div>
+                            
+                            {% if provider.avg_rating %}
+                                <div class="provider-rating">
+                                    {% for i in "12345"|slice:":5" %}
+                                        {% if forloop.counter <= provider.avg_rating|floatformat:0 %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1">({{ provider.avg_rating|floatformat:1 }})</span>
+                                    <span class="ms-2 text-muted">({{ provider.total_reviews|default:0 }} reviews)</span>
+                                </div>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                                <span class="text-muted">No rating yet</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="provider-stats">
+                            <p><i class="fas fa-briefcase me-2"></i><strong>{{ provider.completed_jobs|default:0 }}</strong> jobs completed</p>
+                            <p><i class="fas fa-map-marker-alt me-2"></i>{{ provider.profile.location|default:"Location not set" }}</p>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'users:profile' provider.pk %}" class="btn btn-outline-primary w-100">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>No service providers found</strong>
+                        <p class="mb-0">Try adjusting your search criteria or filters to find more providers.</p>
+                        <a href="{% url 'gigs:service_providers' %}" class="btn btn-primary">Browse All Providers</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-center">
+                <h3 class="h4 mb-4">Provider Statistics</h3>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">{{ avg_rating_all|floatformat:1 }}</h4>
+                                <p class="card-text">Average Rating</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">{{ total_providers }}</h4>
+                                <p class="card-text">Total Providers</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">{{ top_rated }}</h4>
+                                <p class="card-text">4.5+ Rated</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

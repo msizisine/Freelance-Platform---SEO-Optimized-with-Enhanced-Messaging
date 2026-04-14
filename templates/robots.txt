@@ -1,28 +1,95 @@
 User-agent: *
+Crawl-delay: 1
+
+# Allow all content by default
 Allow: /
 
 # Block admin and sensitive areas
 Disallow: /admin/
-Disallow: /accounts/
+Disallow: /accounts/password/
+Disallow: /accounts/signup/
 Disallow: /api/
 Disallow: /webhook/
 Disallow: /notifications/
 Disallow: /messages/
 Disallow: /orders/create/
+Disallow: /orders/*/edit/
 Disallow: /gigs/create/
 Disallow: /gigs/*/edit/
 Disallow: /gigs/*/delete/
 Disallow: /gigs/*/apply/
 Disallow: /gigs/*/complete/
 Disallow: /users/*/edit/
+Disallow: /users/*/settings/
 Disallow: /core/admin/
 Disallow: /reviews/create/
+Disallow: /search/saved/
+Disallow: /dashboard/
+Disallow: /profile/edit/
+
+# Block static files and media
+Disallow: /static/
+Disallow: /media/
+Disallow: /.well-known/
+
+# Block Django debug pages
+Disallow: /__debug__/
+
+# Block common bot paths
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /private/
 
 # Allow specific important pages
 Allow: /gigs/
 Allow: /gigs/category/
 Allow: /users/
+Allow: /users/profile/
 Allow: /reviews/
+Allow: /search/
+Allow: /about/
+Allow: /contact/
+Allow: /terms/
+Allow: /privacy/
 
-# Sitemap reference (will be updated by Django)
-Sitemap: https://yourdomain.com/sitemap.xml
+# Allow sitemap and robots
+Allow: /sitemap.xml
+Allow: /robots.txt
+
+# Sitemap references
+Sitemap: https://msizimob.pythonanywhere.com/sitemap.xml
+Sitemap: https://msizimob.pythonanywhere.com/sitemap-providers.xml
+Sitemap: https://msizimob.pythonanywhere.com/sitemap-gigs.xml
+
+# Special rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Block unwanted bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /

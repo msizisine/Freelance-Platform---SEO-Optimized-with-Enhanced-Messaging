@@ -1,0 +1,466 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}pro4me - Find Local Services{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Inline CSS for navbar styling -->
+    <style>
+        .pro4me-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .navbar-brand:hover .pro4me-logo {
+            color: #0056b3;
+        }
+        .mobile-nav-content {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            padding: 0 1rem;
+        }
+        .mobile-nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+        .mobile-nav-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .notification-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            line-height: 0.7;
+        }
+        
+        /* Custom Dropdown Styles */
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .custom-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1000;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+        .custom-dropdown-menu.show {
+            display: block;
+        }
+        .custom-dropdown-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #212529;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+        .custom-dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+            text-decoration: none;
+        }
+        .custom-dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid #dee2e6;
+        }
+        .dropdown-arrow {
+            margin-left: 0.255em;
+            vertical-align: 0.255em;
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-bottom: 0;
+            border-left: 0.3em solid transparent;
+        }
+        
+        /* Hide mobile navigation on desktop */
+        @media (min-width: 992px) {
+            #mobileNav {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 56px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                z-index: 1040;
+                overflow-y: auto;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Mobile-First Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container-fluid px-3">
+            <!-- Pro4me Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
+                <div class="pro4me-logo me-2">pro4me</div>
+            </a>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Desktop Navigation -->
+            <div class="collapse navbar-collapse d-none d-lg-flex" id="desktopNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:home' %}">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        {% if user.user_type == 'homeowner' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item custom-dropdown">
+                                <a class="nav-link" href="#" onclick="toggleDropdown('jobsDropdownMenu'); return false;">
+                                    <i class="fas fa-briefcase me-1"></i>Jobs & Projects
+                                    <span class="dropdown-arrow ms-1"></span>
+                                </a>
+                                <div id="jobsDropdownMenu" class="custom-dropdown-menu">
+                                    <a href="{% url 'gigs:create_quotation_request' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-plus-circle me-2"></i>Request Quotations
+                                    </a>
+                                    <a href="{% url 'orders:create_job' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-hammer me-2"></i>Post Direct Job
+                                    </a>
+                                    <a href="{% url 'gigs:my_jobs' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-list me-2"></i>My Jobs
+                                    </a>
+                                    <a href="{% url 'gigs:my_quotations' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-file-invoice me-2"></i>My Quotations
+                                    </a>
+                                    <a href="{% url 'orders:job_offers_sent' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-paper-plane me-2"></i>Job Offers Sent
+                                    </a>
+                                </div>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'gigs:service_providers' %}">
+                                    <i class="fas fa-users me-1"></i>Find Pros
+                                </a>
+                            </li>
+                        {% else %}
+                            <!-- Service Provider Navigation -->
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'gigs:list' %}">
+                                    <i class="fas fa-search me-1"></i>Find Jobs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'gigs:my_provider_jobs' %}">
+                                    <i class="fas fa-briefcase me-1"></i>My Jobs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'orders:job_offers_received' %}">
+                                    <i class="fas fa-paper-plane me-1"></i>Job Offers
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'gigs:provider_quotations' %}">
+                                    <i class="fas fa-file-invoice me-1"></i>Quotations
+                                </a>
+                            </li>
+                            <li class="nav-item custom-dropdown">
+                                <a class="nav-link" href="#" onclick="toggleDropdown('paymentsDropdownMenu'); return false;">
+                                    <i class="fas fa-hand-holding-usd me-1"></i>Payments
+                                    <span class="dropdown-arrow ms-1"></span>
+                                </a>
+                                <div id="paymentsDropdownMenu" class="custom-dropdown-menu">
+                                    <a href="{% url 'core:bank_account_list' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-university me-2"></i>Bank Accounts
+                                    </a>
+                                    <div class="custom-dropdown-divider"></div>
+                                    <a href="{% url 'core:payout_dashboard' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-chart-line me-2"></i>Payment Dashboard
+                                    </a>
+                                    <a href="{% url 'core:payout_request' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-plus-circle me-2"></i>Request Payout
+                                    </a>
+                                    <a href="{% url 'core:payout_list' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-list me-2"></i>My Payouts
+                                    </a>
+                                    <a href="{% url 'core:provider_earnings' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-coins me-2"></i>My Earnings
+                                    </a>
+                                    <a href="{% url 'core:transaction_history' %}" class="custom-dropdown-item">
+                                        <i class="fas fa-history me-2"></i>Transaction History
+                                    </a>
+                                </div>
+                            </li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'core:system_dashboard' %}">
+                                    <i class="fas fa-cogs me-1"></i>System Config
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'messaging:list' %}">
+                                <i class="fas fa-envelope me-1"></i>Messages
+                                {% if unread_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">{{ unread_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item custom-dropdown">
+                            <a class="nav-link d-flex align-items-center" href="#" onclick="toggleDropdown('userDropdownMenu'); return false;">
+                                <i class="fas fa-user-circle me-1"></i>
+                                <span class="d-none d-md-inline">{{ user.email|truncatechars:15 }}</span>
+                                <span class="dropdown-arrow ms-1"></span>
+                            </a>
+                            <div id="userDropdownMenu" class="custom-dropdown-menu">
+                                <a href="{% url 'users:my_profile' %}" class="custom-dropdown-item">
+                                    <i class="fas fa-user me-2"></i>My Profile
+                                </a>
+                                <a href="{% url 'users:signup_profile_edit' %}" class="custom-dropdown-item edit-profile-btn">
+                                    <i class="fas fa-edit me-2"></i>Edit Profile
+                                </a>
+                                {% if user.user_type == 'homeowner' %}
+                                    <a href="{% url 'reviews:homeowner_reviews' user.pk %}" class="custom-dropdown-item">
+                                        <i class="fas fa-star me-2"></i>My Reviews
+                                    </a>
+                                {% endif %}
+                                <div class="custom-dropdown-divider"></div>
+                                <a href="{% url 'core:custom_logout' %}" class="custom-dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </div>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary ms-2 px-3" href="{% url 'users:signup' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <div class="collapse navbar-collapse" id="mobileNav">
+            <div class="mobile-nav-content">
+                {% if user.is_authenticated %}
+                    <div class="mobile-user-info bg-light p-3 mb-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                            <div>
+                                <div class="fw-bold">{{ user.email|truncatechars:20 }}</div>
+                                <small class="text-muted">{{ user.get_user_type_display }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user.user_type == 'homeowner' %}
+                        <div class="mobile-nav-section">
+                            <div class="section-title">Dashboard</div>
+                            <a href="{% url 'users:dashboard' %}" class="mobile-nav-item">
+                                <i class="fas fa-tachometer-alt me-3"></i>Dashboard
+                            </a>
+                        </div>
+                        
+                        <div class="mobile-nav-section">
+                            <div class="section-title">Jobs & Projects</div>
+                            <a href="{% url 'gigs:create_quotation_request' %}" class="mobile-nav-item">
+                                <i class="fas fa-plus-circle me-3"></i>Request Quotations
+                            </a>
+                            <a href="{% url 'orders:create_job' %}" class="mobile-nav-item">
+                                <i class="fas fa-hammer me-3"></i>Post Direct Job
+                            </a>
+                            <a href="{% url 'gigs:my_jobs' %}" class="mobile-nav-item">
+                                <i class="fas fa-list me-3"></i>My Jobs
+                            </a>
+                            <a href="{% url 'gigs:my_quotations' %}" class="mobile-nav-item">
+                                <i class="fas fa-file-invoice me-3"></i>My Quotations
+                            </a>
+                            <a href="{% url 'orders:job_offers_sent' %}" class="mobile-nav-item">
+                                <i class="fas fa-paper-plane me-3"></i>Job Offers Sent
+                            </a>
+                        </div>
+                        
+                        <div class="mobile-nav-section">
+                            <div class="section-title">Find Professionals</div>
+                            <a href="{% url 'gigs:service_providers' %}" class="mobile-nav-item">
+                                <i class="fas fa-users me-3"></i>Browse Pros
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="mobile-nav-section">
+                            <div class="section-title">For Service Providers</div>
+                            <a href="{% url 'users:dashboard' %}" class="mobile-nav-item">
+                                <i class="fas fa-tachometer-alt me-3"></i>Dashboard
+                            </a>
+                            <a href="{% url 'gigs:list' %}" class="mobile-nav-item">
+                                <i class="fas fa-search me-3"></i>Browse Jobs
+                            </a>
+                            <a href="{% url 'gigs:my_provider_jobs' %}" class="mobile-nav-item">
+                                <i class="fas fa-briefcase me-3"></i>My Jobs
+                            </a>
+                            <a href="{% url 'orders:job_offers_received' %}" class="mobile-nav-item">
+                                <i class="fas fa-paper-plane me-3"></i>Job Offers
+                            </a>
+                            <a href="{% url 'gigs:provider_quotations' %}" class="mobile-nav-item">
+                                <i class="fas fa-file-invoice me-3"></i>Quotations
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    {% if user.is_superuser %}
+                        <div class="mobile-nav-section">
+                            <div class="section-title">Admin</div>
+                            <a href="/admin-providers/" class="mobile-nav-item">
+                                <i class="fas fa-user-check me-3"></i>Verify Providers
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mobile-nav-section">
+                        <div class="section-title">Account</div>
+                        <a href="{% url 'users:my_profile' %}" class="mobile-nav-item">
+                            <i class="fas fa-user me-3"></i>My Profile
+                        </a>
+                        <a href="{% url 'messaging:list' %}" class="mobile-nav-item position-relative">
+                            <i class="fas fa-envelope me-3"></i>Messages
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-danger ms-2">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'core:custom_logout' %}" class="mobile-nav-item text-danger">
+                            <i class="fas fa-sign-out-alt me-3"></i>Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mobile-nav-section">
+                        <a href="{% url 'account_login' %}" class="mobile-nav-item">
+                            <i class="fas fa-sign-in-alt me-3"></i>Login
+                        </a>
+                        <a href="{% url 'users:signup' %}" class="btn btn-primary w-100 mt-3">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <div class="main-panel">
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Dropdown JavaScript -->
+    <script>
+        function toggleDropdown(dropdownId) {
+            // Hide all dropdowns first
+            var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+            dropdowns.forEach(function(dropdown) {
+                if (dropdown.id !== dropdownId) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            // Toggle the clicked dropdown
+            var targetDropdown = document.getElementById(dropdownId);
+            if (targetDropdown) {
+                targetDropdown.classList.toggle('show');
+            }
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.custom-dropdown')) {
+                var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+        
+        // Close dropdowns when pressing Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

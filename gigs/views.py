@@ -635,22 +635,20 @@ def category_gigs(request, name):
     })
 
 def service_providers(request):
-    """Display all service providers"""
+    """Display service providers"""
     from reviews.models import Review
-    from django.db.models import Avg, Count
     
     providers = User.objects.filter(user_type='service_provider').annotate(
-        avg_rating=Avg('reviews_received__rating', default=0),
         total_reviews=Count('reviews_received'),
         completed_jobs=Count('hired_jobs', filter=Q(hired_jobs__job_status='completed'))
     )
     
     # Get filter parameters
     search_query = request.GET.get('search', '').strip()
-    rating_filter = request.GET.get('rating', '')
-    sort_by = request.GET.get('sort', 'rating_desc')
+    provider_rating_filter = request.GET.get('provider_rating', '')
+    sort_by = request.GET.get('sort', 'avg_rating_desc')
     
-    # Apply search filter
+    # Apply search filter first
     if search_query:
         providers = providers.filter(
             Q(first_name__icontains=search_query) |
@@ -660,43 +658,52 @@ def service_providers(request):
             Q(profile__skills__icontains=search_query)
         )
     
-    # Apply rating filter
-    if rating_filter:
-        min_rating = float(rating_filter)
-        providers = providers.filter(avg_rating__gte=min_rating)
+    # Calculate average rating for each provider
+    providers_list = list(providers)
+    for provider in providers_list:
+        reviews = provider.reviews_received.all()
+        if reviews:
+            provider.avg_rating = reviews.aggregate(avg_rating=Avg('rating'))['avg_rating']
+        else:
+            provider.avg_rating = 0
+    
+    # Apply rating filter manually
+    if provider_rating_filter:
+        min_rating = float(provider_rating_filter)
+        providers_list = [p for p in providers_list if p.avg_rating >= min_rating]
     
     # Apply sorting
-    if sort_by == 'rating_asc':
-        providers = providers.order_by('avg_rating')
-    elif sort_by == 'rating_desc':
-        providers = providers.order_by('-avg_rating')
+    if sort_by == 'avg_rating_asc':
+        providers_list.sort(key=lambda x: x.avg_rating)
+    elif sort_by == 'avg_rating_desc':
+        providers_list.sort(key=lambda x: x.avg_rating, reverse=True)
     elif sort_by == 'reviews_asc':
-        providers = providers.order_by('total_reviews')
+        providers_list.sort(key=lambda x: x.total_reviews)
     elif sort_by == 'reviews_desc':
-        providers = providers.order_by('-total_reviews')
+        providers_list.sort(key=lambda x: x.total_reviews, reverse=True)
     elif sort_by == 'jobs_asc':
-        providers = providers.order_by('completed_jobs')
+        providers_list.sort(key=lambda x: x.completed_jobs)
     elif sort_by == 'jobs_desc':
-        providers = providers.order_by('-completed_jobs')
+        providers_list.sort(key=lambda x: x.completed_jobs, reverse=True)
     elif sort_by == 'name_asc':
-        providers = providers.order_by('first_name', 'last_name')
+        providers_list.sort(key=lambda x: f"{x.first_name} {x.last_name}")
     elif sort_by == 'name_desc':
-        providers = providers.order_by('-first_name', '-last_name')
-    else:  # rating_desc (default)
-        providers = providers.order_by('-avg_rating')
+        providers_list.sort(key=lambda x: f"{x.first_name} {x.last_name}", reverse=True)
+    else:  # avg_rating_desc (default)
+        providers_list.sort(key=lambda x: x.avg_rating, reverse=True)
     
     # Calculate statistics
-    total_providers = providers.count()
-    avg_rating_all = providers.aggregate(avg=Avg('avg_rating'))['avg'] or 0
-    top_rated = providers.filter(avg_rating__gte=4.5).count()
+    total_providers = len(providers_list)
+    avg_rating_all = sum(p.avg_rating for p in providers_list) / total_providers if total_providers > 0 else 0
+    top_rated = len([p for p in providers_list if p.avg_rating >= 4.5])
     
     context = {
-        'providers': providers,
+        'providers': providers_list,
         'total_providers': total_providers,
         'avg_rating_all': avg_rating_all,
         'top_rated': top_rated,
         'search_query': search_query,
-        'rating_filter': rating_filter,
+        'provider_rating_filter': provider_rating_filter,
         'sort_by': sort_by,
     }
     
@@ -921,7 +928,11 @@ def my_jobs(request):
         elif status_filter == 'accepted':
             jobs = jobs.filter(job_status='accepted')
         elif status_filter == 'active':
-            jobs = jobs.filter(job_status='active')
+            providers = User.objects.filter(user_type='service_provider')
+            provider_ratings = providers.annotate(avg_rating=Avg('reviews_received__rating', default=0))
+            jobs = jobs.annotate(
+                provider_avg_rating=Subquery(provider_ratings.filter(id=OuterRef('hired_provider_id')).values('avg_rating')[:1], output_field=models.DecimalField(default=0))
+            )
         elif status_filter == 'completed':
             jobs = jobs.filter(job_status='completed')
         elif status_filter == 'cancelled':

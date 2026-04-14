@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ gig.title }} - {{ gig.category.name|title }} Services | pro4me{% endblock %}
 {% block meta_description %}{{ gig.description|truncatewords:30 }}. Budget: R{{ gig.budget_min }}-{{ gig.budget_max }}. Location: {{ gig.location }}. Posted by {{ gig.homeowner.get_full_name|default:gig.homeowner.email }}. Find trusted service providers for your project.{% endblock %}

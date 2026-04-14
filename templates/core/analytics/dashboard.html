@@ -1,0 +1,543 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-container {
+        padding: 20px 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .activity-item {
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .activity-item.review {
+        border-left-color: #28a745;
+    }
+    
+    .activity-item.order {
+        border-left-color: #ffc107;
+    }
+    
+    .activity-date {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .activity-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .metric-item {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .metric-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #007bff;
+    }
+    
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    
+    .progress-ring-circle {
+        transition: stroke-dashoffset 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+    
+    .progress-ring-text {
+        font-size: 1.2rem;
+        font-weight: 700;
+        fill: #007bff;
+    }
+    
+    .date-range-selector {
+        background: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .insight-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .insight-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .insight-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container analytics-container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Analytics Dashboard</h1>
+            <p class="text-muted mb-4">Track your performance and insights</p>
+        </div>
+    </div>
+    
+    <!-- Date Range Selector -->
+    <div class="row">
+        <div class="col-12">
+            <div class="date-range-selector">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" id="dateRange">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Custom Range</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" id="startDate">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Key Metrics -->
+    <div class="row">
+        {% if request.user.user_type == 'service_provider' %}
+            <!-- Provider Metrics -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">R{{ metrics.total_earnings|floatformat:0 }}</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card success">
+                    <div class="stat-number">{{ metrics.average_rating|floatformat:1 }}</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card warning">
+                    <div class="stat-number">{{ metrics.completion_rate|floatformat:0 }}%</div>
+                    <div class="stat-label">Completion Rate</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card info">
+                    <div class="stat-number">{{ metrics.active_gigs }}</div>
+                    <div class="stat-label">Active Gigs</div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Homeowner Metrics -->
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ metrics.total_orders }}</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card success">
+                    <div class="stat-number">R{{ metrics.total_spent|floatformat:0 }}</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card warning">
+                    <div class="stat-number">{{ analytics.profile_views }}</div>
+                    <div class="stat-label">Profile Views</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card info">
+                    <div class="stat-number">{{ analytics.total_reviews }}</div>
+                    <div class="stat-label">Reviews Given</div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Charts and Detailed Metrics -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Earnings Chart (Provider) -->
+            {% if request.user.user_type == 'service_provider' %}
+                <div class="chart-container">
+                    <h5 class="mb-3">Earnings Overview</h5>
+                    <canvas id="earningsChart" height="300"></canvas>
+                </div>
+                
+                <!-- Orders Chart (Homeowner) -->
+                {% else %}
+                <div class="chart-container">
+                    <h5 class="mb-3">Orders Overview</h5>
+                    <canvas id="ordersChart" height="300"></canvas>
+                </div>
+                {% endif %}
+                
+                <!-- Performance Trends -->
+                <div class="chart-container">
+                    <h5 class="mb-3">Performance Trends</h5>
+                    <canvas id="performanceChart" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <!-- Quick Stats -->
+                <div class="chart-container">
+                    <h5 class="mb-3">Quick Stats</h5>
+                    
+                    {% if request.user.user_type == 'service_provider' %}
+                        <div class="metric-item">
+                            <div class="metric-label">Response Rate</div>
+                            <div class="metric-value">{{ analytics.response_rate|floatformat:0 }}%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Avg Response Time</div>
+                            <div class="metric-value">{{ analytics.average_response_time_minutes }} min</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Search Appearances</div>
+                            <div class="metric-value">{{ analytics.search_appearances }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Conversion Rate</div>
+                            <div class="metric-value">{{ analytics.search_conversion_rate|floatformat:0 }}%</div>
+                        </div>
+                    {% else %}
+                        <div class="metric-item">
+                            <div class="metric-label">Avg Order Value</div>
+                            <div class="metric-value">R{{ analytics.average_order_value|floatformat:0 }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Active Projects</div>
+                            <div class="metric-value">{{ metrics.total_orders }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Completed Projects</div>
+                            <div class="metric-value">{{ metrics.total_orders }}</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Messages Sent</div>
+                            <div class="metric-value">--</div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Performance Score -->
+                <div class="chart-container">
+                    <h5 class="mb-3">Performance Score</h5>
+                    <div class="text-center">
+                        <svg class="progress-ring" width="120" height="120">
+                            <circle class="progress-ring-circle"
+                                    stroke="#e9ecef"
+                                    stroke-width="8"
+                                    fill="transparent"
+                                    r="52"
+                                    cx="60"
+                                    cy="60"/>
+                            <circle class="progress-ring-circle"
+                                    stroke="#007bff"
+                                    stroke-width="8"
+                                    fill="transparent"
+                                    r="52"
+                                    cx="60"
+                                    cy="60"
+                                    style="stroke-dasharray: 326.73; stroke-dashoffset: 81.68;"/>
+                            <text class="progress-ring-text"
+                                    x="60"
+                                    y="60"
+                                    text-anchor="middle"
+                                    dy=".3em">75%</text>
+                        </svg>
+                        <p class="mt-2 text-muted">Overall Performance</p>
+                    </div>
+                </div>
+                
+                <!-- Insights -->
+                <div class="chart-container">
+                    <h5 class="mb-3">Insights</h5>
+                    
+                    {% if request.user.user_type == 'service_provider' %}
+                        <div class="insight-card">
+                            <div class="insight-title">Great Performance!</div>
+                            <div class="insight-description">Your completion rate is above average. Keep up the good work!</div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-title">Response Time</div>
+                            <div class="insight-description">Consider improving your response time to get more orders.</div>
+                        </div>
+                    {% else %}
+                        <div class="insight-card">
+                            <div class="insight-title">Active User</div>
+                            <div class="insight-description">You're actively using the platform. Great job!</div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-title">Review Providers</div>
+                            <div class="insight-description">Leave reviews to help others make informed decisions.</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Recent Reviews</h5>
+                {% for review in recent_reviews %}
+                    <div class="activity-item review">
+                        <div class="activity-date">{{ review.created_at|date:"M d, Y" }}</div>
+                        <div class="activity-title">
+                            <i class="fas fa-star text-warning"></i>
+                            {{ review.overall_rating }}/5 - {{ review.title|default:"No Title" }}
+                        </div>
+                        <div class="activity-description">{{ review.comment|truncatewords:15 }}</div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No recent reviews</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">Recent Orders</h5>
+                {% for order in recent_orders %}
+                    <div class="activity-item order">
+                        <div class="activity-date">{{ order.created_at|date:"M d, Y" }}</div>
+                        <div class="activity-title">{{ order.gig.title }}</div>
+                        <div class="activity-description">
+                            Status: <span class="badge bg-{{ order.status|default:"secondary" }}">{{ order.get_status_display|default:order.status }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No recent orders</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js implementation
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.log('Chart.js not loaded, skipping charts');
+        return;
+    }
+    
+    // Earnings Chart (Provider)
+    {% if request.user.user_type == 'service_provider' %}
+    const earningsCtx = document.getElementById('earningsChart');
+    if (earningsCtx) {
+        new Chart(earningsCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Earnings',
+                    data: [1200, 1900, 1500, 2500, 2200, 3000],
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Orders Chart (Homeowner)
+    {% else %}
+    const ordersCtx = document.getElementById('ordersChart');
+    if (ordersCtx) {
+        new Chart(ordersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Orders',
+                    data: [2, 3, 1, 4, 2, 5],
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+    
+    // Performance Trends Chart
+    const performanceCtx = document.getElementById('performanceChart');
+    if (performanceCtx) {
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                datasets: [
+                    {
+                        label: 'Profile Views',
+                        data: [45, 52, 48, 61],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Search Appearances',
+                        data: [28, 35, 42, 38],
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Date range selector
+    const dateRange = document.getElementById('dateRange');
+    if (dateRange) {
+        dateRange.addEventListener('change', function() {
+            // Reload analytics with selected date range
+            location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -25,6 +25,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('users/', include('users.urls')),  # Add custom users routes
     path('', include('core.urls')),
+    path('', include('core.urls_features')),  # Add new features URLs
     path('gigs/', include('gigs.urls')),
     path('orders/', include('orders.urls')),
     path('messages/', include('messaging.urls')),  # Updated to messaging

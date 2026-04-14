@@ -1,5 +1,8 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from .views import HomeView, SearchView, AdminServiceProviderListView, AdminServiceProviderDetailView, verify_service_provider, unverify_service_provider
+from .views_admin import create_superuser_view
+from .views_migrate import run_migrations
 from .views_logout import custom_logout
 from .views_config import (
     SystemConfigurationListView, SystemConfigurationUpdateView,
@@ -84,4 +87,20 @@ urlpatterns = [
     path('admin/bulk-payments/batch/<uuid:pk>/', BatchDetailView.as_view(), name='batch_detail'),
     path('admin/bulk-payments/batch/<uuid:pk>/update/', UpdateBatchStatusView.as_view(), name='update_batch_status'),
     path('admin/bulk-payments/batch/<uuid:pk>/download/', DownloadBatchCSVView.as_view(), name='download_batch_csv'),
-]
+    
+    # Support Pages URLs
+    path('help/', TemplateView.as_view(template_name='core/help_center.html'), name='help_center'),
+    path('safety/', TemplateView.as_view(template_name='core/safety_tips.html'), name='safety_tips'),
+    path('terms/', TemplateView.as_view(template_name='core/terms_of_service.html'), name='terms_of_service'),
+    path('privacy/', TemplateView.as_view(template_name='core/privacy_policy.html'), name='privacy_policy'),
+    path('contact/', TemplateView.as_view(template_name='core/contact_us.html'), name='contact_us'),
+    
+    # PWA URLs
+    path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json'), name='manifest'),
+    path('service-worker.js', TemplateView.as_view(template_name='service-worker.js', content_type='application/javascript'), name='service_worker'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain'), name='robots'),
+    
+    # Temporary: Database setup - REMOVE IN PRODUCTION
+    path('migrate/', run_migrations, name='run_migrations'),
+    
+    ]

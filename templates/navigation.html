@@ -1,0 +1,269 @@
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <div class="container-fluid px-3">
+        <!-- Pro4me Logo -->
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'core:home' %}">
+            <div class="pro4me-logo me-2">pro4me</div>
+        </a>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Desktop Navigation -->
+        <div class="collapse navbar-collapse d-none d-lg-flex" id="desktopNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:home' %}">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                    {% if user.user_type == 'homeowner' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="jobsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-briefcase me-1"></i>Jobs & Projects
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="jobsDropdown">
+                                <li><a class="dropdown-item" href="{% url 'gigs:create_quotation_request' %}">
+                                    <i class="fas fa-plus-circle me-2"></i>Request Quotations
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'orders:create_job' %}">
+                                    <i class="fas fa-hammer me-2"></i>Post Direct Job
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'gigs:my_jobs' %}">
+                                    <i class="fas fa-list me-2"></i>My Jobs
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'gigs:my_quotations' %}">
+                                    <i class="fas fa-file-invoice me-2"></i>My Quotations
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'orders:job_offers_sent' %}">
+                                    <i class="fas fa-paper-plane me-2"></i>Job Offers Sent
+                                </a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gigs:service_providers' %}">
+                                <i class="fas fa-users me-1"></i>Find Pros
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Service Provider Navigation -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gigs:list' %}">
+                                <i class="fas fa-search me-1"></i>Find Jobs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gigs:my_provider_jobs' %}">
+                                <i class="fas fa-briefcase me-1"></i>My Jobs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'orders:job_offers_received' %}">
+                                <i class="fas fa-paper-plane me-1"></i>Job Offers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'gigs:provider_quotations' %}">
+                                <i class="fas fa-file-invoice me-1"></i>Quotations
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="paymentsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-hand-holding-usd me-1"></i>Payments
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="paymentsDropdown">
+                                <li><a class="dropdown-item" href="{% url 'core:bank_account_list' %}">
+                                    <i class="fas fa-university me-2"></i>Bank Accounts
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'core:payout_dashboard' %}">
+                                    <i class="fas fa-chart-line me-2"></i>Payment Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:payout_request' %}">
+                                    <i class="fas fa-plus-circle me-2"></i>Request Payout
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:payout_list' %}">
+                                    <i class="fas fa-list me-2"></i>My Payouts
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:provider_earnings' %}">
+                                    <i class="fas fa-coins me-2"></i>My Earnings
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:transaction_history' %}">
+                                    <i class="fas fa-history me-2"></i>Transaction History
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:system_dashboard' %}">
+                                <i class="fas fa-cogs me-1"></i>System Config
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'messaging:list' %}">
+                            <i class="fas fa-envelope me-1"></i>Messages
+                            {% if unread_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+            
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span class="d-none d-md-inline">{{ user.email|truncatechars:15 }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{% url 'users:my_profile' %}">
+                                <i class="fas fa-user me-2"></i>My Profile
+                            </a></li>
+                            <li><a class="dropdown-item edit-profile-btn" href="{% url 'users:signup_profile_edit' %}">
+                                <i class="fas fa-edit me-2"></i>Edit Profile
+                            </a></li>
+                            {% if user.user_type == 'homeowner' %}
+                                <li><a class="dropdown-item" href="{% url 'reviews:homeowner_reviews' user.pk %}">
+                                    <i class="fas fa-star me-2"></i>My Reviews
+                                </a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'core:custom_logout' %}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2 px-3" href="{% url 'users:signup' %}">Sign Up</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <div class="collapse navbar-collapse" id="mobileNav">
+        <div class="mobile-nav-content">
+            {% if user.is_authenticated %}
+                <div class="mobile-user-info bg-light p-3 mb-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                        <div>
+                            <div class="fw-bold">{{ user.email|truncatechars:20 }}</div>
+                            <small class="text-muted">{{ user.get_user_type_display }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if user.user_type == 'homeowner' %}
+                    <div class="mobile-nav-section">
+                        <div class="section-title">Dashboard</div>
+                        <a href="{% url 'users:dashboard' %}" class="mobile-nav-item">
+                            <i class="fas fa-tachometer-alt me-3"></i>Dashboard
+                        </a>
+                    </div>
+                    
+                    <div class="mobile-nav-section">
+                        <div class="section-title">Jobs & Projects</div>
+                        <a href="{% url 'gigs:create_quotation_request' %}" class="mobile-nav-item">
+                            <i class="fas fa-plus-circle me-3"></i>Request Quotations
+                        </a>
+                        <a href="{% url 'orders:create_job' %}" class="mobile-nav-item">
+                            <i class="fas fa-hammer me-3"></i>Post Direct Job
+                        </a>
+                        <a href="{% url 'gigs:my_jobs' %}" class="mobile-nav-item">
+                            <i class="fas fa-list me-3"></i>My Jobs
+                        </a>
+                        <a href="{% url 'gigs:my_quotations' %}" class="mobile-nav-item">
+                            <i class="fas fa-file-invoice me-3"></i>My Quotations
+                        </a>
+                        <a href="{% url 'orders:job_offers_sent' %}" class="mobile-nav-item">
+                            <i class="fas fa-paper-plane me-3"></i>Job Offers Sent
+                        </a>
+                    </div>
+                    
+                    <div class="mobile-nav-section">
+                        <div class="section-title">Find Professionals</div>
+                        <a href="{% url 'gigs:service_providers' %}" class="mobile-nav-item">
+                            <i class="fas fa-users me-3"></i>Browse Pros
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mobile-nav-section">
+                        <div class="section-title">For Service Providers</div>
+                        <a href="{% url 'users:dashboard' %}" class="mobile-nav-item">
+                            <i class="fas fa-tachometer-alt me-3"></i>Dashboard
+                        </a>
+                        <a href="{% url 'gigs:list' %}" class="mobile-nav-item">
+                            <i class="fas fa-search me-3"></i>Browse Jobs
+                        </a>
+                        <a href="{% url 'gigs:my_provider_jobs' %}" class="mobile-nav-item">
+                            <i class="fas fa-briefcase me-3"></i>My Jobs
+                        </a>
+                        <a href="{% url 'orders:job_offers_received' %}" class="mobile-nav-item">
+                            <i class="fas fa-paper-plane me-3"></i>Job Offers
+                        </a>
+                        <a href="{% url 'gigs:provider_quotations' %}" class="mobile-nav-item">
+                            <i class="fas fa-file-invoice me-3"></i>Quotations
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {% if user.is_superuser %}
+                    <div class="mobile-nav-section">
+                        <div class="section-title">Admin</div>
+                        <a href="/admin-providers/" class="mobile-nav-item">
+                            <i class="fas fa-user-check me-3"></i>Verify Providers
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <div class="mobile-nav-section">
+                    <div class="section-title">Account</div>
+                    <a href="{% url 'users:my_profile' %}" class="mobile-nav-item">
+                        <i class="fas fa-user me-3"></i>My Profile
+                    </a>
+                    <a href="{% url 'messaging:list' %}" class="mobile-nav-item position-relative">
+                        <i class="fas fa-envelope me-3"></i>Messages
+                        {% if unread_count > 0 %}
+                            <span class="badge bg-danger ms-2">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'core:custom_logout' %}" class="mobile-nav-item text-danger">
+                        <i class="fas fa-sign-out-alt me-3"></i>Logout
+                    </a>
+                </div>
+            {% else %}
+                <div class="mobile-nav-section">
+                    <a href="{% url 'account_login' %}" class="mobile-nav-item">
+                        <i class="fas fa-sign-in-alt me-3"></i>Login
+                    </a>
+                    <a href="{% url 'users:signup' %}" class="btn btn-primary w-100 mt-3">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</nav>

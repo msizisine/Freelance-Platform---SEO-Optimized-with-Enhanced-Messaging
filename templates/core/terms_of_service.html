@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+.terms-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.terms-hero {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.terms-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.terms-hero p {
+    font-size: 1.3rem;
+    color: #6c757d;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.terms-content {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.terms-section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #007bff;
+}
+
+.terms-subsection {
+    margin-bottom: 2.5rem;
+}
+
+.terms-subsection h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.terms-subsection h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.terms-subsection p {
+    color: #495057;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.terms-subsection ul {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.terms-subsection li {
+    color: #495057;
+    line-height: 1.8;
+    margin-bottom: 0.5rem;
+}
+
+.important-notice {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 5px;
+}
+
+.important-notice h4 {
+    color: #856404;
+    margin-bottom: 0.5rem;
+}
+
+.important-notice p {
+    color: #856404;
+    margin: 0;
+}
+
+.contact-info {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 5px;
+}
+
+.contact-info h4 {
+    color: #0c5460;
+    margin-bottom: 0.5rem;
+}
+
+.contact-info p {
+    color: #0c5460;
+    margin: 0;
+}
+
+.last-updated {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 3rem;
+}
+
+.table-of-contents {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.table-of-contents h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.table-of-contents ul {
+    list-style: none;
+    padding: 0;
+}
+
+.table-of-contents li {
+    margin-bottom: 0.5rem;
+}
+
+.table-of-contents a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.table-of-contents a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terms-section">
+    <div class="container">
+        <!-- Terms Hero Section -->
+        <div class="terms-hero">
+            <h1>Terms of Service</h1>
+            <p>These terms govern your use of pro4me. By using our platform, you agree to these terms and conditions.</p>
+        </div>
+
+        <div class="terms-content">
+            <!-- Table of Contents -->
+            <div class="table-of-contents">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#acceptance">1. Acceptance of Terms</a></li>
+                    <li><a href="#services">2. Services Description</a></li>
+                    <li><a href="#user-accounts">3. User Accounts</a></li>
+                    <li><a href="#user-conduct">4. User Conduct</a></li>
+                    <li><a href="#payments">5. Payments and Fees</a></li>
+                    <li><a href="#disputes">6. Dispute Resolution</a></li>
+                    <li><a href="#intellectual-property">7. Intellectual Property</a></li>
+                    <li><a href="#privacy">8. Privacy</a></li>
+                    <li><a href="#termination">9. Account Termination</a></li>
+                    <li><a href="#disclaimers">10. Disclaimers</a></li>
+                    <li><a href="#limitation">11. Limitation of Liability</a></li>
+                    <li><a href="#governing-law">12. Governing Law</a></li>
+                </ul>
+            </div>
+
+            <!-- Terms Sections -->
+            <div class="terms-subsection" id="acceptance">
+                <h3 class="terms-section-title">1. Acceptance of Terms</h3>
+                <p>By accessing and using pro4me, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+                <p>These Terms of Service ("Terms") govern your access to and use of the pro4me platform, including any content, functionality, and services offered on or through our website and mobile applications.</p>
+            </div>
+
+            <div class="terms-subsection" id="services">
+                <h3 class="terms-section-title">2. Services Description</h3>
+                <p>pro4me is a platform that connects homeowners with verified service professionals for various home maintenance and improvement services in South Africa.</p>
+                <h4>Platform Services Include:</h4>
+                <ul>
+                    <li>Connecting homeowners with service professionals</li>
+                    <li>Facilitating secure payments through escrow</li>
+                    <li>Providing review and rating systems</li>
+                    <li>Offering messaging and communication tools</li>
+                    <li>Dispute resolution services</li>
+                </ul>
+                <p>We do not employ, recommend, or endorse any service professionals. We are not responsible for the conduct of any user on our platform.</p>
+            </div>
+
+            <div class="terms-subsection" id="user-accounts">
+                <h3 class="terms-section-title">3. User Accounts</h3>
+                <h4>Account Registration:</h4>
+                <ul>
+                    <li>You must be at least 18 years old to create an account</li>
+                    <li>You must provide accurate, current, and complete information</li>
+                    <li>You are responsible for maintaining the confidentiality of your account</li>
+                    <li>You must notify us immediately of any unauthorized use</li>
+                </ul>
+                <h4>Account Types:</h4>
+                <ul>
+                    <li><strong>Homeowner:</strong> Individuals seeking to hire service professionals</li>
+                    <li><strong>Service Provider:</strong> Professionals offering services to homeowners</li>
+                </ul>
+                <div class="important-notice">
+                    <h4>Important Notice</h4>
+                    <p>You may only maintain one account per person. Multiple accounts are strictly prohibited and may result in immediate termination.</p>
+                </div>
+            </div>
+
+            <div class="terms-subsection" id="user-conduct">
+                <h3 class="terms-section-title">4. User Conduct</h3>
+                <p>You agree not to use the service to:</p>
+                <ul>
+                    <li>Violate any applicable laws or regulations</li>
+                    <li>Infringe upon the intellectual property rights of others</li>
+                    <li>Harass, abuse, or harm other users</li>
+                    <li>Submit false, misleading, or inaccurate information</li>
+                    <li>Attempt to gain unauthorized access to our systems</li>
+                    <li>Use the platform for fraudulent or illegal activities</li>
+                    <li>Spam or send unsolicited communications</li>
+                    <li>Discriminate based on race, religion, gender, or other protected characteristics</li>
+                </ul>
+            </div>
+
+            <div class="terms-subsection" id="payments">
+                <h3 class="terms-section-title">5. Payments and Fees</h3>
+                <h4>Service Fees:</h4>
+                <ul>
+                    <li>Homeowners pay a service fee based on the total project value</li>
+                    <li>Service providers pay a commission on completed jobs</li>
+                    <li>All fees are clearly displayed before payment confirmation</li>
+                    <li>Prices are quoted in South African Rand (ZAR)</li>
+                </ul>
+                <h4>Payment Processing:</h4>
+                <ul>
+                    <li>All payments are processed through our secure payment system</li>
+                    <li>Funds are held in escrow until work completion is confirmed</li>
+                    <li>Refunds are subject to our refund policy</li>
+                    <li>We reserve the right to modify our fee structure with 30 days notice</li>
+                </ul>
+            </div>
+
+            <div class="terms-subsection" id="disputes">
+                <h3 class="terms-section-title">6. Dispute Resolution</h3>
+                <p>In the event of a dispute between users:</p>
+                <ul>
+                    <li>First attempt to resolve the issue directly with the other party</li>
+                    <li>If unresolved, contact our support team for mediation</li>
+                    <li>We reserve the right to make final decisions on disputes</li>
+                    <li>Our decisions are binding and final</li>
+                </ul>
+                <p>We are not responsible for resolving disputes related to the quality of work performed. These should be addressed between the homeowner and service provider.</p>
+            </div>
+
+            <div class="terms-subsection" id="intellectual-property">
+                <h3 class="terms-section-title">7. Intellectual Property</h3>
+                <p>The pro4me platform and its original content, features, and functionality are and will remain the exclusive property of pro4me and its licensors.</p>
+                <p>You retain ownership of any content you submit to our platform. However, by submitting content, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, and display such content for the purpose of operating and improving our service.</p>
+            </div>
+
+            <div class="terms-subsection" id="privacy">
+                <h3 class="terms-section-title">8. Privacy</h3>
+                <p>Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the Service, to understand our practices.</p>
+                <p>We collect and use your personal information in accordance with applicable privacy laws and our Privacy Policy.</p>
+            </div>
+
+            <div class="terms-subsection" id="termination">
+                <h3 class="terms-section-title">9. Account Termination</h3>
+                <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+                <p>You may terminate your account at any time by following the instructions in your account settings or by contacting our support team.</p>
+                <p>Upon termination, your right to use the Service will cease immediately. All provisions of the Terms which by their nature should survive termination shall survive.</p>
+            </div>
+
+            <div class="terms-subsection" id="disclaimers">
+                <h3 class="terms-section-title">10. Disclaimers</h3>
+                <div class="important-notice">
+                    <h4>Important Disclaimer</h4>
+                    <p>pro4me is not a party to any agreements between homeowners and service providers. We do not employ, recommend, or endorse any service professionals. We are not responsible for the conduct, quality, or safety of any service performed.</p>
+                </div>
+                <p>Our service is provided on an "AS IS" and "AS AVAILABLE" basis. We make no representations or warranties of any kind, express or implied, as to the operation of our service or the information, content, materials, or products included on this service.</p>
+            </div>
+
+            <div class="terms-subsection" id="limitation">
+                <h3 class="terms-section-title">11. Limitation of Liability</h3>
+                <p>In no event shall pro4me, our directors, employees, partners, agents, suppliers, or affiliates be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the service.</p>
+                <p>Our total liability to you for any cause of action whatsoever, and regardless of the form of the action, will at all times be limited to the amount paid, if any, by you to us for the service during the term of the cause of action.</p>
+            </div>
+
+            <div class="terms-subsection" id="governing-law">
+                <h3 class="terms-section-title">12. Governing Law</h3>
+                <p>These Terms shall be interpreted and governed by the laws of the Republic of South Africa, without regard to its conflict of law provisions.</p>
+                <p>Any disputes arising from these Terms shall be subject to the exclusive jurisdiction of the courts of South Africa.</p>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="contact-info">
+                <h4>Questions About These Terms?</h4>
+                <p>If you have any questions about these Terms of Service, please contact us at legal@pro4me.co.za or through our Contact Us page.</p>
+            </div>
+
+            <div class="last-updated">
+                <p><strong>Last Updated:</strong> April 14, 2026</p>
+                <p>We may update these Terms from time to time. Continued use of our service constitutes acceptance of any changes.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

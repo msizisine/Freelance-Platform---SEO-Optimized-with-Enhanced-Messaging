@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy - pro4me{% endblock %}
+
+{% block extra_css %}
+<style>
+.privacy-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.privacy-hero {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.privacy-hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.privacy-hero p {
+    font-size: 1.3rem;
+    color: #6c757d;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.privacy-content {
+    background: white;
+    border-radius: 15px;
+    padding: 3rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.privacy-section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #007bff;
+}
+
+.privacy-subsection {
+    margin-bottom: 2.5rem;
+}
+
+.privacy-subsection h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.privacy-subsection h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.privacy-subsection p {
+    color: #495057;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.privacy-subsection ul {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.privacy-subsection li {
+    color: #495057;
+    line-height: 1.8;
+    margin-bottom: 0.5rem;
+}
+
+.important-notice {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 5px;
+}
+
+.important-notice h4 {
+    color: #856404;
+    margin-bottom: 0.5rem;
+}
+
+.important-notice p {
+    color: #856404;
+    margin: 0;
+}
+
+.contact-info {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 5px;
+}
+
+.contact-info h4 {
+    color: #0c5460;
+    margin-bottom: 0.5rem;
+}
+
+.contact-info p {
+    color: #0c5460;
+    margin: 0;
+}
+
+.last-updated {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 3rem;
+}
+
+.table-of-contents {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.table-of-contents h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.table-of-contents ul {
+    list-style: none;
+    padding: 0;
+}
+
+.table-of-contents li {
+    margin-bottom: 0.5rem;
+}
+
+.table-of-contents a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.table-of-contents a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.data-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.data-type-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    border-left: 4px solid #007bff;
+}
+
+.data-type-card h4 {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.rights-list {
+    background: #e8f5e8;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.rights-list h4 {
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="privacy-section">
+    <div class="container">
+        <!-- Privacy Hero Section -->
+        <div class="privacy-hero">
+            <h1>Privacy Policy</h1>
+            <p>Your privacy is important to us. This policy explains how we collect, use, and protect your personal information on pro4me.</p>
+        </div>
+
+        <div class="privacy-content">
+            <!-- Table of Contents -->
+            <div class="table-of-contents">
+                <h3>Table of Contents</h3>
+                <ul>
+                    <li><a href="#introduction">1. Introduction</a></li>
+                    <li><a href="#information-collected">2. Information We Collect</a></li>
+                    <li><a href="#how-we-use">3. How We Use Your Information</a></li>
+                    <li><a href="#information-sharing">4. Information Sharing</a></li>
+                    <li><a href="#data-security">5. Data Security</a></li>
+                    <li><a href="#your-rights">6. Your Privacy Rights</a></li>
+                    <li><a href="#cookies">7. Cookies and Tracking</a></li>
+                    <li><a href="#third-party">8. Third-Party Services</a></li>
+                    <li><a href="#data-retention">9. Data Retention</a></li>
+                    <li><a href="#children">10. Children's Privacy</a></li>
+                    <li><a href="#international">11. International Data Transfers</a></li>
+                    <li><a href="#policy-changes">12. Policy Changes</a></li>
+                    <li><a href="#contact">13. Contact Us</a></li>
+                </ul>
+            </div>
+
+            <!-- Privacy Sections -->
+            <div class="privacy-subsection" id="introduction">
+                <h3 class="privacy-section-title">1. Introduction</h3>
+                <p>pro4me ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our services.</p>
+                <p>This policy applies to all users of our platform, including homeowners and service professionals, regardless of their location.</p>
+                <div class="important-notice">
+                    <h4>Important Notice</h4>
+                    <p>By using pro4me, you consent to the collection, use, and sharing of your information as described in this Privacy Policy.</p>
+                </div>
+            </div>
+
+            <div class="privacy-subsection" id="information-collected">
+                <h3 class="privacy-section-title">2. Information We Collect</h3>
+                <p>We collect several types of information to provide and improve our services:</p>
+                
+                <div class="data-types-grid">
+                    <div class="data-type-card">
+                        <h4>Personal Information</h4>
+                        <ul>
+                            <li>Name and contact details</li>
+                            <li>Email address and phone number</li>
+                            <li>Physical address</li>
+                            <li>Date of birth</li>
+                            <li>Profile photos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="data-type-card">
+                        <h4>Account Information</h4>
+                        <ul>
+                            <li>Username and password</li>
+                            <li>User type (homeowner/provider)</li>
+                            <li>Professional credentials</li>
+                            <li>Service categories</li>
+                            <li>Pricing information</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="data-type-card">
+                        <h4>Transaction Data</h4>
+                        <ul>
+                            <li>Payment information</li>
+                            <li>Service requests</li>
+                            <li>Quotes and invoices</li>
+                            <li>Reviews and ratings</li>
+                            <li>Communication history</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="data-type-card">
+                        <h4>Technical Data</h4>
+                        <ul>
+                            <li>IP address</li>
+                            <li>Browser type and version</li>
+                            <li>Device information</li>
+                            <li>Usage patterns</li>
+                            <li>Location data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="privacy-subsection" id="how-we-use">
+                <h3 class="privacy-section-title">3. How We Use Your Information</h3>
+                <p>We use your information for the following purposes:</p>
+                <ul>
+                    <li><strong>Service Provision:</strong> To connect homeowners with service professionals</li>
+                    <li><strong>Account Management:</strong> To create and manage your account</li>
+                    <li><strong>Payment Processing:</strong> To process payments and manage transactions</li>
+                    <li><strong>Communication:</strong> To facilitate communication between users</li>
+                    <li><strong>Verification:</strong> To verify user identities and credentials</li>
+                    <li><strong>Support:</strong> To provide customer support and resolve disputes</li>
+                    <li><strong>Improvement:</strong> To analyze usage patterns and improve our services</li>
+                    <li><strong>Marketing:</strong> To send relevant updates and promotional content</li>
+                    <li><strong>Legal Compliance:</strong> To comply with legal obligations</li>
+                </ul>
+            </div>
+
+            <div class="privacy-subsection" id="information-sharing">
+                <h3 class="privacy-section-title">4. Information Sharing</h3>
+                <p>We may share your information in the following circumstances:</p>
+                <h4>With Other Users:</h4>
+                <ul>
+                    <li>Your profile information is visible to other users</li>
+                    <li>Contact details are shared when you accept a service request</li>
+                    <li>Reviews and ratings are publicly displayed</li>
+                </ul>
+                <h4>With Service Providers:</h4>
+                <ul>
+                    <li>Payment processors for transaction processing</li>
+                    <li>Identity verification services</li>
+                    <li>Cloud hosting providers</li>
+                    <li>Analytics and tracking services</li>
+                </ul>
+                <h4>Legal Requirements:</h4>
+                <ul>
+                    <li>When required by law or legal process</li>
+                    <li>To protect our rights, property, or safety</li>
+                    <li>To prevent fraud or illegal activities</li>
+                </ul>
+            </div>
+
+            <div class="privacy-subsection" id="data-security">
+                <h3 class="privacy-section-title">5. Data Security</h3>
+                <p>We implement appropriate security measures to protect your information:</p>
+                <ul>
+                    <li>SSL/TLS encryption for data transmission</li>
+                    <li>Secure password storage using industry-standard hashing</li>
+                    <li>Regular security audits and vulnerability assessments</li>
+                    <li>Access controls and authentication systems</li>
+                    <li>Employee training on data protection</li>
+                </ul>
+                <div class="important-notice">
+                    <h4>Security Notice</h4>
+                    <p>While we take reasonable precautions to protect your information, no method of transmission over the internet is 100% secure.</p>
+                </div>
+            </div>
+
+            <div class="privacy-subsection" id="your-rights">
+                <h3 class="privacy-section-title">6. Your Privacy Rights</h3>
+                <p>Under applicable privacy laws, you have the following rights:</p>
+                
+                <div class="rights-list">
+                    <h4>Your Rights Include:</h4>
+                    <ul>
+                        <li><strong>Access:</strong> Request access to your personal information</li>
+                        <li><strong>Correction:</strong> Request correction of inaccurate information</li>
+                        <li><strong>Deletion:</strong> Request deletion of your personal information</li>
+                        <li><strong>Portability:</strong> Request transfer of your data</li>
+                        <li><strong>Objection:</strong> Object to processing of your information</li>
+                        <li><strong>Restriction:</strong> Request restriction of processing</li>
+                    </ul>
+                </div>
+                
+                <p>To exercise these rights, please contact us using the information provided in the Contact section below.</p>
+            </div>
+
+            <div class="privacy-subsection" id="cookies">
+                <h3 class="privacy-section-title">7. Cookies and Tracking</h3>
+                <p>We use cookies and similar tracking technologies to:</p>
+                <ul>
+                    <li>Remember your preferences and settings</li>
+                    <li>Analyze website usage and performance</li>
+                    <li>Provide personalized content</li>
+                    <li>Improve user experience</li>
+                </ul>
+                <p>You can control cookies through your browser settings. However, disabling cookies may affect your ability to use certain features of our service.</p>
+            </div>
+
+            <div class="privacy-subsection" id="third-party">
+                <h3 class="privacy-section-title">8. Third-Party Services</h3>
+                <p>Our service integrates with third-party services, including:</p>
+                <ul>
+                    <li><strong>Payment Processors:</strong> Stripe, PayPal for secure payments</li>
+                    <li><strong>Analytics:</strong> Google Analytics for usage analysis</li>
+                    <li><strong>Communication:</strong> Email services for notifications</li>
+                    <li><strong>Verification:</strong> Identity verification services</li>
+                </ul>
+                <p>These third-party services have their own privacy policies and data practices. We are not responsible for their privacy practices.</p>
+            </div>
+
+            <div class="privacy-subsection" id="data-retention">
+                <h3 class="privacy-section-title">9. Data Retention</h3>
+                <p>We retain your information for as long as necessary to:</p>
+                <ul>
+                    <li>Fulfill the purposes for which it was collected</li>
+                    <li>Comply with legal obligations</li>
+                    <li>Resolve disputes and enforce agreements</li>
+                    <li>Fulfill legitimate business interests</li>
+                </ul>
+                <p>When you delete your account, we will delete or anonymize your personal information unless we are required to retain it for legal or legitimate business purposes.</p>
+            </div>
+
+            <div class="privacy-subsection" id="children">
+                <h3 class="privacy-section-title">10. Children's Privacy</h3>
+                <p>Our service is not intended for children under 18 years of age. We do not knowingly collect personal information from children under 18.</p>
+                <p>If we become aware that we have collected personal information from a child under 18, we will take steps to delete such information immediately.</p>
+            </div>
+
+            <div class="privacy-subsection" id="international">
+                <h3 class="privacy-section-title">11. International Data Transfers</h3>
+                <p>Your information may be transferred to and processed in countries other than South Africa. We ensure appropriate safeguards are in place for international data transfers in accordance with applicable privacy laws.</p>
+            </div>
+
+            <div class="privacy-subsection" id="policy-changes">
+                <h3 class="privacy-section-title">12. Policy Changes</h3>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by:</p>
+                <ul>
+                    <li>Posting the updated policy on our website</li>
+                    <li>Sending email notifications for significant changes</li>
+                    <li>Displaying prominent notices on our platform</li>
+                </ul>
+                <p>Your continued use of our service after any changes constitutes acceptance of the updated Privacy Policy.</p>
+            </div>
+
+            <div class="privacy-subsection" id="contact">
+                <h3 class="privacy-section-title">13. Contact Us</h3>
+                <p>If you have any questions about this Privacy Policy or want to exercise your privacy rights, please contact us:</p>
+                
+                <div class="contact-info">
+                    <h4>Privacy Contact Information</h4>
+                    <p><strong>Email:</strong> privacy@pro4me.co.za</p>
+                    <p><strong>Phone:</strong> 0800 123 456</p>
+                    <p><strong>Address:</strong> 123 Main Street, Cape Town, 8000, South Africa</p>
+                </div>
+                
+                <p>We will respond to your inquiry within 30 days of receipt.</p>
+            </div>
+
+            <div class="last-updated">
+                <p><strong>Last Updated:</strong> April 14, 2026</p>
+                <p>This Privacy Policy is effective as of the date last updated and will remain in effect until replaced by a new version.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

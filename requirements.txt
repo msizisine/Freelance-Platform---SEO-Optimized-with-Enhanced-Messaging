@@ -4,7 +4,7 @@ django-allauth==65.15.1
 django-crispy-forms==2.1
 crispy-bootstrap5==0.7
 django-extensions==3.2.3
-Pillow==9.5.0
+Pillow==11.3.0
 python-decouple==3.8
 stripe==7.6.0
 django-taggit==4.0.0

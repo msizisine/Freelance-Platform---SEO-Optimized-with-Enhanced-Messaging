@@ -315,13 +315,13 @@
             
             <!-- Rating Filter -->
             <div class="col-md-2">
-                <label for="rating" class="form-label fw-semibold">Min Rating</label>
-                <select name="rating" id="rating" class="form-select">
+                <label for="provider_rating" class="form-label fw-semibold">Min Rating</label>
+                <select name="provider_rating" id="provider_rating" class="form-select">
                     <option value="">All Ratings</option>
-                    <option value="4.5" {% if rating_filter == '4.5' %}selected{% endif %}>4.5+ Stars</option>
-                    <option value="4.0" {% if rating_filter == '4.0' %}selected{% endif %}>4.0+ Stars</option>
-                    <option value="3.5" {% if rating_filter == '3.5' %}selected{% endif %}>3.5+ Stars</option>
-                    <option value="3.0" {% if rating_filter == '3.0' %}selected{% endif %}>3.0+ Stars</option>
+                    <option value="4.5" {% if provider_rating_filter == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                    <option value="4.0" {% if provider_rating_filter == '4.0' %}selected{% endif %}>4.0+ Stars</option>
+                    <option value="3.5" {% if provider_rating_filter == '3.5' %}selected{% endif %}>3.5+ Stars</option>
+                    <option value="3.0" {% if provider_rating_filter == '3.0' %}selected{% endif %}>3.0+ Stars</option>
                 </select>
             </div>
             
@@ -329,8 +329,8 @@
             <div class="col-md-2">
                 <label for="sort" class="form-label fw-semibold">Sort By</label>
                 <select name="sort" id="sort" class="form-select">
-                    <option value="rating_desc" {% if sort_by == 'rating_desc' %}selected{% endif %}>Highest Rating</option>
-                    <option value="rating_asc" {% if sort_by == 'rating_asc' %}selected{% endif %}>Lowest Rating</option>
+                    <option value="avg_rating_desc" {% if sort_by == 'avg_rating_desc' %}selected{% endif %}>Highest Rating</option>
+                    <option value="avg_rating_asc" {% if sort_by == 'avg_rating_asc' %}selected{% endif %}>Lowest Rating</option>
                     <option value="reviews_desc" {% if sort_by == 'reviews_desc' %}selected{% endif %}>Most Reviews</option>
                     <option value="reviews_asc" {% if sort_by == 'reviews_asc' %}selected{% endif %}>Least Reviews</option>
                     <option value="jobs_desc" {% if sort_by == 'jobs_desc' %}selected{% endif %}>Most Jobs</option>
@@ -370,7 +370,7 @@
     <!-- Search Results Count -->
     <div class="search-results-count">
         <strong>{{ providers|length }}</strong> search result(s)
-        {% if search_query or rating_filter or sort_by != 'rating_desc' or category_filter %}
+        {% if search_query or provider_rating_filter or sort_by != 'avg_rating_desc' or category_filter %}
             <span class="text-muted">- <a href="{% url 'gigs:service_providers' %}" class="alert-link">clear all filters</a></span>
         {% endif %}
     </div>

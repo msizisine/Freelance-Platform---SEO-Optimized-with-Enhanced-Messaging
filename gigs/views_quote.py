@@ -15,9 +15,25 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 
 from .models import Gig, Category
-from .models_quote import QuoteRequest, QuoteResponse, WhatsAppInteraction
-from .whatsapp_flows import WhatsAppFlowManager
-from notifications.services import NotificationService
+# Try to import quote models with better error handling
+try:
+    from .models_quote import QuoteRequest, QuoteResponse, WhatsAppInteraction
+except (ImportError, ModuleNotFoundError):
+    QuoteRequest = None
+    QuoteResponse = None
+    WhatsAppInteraction = None
+
+# Try to import notification service (optional module)
+try:
+    from notifications.services import NotificationService
+except (ImportError, ModuleNotFoundError):
+    NotificationService = None
+
+# Try to import WhatsApp flows (optional module)
+try:
+    from .whatsapp_flows import WhatsAppFlowManager
+except (ImportError, ModuleNotFoundError):
+    WhatsAppFlowManager = None
 
 
 @login_required
@@ -27,6 +43,10 @@ def request_quote_via_whatsapp(request, gig_id):
     
     if request.user.user_type != 'homeowner':
         messages.error(request, "Only homeowners can request quotes.")
+        return redirect('gigs:detail', pk=gig_id)
+    
+    if QuoteRequest is None:
+        messages.error(request, "Quote request system is not available.")
         return redirect('gigs:detail', pk=gig_id)
     
     try:
@@ -42,7 +62,7 @@ def request_quote_via_whatsapp(request, gig_id):
         )
         
         # Send WhatsApp Flow to homeowner
-        if request.user.phone:
+        if request.user.phone and WhatsAppFlowManager:
             result = WhatsAppFlowManager.send_quote_request_flow(
                 request.user.phone,
                 str(quote_request.id),
@@ -50,6 +70,8 @@ def request_quote_via_whatsapp(request, gig_id):
             )
             
             messages.success(request, "Quote request initiated! Check your WhatsApp for the form.")
+        elif not WhatsAppFlowManager:
+            messages.warning(request, "WhatsApp integration is not available. Quote request created without WhatsApp notification.")
         else:
             messages.warning(request, "Please add your phone number to your profile to use WhatsApp quote requests.")
             
@@ -67,6 +89,13 @@ class QuoteRequestListView(LoginRequiredMixin, ListView):
     context_object_name = 'quote_requests'
     paginate_by = 10
     
+    def dispatch(self, request, *args, **kwargs):
+        if QuoteRequest is None:
+            from django.contrib import messages
+            messages.error(request, "Quote request system is not available.")
+            return redirect('gigs:list')
+        return super().dispatch(request, *args, **kwargs)
+    
     def get_queryset(self):
         if self.request.user.user_type == 'homeowner':
             return QuoteRequest.objects.filter(homeowner=self.request.user)
@@ -79,6 +108,13 @@ class QuoteRequestDetailView(LoginRequiredMixin, DetailView):
     model = QuoteRequest
     template_name = 'gigs/quote_request_detail.html'
     context_object_name = 'quote_request'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if QuoteRequest is None:
+            from django.contrib import messages
+            messages.error(request, "Quote request system is not available.")
+            return redirect('gigs:list')
+        return super().dispatch(request, *args, **kwargs)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -204,9 +240,11 @@ def _handle_flow_webhook(data):
         flow_data = data['entry'][0]['changes'][0]['value']['flows'][0]
         
         # Process flow response
-        result = WhatsAppFlowManager.handle_flow_response(flow_data)
-        
-        return JsonResponse(result)
+        if WhatsAppFlowManager:
+            result = WhatsAppFlowManager.handle_flow_response(flow_data)
+            return JsonResponse(result)
+        else:
+            return JsonResponse({'status': 'error', 'message': 'WhatsApp flows not available'}, status=503)
         
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -289,7 +327,7 @@ def resend_quote_request_whatsapp(request, quote_request_id):
         return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
     
     try:
-        if request.user.phone:
+        if request.user.phone and WhatsAppFlowManager:
             result = WhatsAppFlowManager.send_quote_request_flow(
                 request.user.phone,
                 str(quote_request.id),
@@ -297,6 +335,8 @@ def resend_quote_request_whatsapp(request, quote_request_id):
             )
             
             return JsonResponse({'status': 'success', 'message': 'Quote request sent via WhatsApp'})
+        elif not WhatsAppFlowManager:
+            return JsonResponse({'status': 'error', 'message': 'WhatsApp integration not available'}, status=503)
         else:
             return JsonResponse({'status': 'error', 'message': 'No phone number on file'}, status=400)
             
@@ -374,6 +414,9 @@ def request_quote_via_whatsapp_bulk(request):
     if not request.user.phone:
         return JsonResponse({'status': 'error', 'message': 'Please add your phone number to use WhatsApp quote requests'}, status=400)
     
+    if QuoteRequest is None:
+        return JsonResponse({'status': 'error', 'message': 'Quote request system is not available'}, status=503)
+    
     try:
         import json
         data = json.loads(request.body)
@@ -384,7 +427,6 @@ def request_quote_via_whatsapp_bulk(request):
             if not data.get(field):
                 return JsonResponse({'status': 'error', 'message': f'Missing required field: {field}'}, status=400)
         
-        from gigs.models_quote import QuoteRequest
         from django.contrib.auth import get_user_model
         
         User = get_user_model()
@@ -418,26 +460,33 @@ def request_quote_via_whatsapp_bulk(request):
         
         # Send WhatsApp Flow to homeowner
         try:
-            # Send to first quote request as representative
-            result = WhatsAppFlowManager.send_quote_request_flow(
-                request.user.phone,
-                str(quote_requests[0].id),
-                {
-                    'bulk_request': True,
-                    'provider_count': len(providers),
-                    'providers': [p.get_full_name() or p.email for p in providers]
-                }
-            )
-            
-            # Notify service providers
-            for quote_request in quote_requests:
-                WhatsAppFlowManager._notify_service_providers(quote_request)
-            
-            return JsonResponse({
-                'status': 'success', 
-                'message': f'Quote requests sent to {len(providers)} providers via WhatsApp!',
-                'redirect_url': f'/gigs/quotes/list/'
-            })
+            if WhatsAppFlowManager:
+                # Send to first quote request as representative
+                result = WhatsAppFlowManager.send_quote_request_flow(
+                    request.user.phone,
+                    str(quote_requests[0].id),
+                    {
+                        'bulk_request': True,
+                        'provider_count': len(providers),
+                        'providers': [p.get_full_name() or p.email for p in providers]
+                    }
+                )
+                
+                # Notify service providers
+                for quote_request in quote_requests:
+                    WhatsAppFlowManager._notify_service_providers(quote_request)
+                
+                return JsonResponse({
+                    'status': 'success', 
+                    'message': f'Quote requests sent to {len(providers)} providers via WhatsApp!',
+                    'redirect_url': f'/gigs/quotes/list/'
+                })
+            else:
+                return JsonResponse({
+                    'status': 'success', 
+                    'message': f'Quote requests created for {len(providers)} providers. WhatsApp integration not available.',
+                    'redirect_url': f'/gigs/quotes/list/'
+                })
             
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'WhatsApp error: {str(e)}'}, status=500)

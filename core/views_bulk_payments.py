@@ -11,7 +11,12 @@ from django.db.models import Sum
 
 from core.models_payments import ProviderPayout
 from core.models_bulk_payments import PaymentBatch, BulkPaymentSettings
-from core.services.payment_bulk_service import BulkPaymentService
+from core.models import User
+# Lazy import to prevent ModuleNotFoundError when Django settings aren't configured
+try:
+    from core.services.payment_bulk_service import BulkPaymentService
+except (ImportError, ModuleNotFoundError):
+    BulkPaymentService = None
 from core.views import is_admin
 
 
@@ -73,6 +78,10 @@ class GenerateBulkPaymentView(LoginRequiredMixin, UserPassesTestMixin, View):
         # Get selected payouts
         payouts = ProviderPayout.objects.filter(id__in=selected_payouts)
         
+        if not BulkPaymentService:
+            messages.error(request, "Bulk payment service not available.")
+            return redirect('core:bulk_payment_dashboard')
+            
         try:
             if payment_type == 'ewallet':
                 csv_content, stats = BulkPaymentService.generate_ewallet_csv(payouts)

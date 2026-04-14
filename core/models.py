@@ -86,7 +86,7 @@ class ProfessionalReference(models.Model):
 
 
 class Portfolio(models.Model):
-    service_provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolio_items')
+    service_provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolio')
     title = models.CharField(max_length=200)
     description = models.TextField()
     project_url = models.URLField(blank=True, help_text="Link to project (if available)")

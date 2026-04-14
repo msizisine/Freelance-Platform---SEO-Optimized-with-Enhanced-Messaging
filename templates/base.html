@@ -30,17 +30,138 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{% url 'core:manifest' %}">
+    
+    <!-- PWA Theme and Icons -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="pro4me">
+    <link rel="apple-touch-icon" href="/static/images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/icon-16x16.png">
+    
     <!-- Preload critical resources for better performance on cheap phones -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
     
-    <!-- Bootstrap CSS (optimized for mobile) -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome (reduced set for faster loading) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/solid.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/regular.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/brands.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link href="{% static 'css/mobile-optimized.css' %}" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Inline CSS for navbar styling -->
+    <style>
+        .pro4me-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .navbar-brand:hover .pro4me-logo {
+            color: #0056b3;
+        }
+        .mobile-nav-content {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            padding: 0 1rem;
+        }
+        .mobile-nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: #333;
+            text-decoration: none;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+        .mobile-nav-item:hover {
+            background-color: #f8f9fa;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .notification-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.4rem;
+            min-width: 1.2rem;
+            height: 1.2rem;
+            line-height: 0.7;
+        }
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 56px;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                z-index: 1040;
+                overflow-y: auto;
+            }
+        }
+        
+        /* Custom Dropdown Styles */
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .custom-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 1000;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+        .custom-dropdown-menu.show {
+            display: block;
+        }
+        .custom-dropdown-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #212529;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+        .custom-dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+            text-decoration: none;
+        }
+        .custom-dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid #dee2e6;
+        }
+        .dropdown-arrow {
+            margin-left: 0.255em;
+            vertical-align: 0.255em;
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-bottom: 0;
+            border-left: 0.3em solid transparent;
+        }
+        
+        /* Hide mobile navigation on desktop */
+        @media (min-width: 992px) {
+            #mobileNav {
+                display: none !important;
+            }
+        }
+    </style>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -73,27 +194,28 @@
                                     <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                                 </a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="jobsDropdown" role="button" data-bs-toggle="dropdown">
+                            <li class="nav-item custom-dropdown">
+                                <a class="nav-link" href="#" onclick="toggleDropdown('jobsDropdownMenu'); return false;">
                                     <i class="fas fa-briefcase me-1"></i>Jobs & Projects
+                                    <span class="dropdown-arrow ms-1"></span>
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'gigs:create_quotation_request' %}">
+                                <div id="jobsDropdownMenu" class="custom-dropdown-menu">
+                                    <a href="{% url 'gigs:create_quotation_request' %}" class="custom-dropdown-item">
                                         <i class="fas fa-plus-circle me-2"></i>Request Quotations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'orders:create_job' %}">
+                                    </a>
+                                    <a href="{% url 'orders:create_job' %}" class="custom-dropdown-item">
                                         <i class="fas fa-hammer me-2"></i>Post Direct Job
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'gigs:my_jobs' %}">
+                                    </a>
+                                    <a href="{% url 'gigs:my_jobs' %}" class="custom-dropdown-item">
                                         <i class="fas fa-list me-2"></i>My Jobs
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'gigs:my_quotations' %}">
+                                    </a>
+                                    <a href="{% url 'gigs:my_quotations' %}" class="custom-dropdown-item">
                                         <i class="fas fa-file-invoice me-2"></i>My Quotations
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'orders:job_offers_sent' %}">
+                                    </a>
+                                    <a href="{% url 'orders:job_offers_sent' %}" class="custom-dropdown-item">
                                         <i class="fas fa-paper-plane me-2"></i>Job Offers Sent
-                                    </a></li>
-                                </ul>
+                                    </a>
+                                </div>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'gigs:service_providers' %}">
@@ -127,31 +249,32 @@
                                     <i class="fas fa-file-invoice me-1"></i>Quotations
                                 </a>
                             </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="paymentsDropdown" role="button" data-bs-toggle="dropdown">
+                            <li class="nav-item custom-dropdown">
+                                <a class="nav-link" href="#" onclick="toggleDropdown('paymentsDropdownMenu'); return false;">
                                     <i class="fas fa-hand-holding-usd me-1"></i>Payments
+                                    <span class="dropdown-arrow ms-1"></span>
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'core:bank_account_list' %}">
+                                <div id="paymentsDropdownMenu" class="custom-dropdown-menu">
+                                    <a href="{% url 'core:bank_account_list' %}" class="custom-dropdown-item">
                                         <i class="fas fa-university me-2"></i>Bank Accounts
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'core:payout_dashboard' %}">
+                                    </a>
+                                    <div class="custom-dropdown-divider"></div>
+                                    <a href="{% url 'core:payout_dashboard' %}" class="custom-dropdown-item">
                                         <i class="fas fa-chart-line me-2"></i>Payment Dashboard
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'core:payout_request' %}">
+                                    </a>
+                                    <a href="{% url 'core:payout_request' %}" class="custom-dropdown-item">
                                         <i class="fas fa-plus-circle me-2"></i>Request Payout
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'core:payout_list' %}">
+                                    </a>
+                                    <a href="{% url 'core:payout_list' %}" class="custom-dropdown-item">
                                         <i class="fas fa-list me-2"></i>My Payouts
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'core:provider_earnings' %}">
+                                    </a>
+                                    <a href="{% url 'core:provider_earnings' %}" class="custom-dropdown-item">
                                         <i class="fas fa-coins me-2"></i>My Earnings
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'core:transaction_history' %}">
+                                    </a>
+                                    <a href="{% url 'core:transaction_history' %}" class="custom-dropdown-item">
                                         <i class="fas fa-history me-2"></i>Transaction History
-                                    </a></li>
-                                </ul>
+                                    </a>
+                                </div>
                             </li>
                         {% endif %}
                         {% if user.is_superuser %}
@@ -174,28 +297,29 @@
                 
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <li class="nav-item custom-dropdown">
+                            <a class="nav-link d-flex align-items-center" href="#" onclick="toggleDropdown('userDropdownMenu'); return false;">
                                 <i class="fas fa-user-circle me-1"></i>
                                 <span class="d-none d-md-inline">{{ user.email|truncatechars:15 }}</span>
+                                <span class="dropdown-arrow ms-1"></span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'users:my_profile' %}">
+                            <div id="userDropdownMenu" class="custom-dropdown-menu">
+                                <a href="{% url 'users:my_profile' %}" class="custom-dropdown-item">
                                     <i class="fas fa-user me-2"></i>My Profile
-                                </a></li>
-                                <li><a class="dropdown-item edit-profile-btn" href="{% url 'users:signup_profile_edit' %}">
+                                </a>
+                                <a href="{% url 'users:signup_profile_edit' %}" class="custom-dropdown-item edit-profile-btn">
                                     <i class="fas fa-edit me-2"></i>Edit Profile
-                                </a></li>
+                                </a>
                                 {% if user.user_type == 'homeowner' %}
-                                    <li><a class="dropdown-item" href="{% url 'reviews:homeowner_reviews' user.pk %}">
+                                    <a href="{% url 'reviews:homeowner_reviews' user.pk %}" class="custom-dropdown-item">
                                         <i class="fas fa-star me-2"></i>My Reviews
-                                    </a></li>
+                                    </a>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'core:custom_logout' %}">
+                                <div class="custom-dropdown-divider"></div>
+                                <a href="{% url 'core:custom_logout' %}" class="custom-dropdown-item">
                                     <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
-                            </ul>
+                                </a>
+                            </div>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -209,7 +333,7 @@
             </div>
         </div>
         
-        <!-- Mobile Navigation (Bottom Sheet Style) -->
+        <!-- Mobile Navigation -->
         <div class="collapse navbar-collapse" id="mobileNav">
             <div class="mobile-nav-content">
                 {% if user.is_authenticated %}
@@ -328,17 +452,170 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <div class="main-panel">
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
 
-    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Custom JS -->
-    <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Custom Dropdown JavaScript -->
+    <script>
+        function toggleDropdown(dropdownId) {
+            // Hide all dropdowns first
+            var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+            dropdowns.forEach(function(dropdown) {
+                if (dropdown.id !== dropdownId) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            // Toggle the clicked dropdown
+            var targetDropdown = document.getElementById(dropdownId);
+            if (targetDropdown) {
+                targetDropdown.classList.toggle('show');
+            }
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.custom-dropdown')) {
+                var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+        
+        // Close dropdowns when pressing Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                var dropdowns = document.querySelectorAll('.custom-dropdown-menu');
+                dropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+        
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+        
+        // PWA Install Prompt - Enhanced
+        let deferredPrompt;
+        let installButton;
+        
+        // Create install button immediately
+        function createInstallButton() {
+            installButton = document.createElement('button');
+            installButton.textContent = 'Install pro4me App';
+            installButton.className = 'btn btn-primary position-fixed bottom-0 end-0 m-3';
+            installButton.style.zIndex = '9999';
+            installButton.style.display = 'none'; // Initially hidden
+            installButton.onclick = function() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(function(choiceResult) {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                            installButton.style.display = 'none';
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            };
+            document.body.appendChild(installButton);
+        }
+        
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('Install prompt event detected');
+            
+            // Show install button
+            if (!installButton) {
+                createInstallButton();
+            }
+            installButton.style.display = 'block';
+        });
+        
+        // Also show install button after page load (manual trigger)
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                // Always show install button for testing
+                if (!installButton) {
+                    createInstallButton();
+                }
+                installButton.style.display = 'block';
+                installButton.textContent = 'Install pro4me App';
+                installButton.style.backgroundColor = '#007bff';
+                installButton.style.color = 'white';
+                installButton.style.padding = '10px 20px';
+                installButton.style.borderRadius = '5px';
+                installButton.style.border = 'none';
+                installButton.style.cursor = 'pointer';
+                installButton.style.fontWeight = 'bold';
+                
+                console.log('Manual install button created - click to test PWA installation');
+            }, 2000);
+        });
+        
+        // Handle app installed event
+        window.addEventListener('appinstalled', function(evt) {
+            console.log('pro4me app was installed');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+        });
+        
+        // PWA Debugging - Check installation criteria
+        function debugPWAInstallation() {
+            console.log('=== PWA Installation Debug ===');
+            console.log('1. HTTPS:', window.isSecureContext);
+            console.log('2. Service Worker Support:', 'serviceWorker' in navigator);
+            console.log('3. Manifest Support:', 'onbeforeinstallprompt' in window);
+            console.log('4. Current URL:', window.location.href);
+            console.log('5. User Agent:', navigator.userAgent);
+            
+            // Check manifest
+            fetch('/manifest.json')
+                .then(response => response.json())
+                .then(manifest => {
+                    console.log('6. Manifest loaded:', manifest);
+                    console.log('   - Name:', manifest.name);
+                    console.log('   - Icons:', manifest.icons?.length || 0);
+                    
+                    // Check if icons exist
+                    if (manifest.icons) {
+                        manifest.icons.forEach(icon => {
+                            fetch(icon.src)
+                                .then(resp => console.log(`   - Icon ${icon.sizes}: ${resp.status}`))
+                                .catch(() => console.log(`   - Icon ${icon.sizes}: NOT FOUND`));
+                        });
+                    }
+                })
+                .catch(error => console.log('6. Manifest error:', error));
+        }
+        
+        // Run debug on page load
+        window.addEventListener('load', function() {
+            setTimeout(debugPWAInstallation, 1000);
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>
