@@ -1,5 +1,5 @@
 """
-Railway settings based on working PythonAnywhere configuration
+Final Railway settings with all fixes applied
 """
 import os
 from pathlib import Path
@@ -23,7 +23,7 @@ DATABASES = {
     }
 }
 
-# Apps - same as working PythonAnywhere
+# Apps
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,10 +31,10 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 ]
 
 THIRD_PARTY_APPS = [
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -48,15 +48,14 @@ LOCAL_APPS = [
     'gigs',
     'orders',
     'messaging',
+    'notifications',
     'reviews',
     'core',
-    'notifications',
-  
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-# Middleware - same as working PythonAnywhere
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -68,10 +67,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# URLs - use working main URLs
 ROOT_URLCONF = 'freelance_platform.urls'
 
-# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -138,9 +135,9 @@ AUTHENTICATION_BACKENDS = [
 # Site ID
 SITE_ID = 1
 
-# Django Allauth settings - same as working PythonAnywhere
+# Django Allauth settings - Railway optimized
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disabled for Railway to prevent redirect loops
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Prevents redirect loops
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
@@ -156,17 +153,20 @@ LOGOUT_REDIRECT_URL = '/'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
-# Security settings - Railway compatible (no SSL redirect)
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 0  # Disabled for Railway
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
+# Security settings - Railway SSL handling
 SECURE_SSL_REDIRECT = False  # Railway handles SSL
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = False  # Railway handles SSL
 CSRF_COOKIE_SECURE = False  # Railway handles SSL
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+
+# Email backend - console to prevent SMTP errors
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Logging
 LOGGING = {
