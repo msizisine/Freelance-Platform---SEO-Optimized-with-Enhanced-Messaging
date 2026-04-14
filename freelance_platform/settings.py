@@ -129,14 +129,16 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Disabled for development
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+
+# New allauth settings (replacing deprecated ones)
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',  # 5 failed attempts per 5 minutes
+}
 
 # Logout settings
 ACCOUNT_LOGOUT_ON_GET = True
@@ -162,11 +164,8 @@ CELERY_TIMEZONE = TIME_ZONE
 
 INTERNAL_IPS = ['127.0.0.1']
 
-# CSRF Settings for browser preview
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:60695',
-    'http://localhost:60695',
-]
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://pro4me.up.railway.app,http://localhost:8000,http://127.0.0.1:8000', cast=lambda v: [s.strip() for s in v.split(',')])
 
 # Communication Settings
 SITE_URL = config('SITE_URL', default='http://localhost:8000')

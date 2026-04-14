@@ -35,16 +35,6 @@ def is_admin(user):
     return user.is_superuser
 
 
-
-
-
-
-
-
-
-
-
-
 @login_required
 @user_passes_test(is_admin)
 def approve_payout(request, pk):
@@ -358,7 +348,7 @@ class ProviderPayoutCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVi
             messages.error(request, f"An error occurred: {str(e)}")
             return redirect(request.path)
     
-    
+
 
 class ProviderPayoutListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     """List provider's payout requests"""
@@ -582,7 +572,7 @@ class AdminPayoutManagementView(LoginRequiredMixin, UserPassesTestMixin, ListVie
                 messages.success(request, f"EFT CSV generated successfully with {stats['processed_count']} payouts totaling R{stats['total_amount']:.2f}")
                 return response
             else:
-                messages.error(request, "Failed to generate EFT CSV. Please check the selected earnings have complete bank details.")
+                messages.error(request, "Failed to generate EFT CSV. Please check that selected earnings have complete bank details.")
                 return redirect('core:admin_payout_management')
         
         return self.get(request)
