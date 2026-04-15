@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('core.urls')),  # Only include core.urls once
+    path('users/', include('users.urls')),
     path('gigs/', include('gigs.urls')),
     path('orders/', include('orders.urls')),
     path('messages/', include('messaging.urls')),
