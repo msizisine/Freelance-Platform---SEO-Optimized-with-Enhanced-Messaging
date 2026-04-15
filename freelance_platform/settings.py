@@ -75,6 +75,12 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
+# CORS settings for Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://pro4me.up.railway.app',
+    'https://*.up.railway.app',
+]
+
 # URLs - Use main URLs
 ROOT_URLCONF = 'freelance_platform.urls'
 
