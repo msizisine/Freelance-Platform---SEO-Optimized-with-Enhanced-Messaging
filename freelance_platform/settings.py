@@ -131,9 +131,12 @@ SITE_ID = 1
 # Django Allauth settings - Railway optimized (updated for newer version)
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # Prevents redirect loops
 ACCOUNT_LOGIN_METHODS = {'email'}  # Updated from ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}  # Allow both email and username for admin
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'  # Enable username for admin login
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Updated from deprecated settings
+
 ACCOUNT_RATE_LIMITS = {'login_failed': '5/m'}  # Updated from ACCOUNT_LOGIN_ATTEMPTS_LIMIT
 
 # Redirect URLs
