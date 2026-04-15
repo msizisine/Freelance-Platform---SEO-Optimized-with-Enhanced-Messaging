@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'freelance_platform.urls_railway'
+ROOT_URLCONF = 'freelance_platform.urls'
 
 TEMPLATES = [
     {
